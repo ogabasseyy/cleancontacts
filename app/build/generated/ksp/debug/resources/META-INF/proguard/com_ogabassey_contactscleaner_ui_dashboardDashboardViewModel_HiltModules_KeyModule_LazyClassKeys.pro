@@ -1,0 +1,4 @@
+-keep,allowobfuscation,allowshrinking class com.ogabassey.contactscleaner.ui.tools.ExportViewModel
+-keep,allowobfuscation,allowshrinking class com.ogabassey.contactscleaner.ui.tools.ExportViewModel
+-keep,allowobfuscation,allowshrinking class com.ogabassey.contactscleaner.ui.dashboard.DashboardViewModel
+-keep,allowobfuscation,allowshrinking class com.ogabassey.contactscleaner.ui.dashboard.DashboardViewModel

@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.ogabassey.contactscleaner.app-mergeDebugResources-82:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "/Users/mac/.gradle/caches/8.13/transforms/02aca422b2544a254d7c59a169032eee/transformed/material3-release/res/values-v30/values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,2002 @@
+--------- beginning of main
+01-21 22:55:38.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032538
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 391 
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:38.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:38.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:38.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:39.028 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:39.080 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:39.084 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:39.084 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:39.143 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:39.401  1746 14598 I sensors-hal: handle_sns_std_sensor_event:127, [SSC_LIGHT] A: 0(0),c:0,b:0,m:0,cl:0,l:0,s:-1,l0:0,l1:0,s0:0,s1:0,acl:1,opr:0.00,f(r):0,u(bl):0,if:0,wi:0,si:0,0(N:0)
+01-21 22:55:39.445 18017 18315 I GearContacts_ObserverManager: onContactChanged
+01-21 22:55:39.445 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync begins
+01-21 22:55:39.445 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendFrequentlyContactedData
+01-21 22:55:39.448 18017 26726 I GearContacts_DataLayerUtil: node task await result:true
+01-21 22:55:39.448 18017 26726 I GearContacts_SaContactDbSyncManager: no BT connection
+01-21 22:55:39.448 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync is completed
+01-21 22:55:39.450 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:39.478 18017 18336 I GearContacts_ObserverManager: onProfileChanged
+01-21 22:55:39.482 15344 27753 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:39.485 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.486 15344  6322 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:39.488 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.488 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:39.490 15344 26457 I MediaProvider: Deleted 1 0 0 0 0 0 0 items on external_primary due to com.whatsapp.w4b
+01-21 22:55:39.490 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.490 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:39.501 25453 15474 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:39.501 25453 15474 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:39.712 18017 18033 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:39.712 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.712 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:39.712 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:39.712 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:39.712 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.712 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:39.712 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.712 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.712 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.715 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:39.715 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:39.715 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:39.759 11555 11581 I DirectWidgetUpdateRequest: [C] onChange! start DirectWidgetUpdateJobService
+01-21 22:55:39.761 11555  7389 I DirectWidgetUpdateJobService: [C] Command] Work start
+01-21 22:55:39.761 11555  7389 I DirectWidgetUpdateRequest: [C] Enqueue!
+01-21 22:55:39.763 11555 11581 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:39.766 11555  7280 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:39.772 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-freque
+01-21 22:55:39.772 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendCountryIsoData
+01-21 22:55:39.772 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:39.773 18017 18017 I GearContacts_DataLayerUtil: no nodes
+01-21 22:55:39.773 18017 18315 I GearContacts_CountryDetector: getNetworkBasedCountryIso : ng
+01-21 22:55:39.773 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-countr
+01-21 22:55:39.773 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendRoamingStatus
+01-21 22:55:39.773 18017 18315 I GearContacts_SyncDataRoamingStatus: roamingStatus false, localRoamingStatus false
+01-21 22:55:39.773 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:39.773 18017 18017 I GearContacts_DataLayerUtil: no nodes
+--------- beginning of system
+01-21 22:55:39.774 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:39.775 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:39.775 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:39.775 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:39.775 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.775 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.776 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.777 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.778 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.779 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:39.796 11555  7389 I CscFeatureUtil: [C] getOpStyleVariation mOpStyleVariation (CAN)
+01-21 22:55:39.797 12899 13740 D SecContentProvider2: query(), uri = 18 selection = isCopyContactToSimAllowed
+01-21 22:55:39.797 12899 13740 D SecContentProvider2: isCopyContactToSimAllowed = true
+01-21 22:55:39.797 11555  7389 I TelephonyDataSource: [C] getSimState(0) : 5
+01-21 22:55:39.797 11555  7389 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:39.797 11555  7389 I TelephonyDataSource: [C] slotId : 0CSim value : 0
+01-21 22:55:39.797 11555  7389 I SimInfoModel: [C] getMaxSimDbCount(0) : 200
+01-21 22:55:39.797 11555  7389 I SimInfoModel: [C] isSimActivatedEnabled(0) return true : max = 200 EmailDbSupported :false
+01-21 22:55:39.798 11555  7389 I TelephonyDataSource: [C] getSimState(0) : 5
+01-21 22:55:39.798 11555  7389 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:39.798 11555  7389 I TelephonyDataSource: [C] slotId : 0CSim value : 0
+01-21 22:55:39.798 11555  7389 I SimInfoModel: [C] getMaxSimDbCount(0) : 200
+01-21 22:55:39.798 11555  7389 I SimInfoModel: [C] isSimActivatedEnabled(0) return true : max = 200 EmailDbSupported :false
+01-21 22:55:39.798 11555  7389 I EsimUtil: [C] esimState MEP : Finally not esim, slot = 0
+01-21 22:55:39.798 11555  7389 I CmcSettingManager: cmc activation : 0
+01-21 22:55:39.798 12899 13740 D SecContentProvider2: query(), uri = 18 selection = isCopyContactToSimAllowed
+01-21 22:55:39.798 12899 13740 D SecContentProvider2: isCopyContactToSimAllowed = true
+01-21 22:55:39.799 11555  7389 I TelephonyDataSource: [C] getSimState(1) : 6
+01-21 22:55:39.799 11555  7389 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:39.799 11555  7389 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:39.799 11555  7389 I TelephonyDataSource: [C] getSimState(1) : 6
+01-21 22:55:39.799 11555  7389 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:39.800 11555  7389 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:39.800 11555  7389 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:39.800 11555  7389 I SimInfoModel: [C] getMaxSimDbCount(1) : -1
+01-21 22:55:39.800 11555  7389 I AccountTypeModel: [C] exclude:true |SIM2:deactivated,unready
+01-21 22:55:39.800 11555  7389 I ContactSettingSearchProvider: [C] requestIndexingIfRequired isIndexingRequired:false
+01-21 22:55:39.800 11555  7389 I DirectWidgetUpdateRequest: [C] Enqueue!
+01-21 22:55:39.800 11555  7389 I DirectWidgetUpdateJobService: [C] Command] jobFinished is called count : 0
+01-21 22:55:39.800 11555  7279 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:39.891 25453 25458 I om.whatsapp.w4b: Background concurrent mark compact GC freed 119MB AllocSpace bytes, 14(528KB) LOS objects, 10% free, 408MB/456MB, paused 785us,310.735ms total 4.864s
+01-21 22:55:39.898 15344 27753 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:39.901 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:39.912 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:39.914 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:39.914 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:39.962 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:39.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032539
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 391 
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:39.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:39.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:39.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:40.260 15344 15695 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:40.262 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.266 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:40.306 15344 17100 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:40.310 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.310 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:40.386 12899 13447 I SemWifiServiceDetector: NSD results: [0, 1, 2, 0, 0, 1, 2, 1, 0] Traff. type 2 Thr 258
+01-21 22:55:40.389 12899 13176 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:40.390 12899 13740 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:40.391 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:40.391 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:40.391 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:40.612 18017 18033 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:40.612 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:40.612 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.612 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.612 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.612 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:40.612 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:40.612 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.612 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:40.612 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:40.612 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:40.613 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:40.613 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:40.639 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:40.639 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:40.640 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:40.640 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:40.640 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.640 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.641 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.642 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.643 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:40.766 11555 11573 I DirectWidgetUpdateRequest: [C] try register JOB again
+01-21 22:55:40.767 11555 11573 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:40.800 11555 11574 I DirectWidgetUpdateRequest: [C] try register JOB again
+01-21 22:55:40.801 11555 11574 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:40.812 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:40.813 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:40.813 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:40.861  1112  1112 D io_stats: !@   8,0 r 48909389 439408888 w 14825019 173990104 d 2048776 83630656 f 4432 22806 iot 4515532 0 th 0 0 0 pt 0 inp 0 0 93044.398
+01-21 22:55:40.864 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:40.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032540
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 391 
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:40.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:40.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:40.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:41.018 25453 25484 W om.whatsapp.w4b: Long monitor contention with owner ReceiptProcessingThread (26403) at boolean android.os.MessageQueue.enqueueMessageLegacy(android.os.Message, long)(MessageQueue.java:1488) waiters=0 in android.os.Message android.os.MessageQueue.nextLegacy() for 306ms
+01-21 22:55:41.024 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:41.027 15344 17100 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:41.028 12899 13176 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.072 15344 32029 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:41.077 15344 32029 W SQLiteLog: (28) walCheckpoint: eMode(0), mxFrame(273), nBackfill(273), /data/data/com.google.android.providers.media.module/databases/external.db-wal taking (3) ms
+01-21 22:55:41.077 12899 13176 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.078 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:41.081 12899 13053 I ActivityManager: Changes in 10053 15 to 11, 0 to 128
+01-21 22:55:41.081  2229  2229 I BadgeCountReceiver: onReceive: Intent { act=android.intent.action.BADGE_COUNT_UPDATE flg=0x1000010 xflg=0x4 cmp=com.sec.android.provider.badge/.BadgeCountReceiver (has extras) }
+01-21 22:55:41.081  2229 24384 I BadgeCountReceiver: UpdateTask START: PendingResult hashCode: 234963438
+01-21 22:55:41.081  2229 24384 I BadgeCountReceiver: packageName: com.whatsapp.w4b, className: com.whatsapp.Main, count: 98
+01-21 22:55:41.081  2229 24384 I BadgeProvider: sendNotify [uri]: content://com.sec.badge/apps, [notify]: null
+01-21 22:55:41.081  2229 24384 I BadgeProvider: update, [calling package]: com.sec.android.provider.badge, [uri]: content://com.sec.badge/apps, [uri.query]: null, [BadgeCount]: badgecount=98, [UpdateCount]: 1
+01-21 22:55:41.081  2229 24384 I BadgeCountReceiver: UpdateTask END: PendingResult hashCode: 234963438
+01-21 22:55:41.082 12899 13176 I ActivityManager: Changes in 10053 11 to 15, 128 to 0
+01-21 22:55:41.082 12899 15290 I ActivityManager: Changes in 10053 15 to 5, 0 to 144
+01-21 22:55:41.083 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:41.085 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:41.090  2229  7762 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+01-21 22:55:41.092 12899 15290 I ActivityManager: Changes in 15010053 15 to 5, 0 to 144
+01-21 22:55:41.092 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:41.093  2244 15786 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+01-21 22:55:41.094  2229  7762 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+01-21 22:55:41.095  2244 15786 I BadgeProvider: query, [calling package]: com.sec.android.app.launcher, [selection]: null
+01-21 22:55:41.324 13563 14168 D PhoneInterfaceManager: setDataEnabledForReason() Reason=1 Pid=12899 App=system
+01-21 22:55:41.448 15344  6322 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:41.452 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.479 18017 18338 I GearContacts_DelayedMessageHandlerCallback: onCompleted! : onProfileDataChange
+01-21 22:55:41.479 18017 18338 I GearContacts_MessageHandlerCallbackImpl: onProfileDataChange
+01-21 22:55:41.481 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:41.490 18017 18017 I GearContacts_DataLayerUtil: no bt connection!
+01-21 22:55:41.529 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:41.529 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:41.529 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:41.529 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:41.529 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:41.529 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:41.529 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.529 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:41.529 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.529 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.530 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.530 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.530 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:41.530 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:41.530 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:41.530 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:41.530 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:41.531 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.531 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.532 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.533 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:41.730 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:41.731 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:41.731 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:41.778 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:41.796 12554 13178 I thermal_core: pivot(AP) : 548, skin : 415
+01-21 22:55:41.823 12542 12567 D AHAL_ModulePrimary_QTI: getVendorParameters: id count: 1
+01-21 22:55:41.823 12542 12567 I PAL: ResourceManager: getActiveStream_l: 6569: no active streams found for device 3 ret -2
+01-21 22:55:41.823 12542 12567 D AHAL_SecModulePrimary: onGetSECGenericParameters get temperature for g_hw_speaker_amp_temp_rcv: 0
+01-21 22:55:41.823 12542 12715 D AHAL_ModulePrimary_QTI: getVendorParameters: id count: 1
+01-21 22:55:41.823 12542 12715 I PAL: ResourceManager: getActiveStream_l: 6569: no active streams found for device 3 ret -2
+01-21 22:55:41.823 12542 12715 D AHAL_SecModulePrimary: onGetSECGenericParameters get temperature for g_hw_speaker_amp_temp_spk: 0
+01-21 22:55:41.823 15514 16287 I SDHMS:x : SIOP:: AP:548 BAT:393 USB:348 CHG:508 PA:526 WIFI:473 CF:442 BLK:0 SUBBAT:0 LRPTHM:416 SKIN:420 SKINF:420 SKINB:414 LRP:420 LRF:420 LRB:414 APT:420 APR:414 RCV:407 SPK:338 CHGF:417 CHGR:409 MEMF:419 MEMR:414 WIFIF:414 WIFIR:409 FCAM:346 UPSPK:413 DNSPK:345 VAP:537 VWIFI:467 AMB2:251 HIGH:0 AVGCUR:-314 AVGSYS:1228 POWER:-1365
+01-21 22:55:41.825 12899 12899 D SemWifiP2pGoPowerSave: GopsReceiver : received : com.samsung.intent.action.CHECK_SIOP_LEVEL
+01-21 22:55:41.826 12899 12899 I SemWifiP2pGoPowerSave: siop_level = 3
+01-21 22:55:41.826 15514 16287 I AudioManager: setParameters keyValuePairs = g_hw_speaker_amp_temp_spk=34
+01-21 22:55:41.827 12535 22417 D AudioFlinger: setParameters: filtered dev setParameters keyvalue g_hw_speaker_amp_temp_spk=34
+01-21 22:55:41.827 12542 12567 D AHAL_HFP_QTI: hfp_set_parameters enter
+01-21 22:55:41.827 12542 12567 D AHAL_HFP_QTI: hfp_set_parameters Exit
+01-21 22:55:41.827 12542 12567 D AHAL_SecModulePrimary: processSetVendorParameters: configured g_hw_speaker_amp_temp_spk
+01-21 22:55:41.827 12542 12567 D AHAL_SecModulePrimary: processSetVendorParameters: handler set on Feature:0
+01-21 22:55:41.827 12542 12567 D AHAL_SecModulePrimary: onSetSECGenericParameters set temperature for g_hw_speaker_amp_temp_spk: 34
+01-21 22:55:41.827 12542 12567 I PAL: API: pal_set_param: 1377: Enter: param id 3002
+01-21 22:55:41.827 12542 12567 I PAL: ResourceManager: getActiveStream_l: 6569: no active streams found for device 3 ret -2
+01-21 22:55:41.827  1746  1746 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+01-21 22:55:41.827 12535 22417 E ConversionHelperAidl: Function: parseAndSetVendorParameters Line: 94 Failed 
+01-21 22:55:41.827 12535 22417 E ConversionHelperAidl: Function: parseAndSetVendorParameters Line: 94 Failed 
+01-21 22:55:41.828  1746  1746 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 1
+01-21 22:55:41.828 15514 16287 I AudioManager: setParameters keyValuePairs = g_hw_speaker_amp_temp_rcv=41
+01-21 22:55:41.828 12535 22417 D AudioFlinger: setParameters: filtered dev setParameters keyvalue g_hw_speaker_amp_temp_rcv=41
+01-21 22:55:41.828 12542 12567 D AHAL_HFP_QTI: hfp_set_parameters enter
+01-21 22:55:41.828  1746 15791 D SensorsFlicker: Als_common::sendCommand, send enable command
+01-21 22:55:41.828 12542 12567 D AHAL_HFP_QTI: hfp_set_parameters Exit
+01-21 22:55:41.828 12542 12567 D AHAL_SecModulePrimary: processSetVendorParameters: configured g_hw_speaker_amp_temp_rcv
+01-21 22:55:41.828 12542 12567 D AHAL_SecModulePrimary: processSetVendorParameters: handler set on Feature:0
+01-21 22:55:41.828 12542 12567 D AHAL_SecModulePrimary: onSetSECGenericParameters set temperature for g_hw_speaker_amp_temp_rcv: 41
+01-21 22:55:41.828 12542 12567 I PAL: API: pal_set_param: 1377: Enter: param id 3001
+01-21 22:55:41.828 12542 12567 I PAL: ResourceManager: getActiveStream_l: 6569: no active streams found for device 3 ret -2
+01-21 22:55:41.828 12535 22417 E ConversionHelperAidl: Function: parseAndSetVendorParameters Line: 94 Failed 
+01-21 22:55:41.828 12535 22417 E ConversionHelperAidl: Function: parseAndSetVendorParameters Line: 94 Failed 
+01-21 22:55:41.829 12899 13476 D SemContextService: lock : registerCallback
+01-21 22:55:41.829 12899 13476 W CAE     : registerCallback(ContextAwareService.java:188) - [regi 01] Mutex is locked for TEST_FLAT_MOTION
+01-21 22:55:41.829 12899 13476 W CAE     : registerCallback(ContextAwareService.java:195) - [regi 04]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@5fc718f
+01-21 22:55:41.829 12899 13476 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@5fc718f
+01-21 22:55:41.829 12899 13476 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee
+01-21 22:55:41.829 12899 13476 V CAE     : start(ContextProvider.java:128)
+01-21 22:55:41.829 12899 13476 V CAE     : clear(TestFlatMotionRunner.java:126)
+01-21 22:55:41.829 12899 13476 V CAE     : enable(TestFlatMotionRunner.java:102)
+01-21 22:55:41.830 12899 13296 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+01-21 22:55:41.830 12899 13296 D SensorService: setSContextDataLocked 17b1
+01-21 22:55:41.830  1746  1746 I sensors-hal: inject_sensor_data:412, handle 1502 send inject
+01-21 22:55:41.830  1746  1746 I sensors-hal: sendContextData:303, sensor hal 4, (0xb1, 0x17, 0x0, 0x0)
+01-21 22:55:41.830  1746  1746 I sensors-hal: updateActiveSensors:390, enable:177, handle:8, algo:26279952
+01-21 22:55:41.830  1746  1746 I sensors-hal: is_restrict_mode:161, mode:normal
+01-21 22:55:41.830  1746  1746 I sensors-hal: sendContextData:108, device_position 4
+01-21 22:55:41.830  1746  1746 I sensors-hal: acquire_qsh_interface:140, acquire_qsh_interface with sensor_id 48 , conn_type 2 
+01-21 22:55:41.830  1746  1746 I sensors-hal: acquire_qsh_interface:150, returning _shared_instance[SHARED_SENSORHUBS].conn
+01-21 22:55:41.830  1746  1746 I sensors-hal: acquire_shared_instance:174, re-use existing connection for type 2 
+01-21 22:55:41.830  1746  1746 I sensors-hal: create_sensor_config_request:48, device_position create_sensor_config_request
+01-21 22:55:41.830  1746  1746 I sensors-hal: send_sensor_config_request:652, dt=device_position: convert sample_period=0 to batch_period=0
+01-21 22:55:41.830  1746  1746 I sensors-hal: send_sync_sensor_request:515, send sync request
+01-21 22:55:41.830  1746  1746 I sensors-hal: send_sync_sensor_request:544, wait for notification of response
+01-21 22:55:41.832  1746  3618 I sensors-hal: qsh_conn_resp_cb:972, resp_value = 0 for device_position 
+01-21 22:55:41.832  1746  1746 I sensors-hal: send_sync_sensor_request:550, takes 1 ms to receive the response with 0
+01-21 22:55:41.832 12899 13476 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+01-21 22:55:41.832 12899 13476 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+01-21 22:55:41.834 12899 13476 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+01-21 22:55:41.834 12899 13476 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 1, serviceCount = 1, subCollectionCount = 0
+01-21 22:55:41.834 12899 13476 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : SLOCATION_RUNNER(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : CH_LOC_TRIGGER(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : FREE_FALL_DETECTION(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : TEST_FLAT_MOTION(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : PEDOMETER_CURRENT_INFO(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_BATCH(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : PEDOMETER(1)
+01-21 22:55:41.834 12899 13476 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : MOVEMENT(1)
+01-21 22:55:41.834 12899 13476 W CAE     : registerCallback(ContextAwareService.java:209) - [regi 02] Mutex is unlocked for TEST_FLAT_MOTION
+01-21 22:55:41.834 12899 13476 E SemContext.CaeProvider: setAttribute() : attribute is null!
+01-21 22:55:41.834 12899 13476 D SemContextService: 	.registerCallback : 12, client= com.sec.android.sdhms
+01-21 22:55:41.834 12899 13476 D SemContextService: unlock : registerCallback
+01-21 22:55:41.835 12899 13176 E SensorService: BigData:Pakage) 5 already enabled. 
+01-21 22:55:41.835  1746  1746 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+01-21 22:55:41.835  1746  1746 I sensors-hal: batch:368, android.sensor.light/51, period=200000000, max_latency=0 request completed
+01-21 22:55:41.835 12899 13176 E SensorService: BigData:Pakage) 5 already disabled. 
+01-21 22:55:41.835  1746  1746 I sensors-hal: set_config:64, no need to adjust sample_period_ns due to reporting_mode = 2
+01-21 22:55:41.835  1746  1746 I sensors-hal: batch:368, android.sensor.light/51, period=200000000, max_latency=0 request completed
+01-21 22:55:41.835 15514 15706 I SemDvfsHyPerManager: acquire hyper - SIOP_NPU_STATE_MAX/15514@2, type = -999
+01-21 22:55:41.835 15514 15706 I M0      : limitGPUFreq:: freq = 660
+01-21 22:55:41.835 12552 12601 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 120380888  [15514 / 2]    HINT :      list : [NPUMaxFreq / 1] 
+01-21 22:55:41.836 15514 15706 I M0      : limitCPUFreq:: freq = 2438400
+01-21 22:55:41.836 15514 15706 I SemDvfsHyPerManager: acquire hyper - SIOP_ARM_MAX/15514@3, type = 301993986
+01-21 22:55:41.836 12552 12601 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 120396406  [15514 / 3]    HINT :      list : [CPUMaxFreq / 2438400] 
+01-21 22:55:41.838 15514 15706 I SemDvfsHyPerManager: acquire hyper - SIOP_GPU_FREQ_MAX/15514@5, type = 536875010
+01-21 22:55:41.838 12552 12601 I HYPER-HAL: [RequestManager.cpp]acquire(): Acquired ID : 120427445  [15514 / 5]    HINT :      list : [GPUMaxFreq / 660] 
+01-21 22:55:41.860 15344 17100 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:41.863 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:41.893 12899 13176 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:41.896 12899 13476 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:41.898 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:41.898 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:41.898 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:41.909 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:41.910  1746  1746 D SensorsFlicker: Als_common::setDelay, handle : 1 time : 10000000ns
+01-21 22:55:41.911  1746  1746 D SensorsFlicker: Als_common::enable, handle : 1, mode : 1, en : 0
+01-21 22:55:41.911  1746 15794 D SensorsFlicker: Als_common::sendCommand, send disable command
+01-21 22:55:41.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032541
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 391 
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:41.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:41.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:41.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:42.110  1746  3618 I sensors-hal: qsh_conn_event_cb:894, SCHED_FIFO(10) for qmi_cbk
+01-21 22:55:42.110  1746  3618 I sensors-hal: qsh_conn_event_cb:927, event[0] sensor:device_position  Wakeup, msg_id=1025, ts=1858642640353
+01-21 22:55:42.110  1746  3618 I sensors-hal: handle_sns_client_event:78, device_position_event: msgid:1025
+01-21 22:55:42.110  1746  3618 I sensors-hal: handle_sns_client_event:97, device_position_event: 1
+01-21 22:55:42.110  1746  3618 I sensors-hal: insert_awaking_events:873, smp2p_event, 38.device_position, msgid:1025
+01-21 22:55:42.111 12899 13296 D SensorService: setSContextDataLocked ints length 3 , byte length 5
+01-21 22:55:42.111 12899 13296 D SensorService: setSContextDataLocked 37150ec1
+01-21 22:55:42.111  1746  1746 I sensors-hal: inject_sensor_data:412, handle 1502 send inject
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendContextData:303, sensor hal 5, (0xc1, 0xe, 0x15, 0x37)
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendContextData:206, activities 5 c1, 1
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendUserData:227, Activities cmd 0xc1 0xe
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendUserData:241, Activities system time h 21 m 55 s 42
+01-21 22:55:42.111  1746  1746 I sensors-hal: create_send_context_data:45, sending create_send_context_data
+01-21 22:55:42.111  1746  1746 I sensors-hal: send_context_data:701, activities, 4914309220830019584, 1320970896291267344, msgid:700
+01-21 22:55:42.111  1746  1746 I sensors-hal: save_screen_data:449, no screen data, skip~~
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendContextData:124, common_info 5
+01-21 22:55:42.111  1746  1746 I sensors-hal: sendUserData:147, CommonInfo 0xc1 0xe 0x15 0x37
+01-21 22:55:42.111  1746  1746 I sensors-hal: create_send_context_data:70, sending create_send_context_data
+01-21 22:55:42.111  1746  1746 I sensors-hal: send_context_data:701, common_info, 4914309147815575552, 1320970896291267344, msgid:700
+01-21 22:55:42.111 12899 13294 D CAE     : onGetSensorHubData(SensorHubParserProvider.java:92) - onGetSensorHubData Event [event buffer len :4], AP_SLEEP
+01-21 22:55:42.111 12899 13294 I CAE     : parse(SensorHubParserProvider.java:188) - buffer size = 4
+01-21 22:55:42.111 12899 13294 I CAE     : parse(SensorHubParserProvider.java:199) - 1, 1, 23, 1,
+01-21 22:55:42.111 12899 13294 D CAE     : display(ContextProvider.java:375) - ================= TEST_FLAT_MOTION =================
+01-21 22:55:42.111 12899 13294 I CAE     : display(ContextProvider.java:391) - Action=[1]
+01-21 22:55:42.111 12899 13291 D SemContextService: Service.updateContext() : service = Device Position
+01-21 22:55:42.112 12899 13740 D SemContextService: lock : unregisterCallback
+01-21 22:55:42.112 12899 13740 D SemContextService: Service.removeListenerLocked() : listener = com.samsung.android.hardware.context.SemContextService$Listener@cdf326b, service = Device Position, used = 0
+01-21 22:55:42.112  1746  3618 I sensors-hal: qsh_conn_resp_cb:972, resp_value = 0 for activities 
+01-21 22:55:42.112 12899 13740 W CAE     : unregisterCallback(ContextAwareService.java:230) - [unregi 01] Mutex is locked for TEST_FLAT_MOTION
+01-21 22:55:42.112 12899 13740 W CAE     : getListener(ListenerListManager.java:127) - [getListener1]  com.samsung.android.contextaware.ContextAwareManager$CaListenerDelegate@5fc718f
+01-21 22:55:42.112  1746  3618 I sensors-hal: qsh_conn_resp_cb:972, resp_value = 0 for common_info 
+01-21 22:55:42.112 12899 13740 W CAE     : getListener(ListenerListManager.java:128) - [getListener2]  com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee
+01-21 22:55:42.112 12899 13740 V CAE     : stop(ContextProvider.java:155)
+01-21 22:55:42.112 12899 13740 V CAE     : clear(TestFlatMotionRunner.java:126)
+01-21 22:55:42.112 12899 13740 V CAE     : disable(TestFlatMotionRunner.java:115)
+01-21 22:55:42.112 12899 13296 D SensorService: setSContextDataLocked ints length 2 , byte length 4
+01-21 22:55:42.112 12899 13296 D SensorService: setSContextDataLocked 17b2
+01-21 22:55:42.112  1746  1746 I sensors-hal: inject_sensor_data:412, handle 1502 send inject
+01-21 22:55:42.112  1746  1746 I sensors-hal: sendContextData:303, sensor hal 4, (0xb2, 0x17, 0x0, 0x0)
+01-21 22:55:42.112  1746  1746 I sensors-hal: updateActiveSensors:390, enable:178, handle:8, algo:26280208
+01-21 22:55:42.112  1746  1746 I sensors-hal: sendContextData:108, device_position 4
+01-21 22:55:42.112  1746  1746 I sensors-hal: send_sync_sensor_request:515, send sync request
+01-21 22:55:42.112  1746  1746 I sensors-hal: send_sync_sensor_request:544, wait for notification of response
+01-21 22:55:42.113  1746  3618 I sensors-hal: qsh_conn_resp_cb:972, resp_value = 0 for device_position 
+01-21 22:55:42.113  1746  1746 I sensors-hal: send_sync_sensor_request:550, takes 0 ms to receive the response with 0
+01-21 22:55:42.113 12899 13740 D CAE     : getFaultDetectionResult(TestFlatMotionRunner.java:139) - true
+01-21 22:55:42.113 12899 13740 I CAE     : notifyCmdProcessResultObserver(ContextProvider.java:627) - CheckResult = 0, Cause = Success
+01-21 22:55:42.113 12899 13740 D CAE     : doCommendProcess(ContextAwareService.java:396) - complete notify the operation result.
+01-21 22:55:42.113 12899 13740 I CAE     : displayUsedCountForService(ContextAwareService.java:460) - totalCnt = 0, serviceCount = 0, subCollectionCount = 0
+01-21 22:55:42.113 12899 13740 D CAE     : showListenerList(ContextAwareService.java:325) - ===== Context Aware Service List =====
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : SLOCATION_RUNNER(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : CH_LOC_TRIGGER(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : FREE_FALL_DETECTION(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : SENSOR_STATUS_CHECK_RUNNER(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : PEDOMETER_CURRENT_INFO(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_CURRENT_INFO(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_INTERRUPT(1)
+01-21 22:55:42.113 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : ACTIVITY_TRACKER_BATCH(1)
+01-21 22:55:42.114 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : PEDOMETER(1)
+01-21 22:55:42.114 12899 13740 I CAE     : showListenerList(ContextAwareService.java:334) - Listener : com.samsung.android.contextaware.manager.ContextAwareService$Listener@7a5b8ee, Service : MOVEMENT(1)
+01-21 22:55:42.114 12899 13740 W CAE     : unregisterCallback(ContextAwareService.java:251) - [unregi 02] Mutex is unlocked for TEST_FLAT_MOTION
+01-21 22:55:42.114 12899 13740 D SemContextService: 	.unregisterCallback : 12, client= com.sec.android.sdhms
+01-21 22:55:42.114 12899 13740 D SemContextService: unlock : unregisterCallback
+01-21 22:55:42.251 15344 24944 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:42.254 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.298 15344 15694 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:42.299 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.299 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:42.435  1815  1919 E BatteryDump: !@new_battery_dump : 4340,-111,900,1800,100,393,348,508,393,0,414,508,0,Full,NO_CHARGING,None,Good,PDIC,0,Normal,0,0,9299,0x8000,0x10010000,0x0,0,0,1193,v0002,0000,0000,ffff0700,0,0,0,0,407,4352,9949,990,0,
+01-21 22:55:42.437 12554 12554 I seh_thermal_service: getTemperaturesWithType SehTemperatureType: 3
+01-21 22:55:42.437  1815  1815 I sehhealth-service: updateLrpSysfs: write: 420
+01-21 22:55:42.447 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:42.448 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:42.448 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:42.448 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:42.448 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:42.448 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:42.449 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.449 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.449 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.449 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.449 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:42.450 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:42.450 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:42.450 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:42.450 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:42.451 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.451 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.452 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.453 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:42.453 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:42.453 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:42.649 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:42.651 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:42.652 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:42.681 16530 16989 I NearbyPresence: (REDACTED) %s verified [==] new request %s equals to the old request
+01-21 22:55:42.681 16530 16989 I NearbyPresence: (REDACTED) %s verified [==] new request %s equals to the old request
+01-21 22:55:42.687 17473 29585 I NearbyPresence: (REDACTED) %s verified [==] new request %s equals to the old request
+01-21 22:55:42.687 17473 29585 I NearbyPresence: (REDACTED) %s verified [==] new request %s equals to the old request
+01-21 22:55:42.760 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:42.861  1112  1112 D io_stats: !@   8,0 r 48912355 439421564 w 14825228 173992332 d 2049080 83634456 f 4433 22807 iot 4515784 0 th 0 0 0 pt 0 inp 0 0 93046.398
+01-21 22:55:42.861  1112  1112 D io_stats: !@ Read_top(KB): om.whatsapp.w4b:low(25453) 20048 rs.media.module:high(15344) 744 system_server:normal(12899) 528
+01-21 22:55:42.861  1112  1112 D io_stats: !@ Write_top(KB): rs.media.module:high(15344) 1212 om.whatsapp.w4b:low(25453) 948 d.process.acore:high(8949) 272
+01-21 22:55:42.861  1112  1112 D io_stats: !@ fuse-log: WORST (10347 35 40 11 6) (10347 1 18 25 2) (10347 10 1 1 1) TOTAL_LATENCY (10347 59 35 40 11 1 18 25 10 1 1) (0 0 18 0 23) TOTAL_CNT (10347 170 34 38 1 25 25 23) (0 23 18 23) 
+01-21 22:55:42.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032542
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:42.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:42.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:42.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:43.052 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:43.231 12899 13422 I ChimeraGenieUnloadPolicyHandler: LRU list is empty
+01-21 22:55:43.353 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:43.353 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:43.353 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:43.353 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:43.353 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:43.354 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:43.354 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:43.354 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:43.354 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:43.354 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:43.354 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.354 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.354 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:43.355 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:43.355 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.355 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.355 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.355 12899 13476 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.355 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.355 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.356 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.357 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.358 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.359 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.360 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:43.400 12899 13740 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:43.401 12899 15290 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:43.401 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:43.401 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:43.401 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:43.451 25453 15758 W om.whatsapp.w4b: Long monitor contention with owner WhatsApp Worker #22352 (15473) at void X.DAV.run()(:3300) waiters=0 in X.HoS X.0aB.A03(java.lang.String, int) for 716ms
+01-21 22:55:43.554 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:43.555 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:43.555 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:43.609 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:43.855 25453 15796 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:43.855 25453  7743 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:43.860 15344 15694 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:43.862 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:43.862 25453 15758 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:43.907 25453 16217 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:43.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032543
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:43.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:43.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:43.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:44.035   727   727 I lmkd    : 0(delay), 0(swap), 50(freelimit), 0(reentrymode) memory pressure events were skipped after a kill!
+01-21 22:55:44.249 25453 25938 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:44.283 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:44.283 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:44.283 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:44.283 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:44.283 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:44.283 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:44.283 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:44.283 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:44.283 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:44.283 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:44.284 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:44.284 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:44.284 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:44.284 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:44.284 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:44.284 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.285 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:44.286 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:44.286 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.286 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.287 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.288 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.289 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:44.445 18017 18315 I GearContacts_ObserverManager: onContactChanged
+01-21 22:55:44.445 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync begins
+01-21 22:55:44.445 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendFrequentlyContactedData
+01-21 22:55:44.445 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:44.445 18017 26726 I GearContacts_DataLayerUtil: node task await result:true
+01-21 22:55:44.445 18017 26726 I GearContacts_SaContactDbSyncManager: no BT connection
+01-21 22:55:44.445 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync is completed
+01-21 22:55:44.474 18017 18336 I GearContacts_ObserverManager: onProfileChanged
+01-21 22:55:44.484 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:44.485 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:44.485 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:44.491 12899 13422 I ChimeraGenieUnloadPolicyHandler: LRU list is empty
+01-21 22:55:44.540 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:44.697 25453 26728 I om.whatsapp.w4b: Waiting for a blocking GC Alloc
+01-21 22:55:44.766 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-freque
+01-21 22:55:44.766 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendCountryIsoData
+01-21 22:55:44.766 18017 18315 I GearContacts_CountryDetector: getNetworkBasedCountryIso : ng
+01-21 22:55:44.766 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:44.766 18017 18017 I GearContacts_DataLayerUtil: no nodes
+01-21 22:55:44.766 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-countr
+01-21 22:55:44.766 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendRoamingStatus
+01-21 22:55:44.766 18017 18315 I GearContacts_SyncDataRoamingStatus: roamingStatus false, localRoamingStatus false
+01-21 22:55:44.766 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:44.766 18017 18017 I GearContacts_DataLayerUtil: no nodes
+01-21 22:55:44.861  1112  1112 D io_stats: !@   8,0 r 48915146 439433212 w 14825489 173998416 d 2049384 83638096 f 4433 22808 iot 4516068 0 th 0 0 0 pt 0 inp 0 0 93048.399
+01-21 22:55:44.903 12899 15290 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:44.905 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:44.905 12899 13740 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:44.905 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:44.905 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:44.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032544
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:44.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:44.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:44.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:45.198 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:45.198 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:45.198 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:45.198 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:45.198 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:45.198 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:45.198 12899 13740 D SyncManager: userId - 0 auto - true
+01-21 22:55:45.198 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:45.199 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:45.199 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.199 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:45.200 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:45.200 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.200 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:45.201 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:45.201 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.201 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:45.202 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:45.202 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.202 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:45.203 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:45.203 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.203 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.204 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:45.399 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:45.401 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:45.401 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:45.456 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:45.666  8949  9069 D SharedPreferencesImpl: Time required to fsync /data/user/0/com.samsung.android.providers.contacts/shared_prefs/sa_shared_preference_name.xml: [<1: 6639, <2: 12271, <4: 9300, <8: 1297, <16: 170, <32: 16, <64: 2, <128: 0, <256: 1, <512: 0, <1024: 0, <2048: 0, <4096: 0, <8192: 0, <16384: 0, >=16384: 0]
+01-21 22:55:45.910  8754  8754 I wpa_supplicant: Heartbeat 19
+01-21 22:55:45.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032545
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:45.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:45.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:45.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:46.063 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:46.064 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.064 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:46.064 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:46.064 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:46.064 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:46.064 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.064 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.064 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.064 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.064 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:46.065 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:46.065 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:46.075 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:46.075 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:46.075 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:46.075 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:46.075 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.076 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.077 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.078 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.079 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.080 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.264 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:46.266 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:46.266 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:46.332 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:46.407 12899 13014 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:46.408 12899 13014 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:46.409 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:46.409 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:46.409 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:46.475 18017 18315 I GearContacts_DelayedMessageHandlerCallback: onCompleted! : onProfileDataChange
+01-21 22:55:46.475 18017 18315 I GearContacts_MessageHandlerCallbackImpl: onProfileDataChange
+01-21 22:55:46.475 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:46.475 18017 18017 I GearContacts_DataLayerUtil: no bt connection!
+01-21 22:55:46.662 25453 25458 I om.whatsapp.w4b: Background concurrent mark compact GC freed 151MB AllocSpace bytes, 98(2048KB) LOS objects, 11% free, 358MB/406MB, paused 871us,6.432ms total 5.148s
+01-21 22:55:46.663 25453 15796 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on Background for 2.808s
+01-21 22:55:46.666 25453 15758 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on HeapTrim for 2.803s
+01-21 22:55:46.666 25453 25938 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on HeapTrim for 2.417s
+01-21 22:55:46.668 25453 26728 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on HeapTrim for 1.971s
+01-21 22:55:46.668 25453 16217 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on HeapTrim for 2.761s
+01-21 22:55:46.670 15344 32029 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:46.670 25453  7743 I om.whatsapp.w4b: WaitForGcToComplete blocked Alloc on HeapTrim for 2.815s
+01-21 22:55:46.673 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.674 15344 15694 I MediaProvider: Deleted 1 0 0 0 0 0 0 items on external_primary due to com.whatsapp.w4b
+01-21 22:55:46.674 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.674 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:46.690 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:46.707 25453 15795 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:46.708 25453 15795 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:46.732 15344 15695 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:46.735 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.735 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:46.759 11555 11581 I DirectWidgetUpdateRequest: [C] onChange! start DirectWidgetUpdateJobService
+01-21 22:55:46.760 11555 11581 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:46.761 11555  7280 I DirectWidgetUpdateJobService: [C] Command] Work start
+01-21 22:55:46.761 11555  7280 I DirectWidgetUpdateRequest: [C] Enqueue!
+01-21 22:55:46.761 11555  7389 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:46.780  2416  2416 I CNSS    : /sys/wifi/max_chipset_log_size doesn't exist
+01-21 22:55:46.797 11555  7280 I CscFeatureUtil: [C] getOpStyleVariation mOpStyleVariation (CAN)
+01-21 22:55:46.797 12899 13014 D SecContentProvider2: query(), uri = 18 selection = isCopyContactToSimAllowed
+01-21 22:55:46.797 12899 13014 D SecContentProvider2: isCopyContactToSimAllowed = true
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] getSimState(0) : 5
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] slotId : 0CSim value : 0
+01-21 22:55:46.798 11555  7280 I SimInfoModel: [C] getMaxSimDbCount(0) : 200
+01-21 22:55:46.798 11555  7280 I SimInfoModel: [C] isSimActivatedEnabled(0) return true : max = 200 EmailDbSupported :false
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] getSimState(0) : 5
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:46.798 11555  7280 I TelephonyDataSource: [C] slotId : 0CSim value : 0
+01-21 22:55:46.798 11555  7280 I SimInfoModel: [C] getMaxSimDbCount(0) : 200
+01-21 22:55:46.798 11555  7280 I SimInfoModel: [C] isSimActivatedEnabled(0) return true : max = 200 EmailDbSupported :false
+01-21 22:55:46.798 11555  7280 I EsimUtil: [C] esimState MEP : Finally not esim, slot = 0
+01-21 22:55:46.798 11555  7280 I CmcSettingManager: cmc activation : 0
+01-21 22:55:46.798 12899 13014 D SecContentProvider2: query(), uri = 18 selection = isCopyContactToSimAllowed
+01-21 22:55:46.799 12899 13014 D SecContentProvider2: isCopyContactToSimAllowed = true
+01-21 22:55:46.799 11555  7280 I TelephonyDataSource: [C] getSimState(1) : 6
+01-21 22:55:46.799 11555  7280 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:46.799 11555  7280 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:46.799 11555  7280 I TelephonyDataSource: [C] getSimState(1) : 6
+01-21 22:55:46.799 11555  7280 I TelephonyDataSource: [C] isMultiSimModel multiSimConfig : dsds
+01-21 22:55:46.799 11555  7280 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:46.800 11555  7280 I EsimUtil: [C] esimState MEP : this is esim , slot = 1
+01-21 22:55:46.800 11555  7280 I SimInfoModel: [C] getMaxSimDbCount(1) : -1
+01-21 22:55:46.800 11555  7280 I AccountTypeModel: [C] exclude:true |SIM2:deactivated,unready
+01-21 22:55:46.800 11555  7280 I ContactSettingSearchProvider: [C] requestIndexingIfRequired isIndexingRequired:false
+01-21 22:55:46.800 11555  7280 I DirectWidgetUpdateRequest: [C] Enqueue!
+01-21 22:55:46.800 11555  7280 I DirectWidgetUpdateJobService: [C] Command] jobFinished is called count : 0
+01-21 22:55:46.800 11555  7279 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:46.861  1112  1112 D io_stats: !@   8,0 r 48918462 439446960 w 14825551 173998752 d 2049688 83641176 f 4433 22808 iot 4516428 0 th 0 0 0 pt 0 inp 0 0 93050.399
+01-21 22:55:46.862  1112  1112 D io_stats: !@ Read_top(KB): om.whatsapp.w4b:low(25453) 23116 d.process.acore:high(8949) 820 system_server:normal(12899) 484
+01-21 22:55:46.862  1112  1112 D io_stats: !@ Write_top(KB): kworker/u17:0:/(28626) 5768 d.process.acore:high(8949) 264 system_server:normal(12899) 176
+01-21 22:55:46.862  1112  1112 D io_stats: !@ fuse-log: WORST (10347 10 5 1 5) (10347 35 12 3 5) (10347 1 5 9 3) TOTAL_LATENCY (10347 22 35 12 3 1 5 9 10 5 1) (0 0 18 0 6) TOTAL_CNT (10347 42 1 9 25 6 34 6) (0 6 18 6) 
+01-21 22:55:46.975 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:46.976 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:46.976 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:46.976 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:46.976 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:46.976 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:46.976 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:46.976 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:46.976 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.976 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.976 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.977 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.977 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:46.977 18017  3694 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:46.977 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.977 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.978 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.979 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.980 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:46.980 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:46.981 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.981 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.981 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.981 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.981 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.982 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:46.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032546
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:46.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:46.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:46.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:47.014 12899 13067 D BatteryExternalStatsWorker: update stats : update-network-download (6)
+01-21 22:55:47.014 12899 13067 D BatteryExternalStatsWorker: Fetch WiFi data
+01-21 22:55:47.014 12899 13067 D BatteryExternalStatsWorker: Update Rail Energy data
+01-21 22:55:47.020 12899 13305 E WifiStaIfaceAidlImpl: getCachedScanData failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+01-21 22:55:47.020 12899 13067 D BatteryExternalStatsWorker: mStats lock released
+01-21 22:55:47.021 12899 13067 D BatteryExternalStatsWorker: Update wifi state
+01-21 22:55:47.021 12899 13067 D BatteryExternalStatsWorker: done updateExternalStatsLocked
+01-21 22:55:47.074 25453 15766 W SQLiteLog: (28) walCheckpoint: eMode(0), mxFrame(100), nBackfill(100), /data/data/com.whatsapp.w4b/databases/media.db-wal taking (5) ms
+01-21 22:55:47.074 25453 31251 W om.whatsapp.w4b: Long monitor contention with owner WhatsApp Worker #22354 (15766) at void X.0aB.A05(X.HoS)(:99) waiters=0 in X.HoS X.0aB.A03(java.lang.String, int) for 339ms
+01-21 22:55:47.078  4535  4535 I Routine@Core[4.9.04.13]: RoutineApplication: onTrimMemory: level : 40
+01-21 22:55:47.102 12899 13052 I ActivityManager: Changes in 10053 5 to 15, 144 to 0
+01-21 22:55:47.103 12899 13052 I ActivityManager: Changes in 15010053 5 to 15, 144 to 0
+01-21 22:55:47.148 15344 24944 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:47.151 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.177 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:47.179 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:47.179 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:47.233 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:47.473 15344 26457 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:47.475 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.532 15344 17100 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:47.535 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.535 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:47.537 15344 15694 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:47.539 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.539 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:47.544 15344 24944 W SQLiteLog: (28) walCheckpoint: eMode(0), mxFrame(259), nBackfill(259), /data/data/com.google.android.providers.media.module/databases/external.db-wal taking (2) ms
+01-21 22:55:47.544 15344 24944 I MediaProvider: Deleted 1 0 0 0 0 0 0 items on external_primary due to com.whatsapp.w4b
+01-21 22:55:47.544 12899 15290 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.544 17473 17594 I UriTaskContentObserver: (REDACTED) Throttling content uri change event for %s
+01-21 22:55:47.551 25453 15772 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:47.551 25453 15772 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:47.575  1127 15406 I keystore2: system/security/keystore2/watchdog/src/lib.rs:377 - Watchdog thread idle -> terminating. Have a great day.
+01-21 22:55:47.691 17473 17473 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.auth.aang.events.services.START dat=chimera-action:/... xflg=0x4 cmp=com.google.android.gms/.chimera.PersistentApiService }
+01-21 22:55:47.762 11555 11575 I DirectWidgetUpdateRequest: [C] try register JOB again
+01-21 22:55:47.762 11555 11575 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:47.800 11555 11576 I DirectWidgetUpdateRequest: [C] try register JOB again
+01-21 22:55:47.800 11555 11576 I DirectWidgetUpdateRequest: [C] Job is already scheduled SKIPPED
+01-21 22:55:47.869 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:47.870 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:47.870 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:47.870 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:47.870 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:47.870 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.870 18017 18033 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:47.870 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.870 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.871 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:47.871 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:47.871 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:47.871 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:47.871 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:47.871 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:47.871 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.871 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.872 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.873 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.874 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.875 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.876 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:47.898 12899 13447 I SemWifiServiceDetector: NSD results: [0, 1, 2, 0, 0, 0, 2, 1, 0] Traff. type 1 Thr 9
+01-21 22:55:47.910 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:47.911 12899 13176 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:47.912 12899 13176 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:47.913 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:47.913 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:47.913 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:47.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032547
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:47.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:47.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:47.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:48.071 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:48.072 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:48.072 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:48.125 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:48.370 15344 26457 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:48.373 12899 13014 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.775 15344 15694 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:48.777 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.787 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:48.787 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:48.787 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:48.787 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:48.787 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:48.787 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:48.787 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.787 18017 24538 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:48.787 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:48.787 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:48.787 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:48.787 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.788 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.788 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.788 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:48.788 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:48.788 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:48.788 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.788 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.789 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.790 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.791 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:48.862  1112  1112 D io_stats: !@   8,0 r 48921093 439457532 w 14825905 174004236 d 2049992 83645264 f 4433 22808 iot 4516740 0 th 0 0 0 pt 0 inp 0 0 93052.399
+01-21 22:55:48.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032548
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:48.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:48.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:48.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:48.988 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:48.989 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:48.989 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:49.045 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:49.114 15344 15695 W MediaProvider: isAppCloneUserPair for user 0: false
+01-21 22:55:49.116 12899 13176 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.414 12899 16531 I ActivityManager: Changes in 10375 6 to 10, 128 to 0
+01-21 22:55:49.416 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:49.417 12899 13176 I ActivityManager: Changes in 10375 10 to 6, 0 to 128
+01-21 22:55:49.417 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:49.417 12899 13420 D BackgroundInstallControlService: Package event received: 0
+01-21 22:55:49.445 18017 18315 I GearContacts_ObserverManager: onContactChanged
+01-21 22:55:49.445 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync begins
+01-21 22:55:49.445 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendFrequentlyContactedData
+01-21 22:55:49.445 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:49.445 18017 26726 I GearContacts_DataLayerUtil: node task await result:true
+01-21 22:55:49.445 18017 26726 I GearContacts_SaContactDbSyncManager: no BT connection
+01-21 22:55:49.445 18017 26726 I GearContacts_SaContactDbSyncManager: cache db sync is completed
+01-21 22:55:49.474 18017 18336 I GearContacts_ObserverManager: onProfileChanged
+01-21 22:55:49.736 17473 17473 I NearbySharing: The contact book (uri: content://com.android.contacts) has been modified. Debouncing sync.
+01-21 22:55:49.736 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.736 13904 14081 I ContactCache: ===== Contact updated. =====
+01-21 22:55:49.736 13904 14081 I RcsUtils: isDualRcsSettings: false
+01-21 22:55:49.736 13904 14081 I SimManager<0>: isLabSimCard: state [LOADED] isLabSim [false]
+01-21 22:55:49.736 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.736 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_contact_sync_in_switch_off
+01-21 22:55:49.736 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.736 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.736 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode_config_etag
+01-21 22:55:49.736 12899 16531 D SyncManager: userId - 0 auto - true
+01-21 22:55:49.737 12899 13052 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = zen_mode
+01-21 22:55:49.737 12899 13052 D ConditionProviders.SCP: onScheduleEnabled : false
+01-21 22:55:49.737 12899 13052 D ValidateNoPeople: The contacts of policy has been updated.
+01-21 22:55:49.737 18017 24538 I [GW_SOS_CS]: [SOSContactListChangeListenerTos] onChange: gets called
+01-21 22:55:49.737 13904 14081 E GlobalSettingsRepoBase: globalgcsettings No matched key : rcs_initial_contact_sync_before_regi
+01-21 22:55:49.737 13904 14081 I ContactCache<0>: sendMessageContactSync: Try contact sync after 3 sec.
+01-21 22:55:49.737 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.737 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 14137 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535  6984 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 23987 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 28440 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.738 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22417 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12658 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22215 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 19414 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12602 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 32354 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.739 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 13360 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 22418 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 27227 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12603 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 24289 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535 12535 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.740 12535  9212 I AF::TrackHandle: opChanged OP_PLAY_AUDIO callback received for 
+01-21 22:55:49.783 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-freque
+01-21 22:55:49.783 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendCountryIsoData
+01-21 22:55:49.783 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:49.783 18017 18017 I GearContacts_DataLayerUtil: no nodes
+01-21 22:55:49.783 18017 18315 I GearContacts_CountryDetector: getNetworkBasedCountryIso : ng
+01-21 22:55:49.783 18017 18315 I GearContacts_DataLayerUtil: sendMessage: contacts-countr
+01-21 22:55:49.783 18017 18315 I GearContacts_MessageHandlerCallbackImpl: sendRoamingStatus
+01-21 22:55:49.783 18017 18315 I GearContacts_SyncDataRoamingStatus: roamingStatus false, localRoamingStatus false
+01-21 22:55:49.784 18017 18017 I GearContacts_DataLayerUtil: get node successfully!
+01-21 22:55:49.784 18017 18017 I GearContacts_DataLayerUtil: no nodes
+01-21 22:55:49.938 18017  4208 I [GW_SOS_CS]: SOSContactListObserver onTosContactListChanged: called
+01-21 22:55:49.939 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager getStringValue: [##:##:##:##:BC:6A],[pref_sos_contact__ids],[]
+01-21 22:55:49.939 18017  4208 I [GW_SOS_CS]: SOSPreferenceManager retrieveSosEmergencyContactList: [##:##:##:##:BC:6A][0]
+01-21 22:55:49.986  1861  1924 E HeatmapThread: ECT Thread time in milliseconds: 1769032549
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ batteryplugType : 2
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ batteryLevel : 100  batteryTemperature : 393 
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ Heatmap currtime: 29483875
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ Heatmap prevtime: 29483852
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ Heatmap plugstarttime: 29483665
+01-21 22:55:49.987  1861  1924 D HeatmapThread: !@ Heatmap prevv_dsoh_update_time: 29483875
+01-21 22:55:49.987  1861  1924 E HeatmapThread: !@ CAM New BSOH: 100
+01-21 22:55:49.987  1861  1924 E HeatmapThread: !@ CAM is Working
+01-21 22:55:50.004 18017  4208 I [GW_SOS_CS]: Updating tos contact list for ##:##:##:##:BC:6A ? false
+01-21 22:55:50.306 25453 16217 I Kumiho-Kumiho: getPackageName: com.whatsapp.w4b
+01-21 22:55:50.418  1746 14598 I sensors-hal: handle_sns_std_sensor_event:127, [SSC_LIGHT] A: 0(0),c:0,b:0,m:0,cl:0,l:0,s:-1,l0:0,l1:0,s0:0,s1:0,acl:1,opr:0.00,f(r):0,u(bl):0,if:0,wi:0,si:0,0(N:0)

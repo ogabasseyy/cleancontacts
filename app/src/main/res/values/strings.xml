@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">Contacts Cleaner</string>
+    
+    <!-- Dashboard -->
+    <string name="dashboard_title">Contacts Cleaner</string>
+    <string name="dashboard_subtitle">Clean, organize, and sync your contacts</string>
+    <string name="btn_start_scanning">Start Scanning</string>
+    <string name="btn_grant_permissions">Grant Permissions</string>
+    <string name="scanning_message">Scanning contacts…</string>
+    
+    <!-- Features -->
+    <string name="feature_whatsapp_title">WhatsApp Detection</string>
+    <string name="feature_whatsapp_desc">Find contacts not on WhatsApp</string>
+    <string name="feature_junk_title">Junk Cleaner</string>
+    <string name="feature_junk_desc">Remove invalid and low-quality contacts</string>
+    <string name="feature_duplicate_title">Duplicate Finder</string>
+    <string name="feature_duplicate_desc">Merge duplicate entries</string>
+    
+    <!-- Results -->
+    <string name="results_title">Scan Results</string>
+    <string name="total_contacts">Total Contacts: %d</string>
+    <string name="tab_whatsapp">WhatsApp</string>
+    <string name="tab_no_whatsapp">No WhatsApp</string>
+    <string name="tab_junk">Junk</string>
+    <string name="tab_duplicates">Duplicates</string>
+    <string name="btn_apply_cleanup">Apply Cleanup (Premium)</string>
+    
+    <!-- Paywall -->
+    <string name="paywall_upgrade_to">Upgrade to</string>
+    <string name="paywall_pro">CleanContacts Pro</string>
+    <string name="feature_delete_junk">Delete junk contacts</string>
+    <string name="feature_merge_duplicates">Merge duplicates</string>
+    <string name="feature_sync_google">Sync with Google Contacts</string>
+    <string name="feature_save_imported">Save imported contacts</string>
+    <string name="feature_priority_support">Priority support</string>
+    <string name="btn_continue">Continue</string>
+    <string name="paywall_footer">Cancel anytime. Terms apply.</string>
+</resources>

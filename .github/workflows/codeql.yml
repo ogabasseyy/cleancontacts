@@ -32,27 +32,32 @@ jobs:
       fail-fast: false
       matrix:
         language: ['java-kotlin']
-        # Add 'python', 'ruby', 'go', etc. if needed
 
     steps:
       - name: Checkout repository
-        # Pin to full SHA for supply chain security
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
       - name: Initialize CodeQL
-        # Pin to full SHA for supply chain security
-        uses: github/codeql-action/init@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3.31.11
+        uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          # Use extended security queries for more comprehensive analysis
           queries: security-extended,security-and-quality
 
-      - name: Autobuild
-        # Pin to full SHA for supply chain security
-        uses: github/codeql-action/autobuild@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3.31.11
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        # Manual build ensures CodeQL captures the compilation (essential for Java/Kotlin)
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Perform CodeQL Analysis
-        # Pin to full SHA for supply chain security
-        uses: github/codeql-action/analyze@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3.31.11
+        uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"

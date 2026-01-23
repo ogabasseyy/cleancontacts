@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1049064665332",
+    "project_id": "contacts-cleaner-29cf7",
+    "storage_bucket": "contacts-cleaner-29cf7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1049064665332:android:491c93f7574437fd6e6ea1",
+        "android_client_info": {
+          "package_name": "com.ogabassey.contactscleaner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWRVtk_QW5Qz1L1kNyWViAlVcnqiByGFs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

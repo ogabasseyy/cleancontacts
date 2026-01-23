@@ -24,7 +24,7 @@ googlePeople = "v1-rev20251117-2.0.0"
 room = "2.6.1"
 paging = "3.3.5"
 work = "2.10.0"
-revenuecat = "8.0.0"
+revenuecat = "9.19.2"
 libphonenumber = "8.13.26"
 datastore = "1.1.2"
 

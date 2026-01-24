@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.data.detector
 
+import com.ogabassey.contactscleaner.data.provider.RegionProvider
 import com.ogabassey.contactscleaner.domain.model.Contact
 import org.junit.Assert.*
 import org.junit.Before
@@ -11,7 +12,11 @@ class DuplicateDetectorTest {
 
     @Before
     fun setup() {
-        duplicateDetector = DuplicateDetector()
+        // Simple test provider that always returns "US" or "NG"
+        val testRegionProvider = object : RegionProvider {
+            override fun getRegionIso(): String = "NG"
+        }
+        duplicateDetector = DuplicateDetector(testRegionProvider)
     }
 
     @Test

@@ -1,17 +1,18 @@
 package com.ogabassey.contactscleaner.data.detector
 
-import android.content.Context
-import android.telephony.PhoneNumberUtils
-import android.telephony.TelephonyManager
+import com.google.i18n.phonenumbers.PhoneNumberUtil
+import com.ogabassey.contactscleaner.data.provider.RegionProvider
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroup
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Locale
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class DuplicateDetector @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val regionProvider: RegionProvider
 ) {
+    private val phoneUtil = PhoneNumberUtil.getInstance()
 
     fun detectDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val allDuplicates = mutableListOf<DuplicateGroup>()
@@ -29,7 +30,7 @@ class DuplicateDetector @Inject constructor(
     }
 
     private fun detectNumberDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        val defaultRegion = getDeviceCountryIso()
+        val defaultRegion = regionProvider.getRegionIso()
         val groups = mutableMapOf<String, MutableList<Contact>>()
         
         contacts.forEach { contact ->
@@ -167,30 +168,17 @@ class DuplicateDetector @Inject constructor(
         return dp[s1.length][s2.length]
     }
 
-    private fun getDeviceCountryIso(): String {
+    fun normalizePhoneNumber(number: String, defaultRegion: String? = null): String {
         return try {
-            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-            val simCountry = tm?.simCountryIso
-            val networkCountry = tm?.networkCountryIso
-            
-            when {
-                !simCountry.isNullOrBlank() -> simCountry.uppercase()
-                !networkCountry.isNullOrBlank() -> networkCountry.uppercase()
-                else -> Locale.getDefault().country
+            val region = defaultRegion ?: regionProvider.getRegionIso()
+            val parsedNumber = phoneUtil.parse(number, region)
+            if (phoneUtil.isValidNumber(parsedNumber)) {
+                phoneUtil.format(parsedNumber, PhoneNumberUtil.PhoneNumberFormat.E164)
+            } else {
+                number.filter { it.isDigit() || it == '+' }
             }
         } catch (e: Exception) {
-            Locale.getDefault().country
+            number.filter { it.isDigit() || it == '+' }
         }
-    }
-
-    fun normalizePhoneNumber(number: String, defaultRegion: String? = null): String {
-        val region = defaultRegion ?: getDeviceCountryIso()
-        val formatted = try {
-             PhoneNumberUtils.formatNumberToE164(number, region)
-        } catch (e: Exception) {
-            null
-        }
-        
-        return formatted ?: number.filter { it.isDigit() || it == '+' }
     }
 }

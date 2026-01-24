@@ -61,8 +61,8 @@ class JunkDetector @Inject constructor() {
                 return com.ogabassey.contactscleaner.domain.model.JunkType.INVALID_CHAR
             }
             
-            // Short Number (< 5 digits)
-            if (cleanedNumber.length < 5) {
+            // Short Number (< 6 digits)
+            if (cleanedNumber.length < 6) {
                 return com.ogabassey.contactscleaner.domain.model.JunkType.SHORT_NUMBER
             }
             

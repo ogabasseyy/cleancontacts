@@ -12,3 +12,10 @@ local.properties
 .cxx
 *.apk
 *.aab
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json

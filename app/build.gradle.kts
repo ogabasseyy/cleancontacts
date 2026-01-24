@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,15 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
+
+// Load local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
+}
+
+val revenueCatApiKey = localProperties.getProperty("REVENUECAT_API_KEY") ?: ""
 
 android {
     namespace = "com.ogabassey.contactscleaner"
@@ -25,15 +36,18 @@ android {
         
         // 2026 Best Practice: Secrets via BuildConfig
         // TIP: Use an environment variable or local.properties for the real key!
-        buildConfigField("String", "REVENUECAT_API_KEY", "\"goog_LygFhrickDOqQmVhowvVQTzfvSv\"")
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenueCatApiKey\"")
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("../app/release-key.jks")
-            storePassword = "android"
-            keyAlias = "key0"
-            keyPassword = "android"
+            val storeFilePath = localProperties.getProperty("RELEASE_STORE_FILE")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+            }
         }
     }
 

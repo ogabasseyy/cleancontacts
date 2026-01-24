@@ -158,7 +158,6 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     
     // Format Detection
@@ -174,13 +173,49 @@ dependencies {
     // Security Constraint Pins (2026 Best Practice: Resolve transitive CVEs)
     constraints {
         implementation(libs.jose4j) {
-            because("CVE-2023-31582: JWE denial of service")
+            because("CVE-2023-31582 & CVE-2023-51775: JWE denial of service")
         }
         implementation(libs.jdom2) {
-            because("XXE vulnerability in older JDOM versions")
+            because("CVE-2021-33813: XXE vulnerability")
         }
         implementation(libs.commons.compress) {
-            because("CVE-2024-25710: Denial of Service")
+            because("CVE-2024-25710 & CVE-2024-26308: Denial of Service")
         }
+    }
+}
+
+// 2026 Best Practice: Force secure versions across ALL configurations
+// This ensures transitive dependencies are upgraded even if direct deps request older versions
+configurations.all {
+    resolutionStrategy {
+        val nettyVersion = libs.versions.netty.get()
+        val jose4jVersion = libs.versions.jose4j.get()
+        val jdom2Version = libs.versions.jdom2.get()
+        val protobufVersion = libs.versions.protobuf.get()
+        val commonsCompressVersion = libs.versions.commonsCompress.get()
+
+        // Netty: Force latest 4.1.x to fix HTTP/2 Rapid Reset, CRLF injection, and other CVEs
+        force("io.netty:netty-codec-http:$nettyVersion")
+        force("io.netty:netty-codec-http2:$nettyVersion")
+        force("io.netty:netty-codec:$nettyVersion")
+        force("io.netty:netty-common:$nettyVersion")
+        force("io.netty:netty-handler:$nettyVersion")
+        force("io.netty:netty-buffer:$nettyVersion")
+        force("io.netty:netty-transport:$nettyVersion")
+        force("io.netty:netty-resolver:$nettyVersion")
+
+        // jose4j: CVE-2023-31582, CVE-2023-51775
+        force("org.bitbucket.b_c:jose4j:$jose4jVersion")
+
+        // JDOM2: CVE-2021-33813 XXE
+        force("org.jdom:jdom2:$jdom2Version")
+
+        // Protobuf: CVE-2024-7254 DoS
+        force("com.google.protobuf:protobuf-java:$protobufVersion")
+        force("com.google.protobuf:protobuf-kotlin:$protobufVersion")
+        force("com.google.protobuf:protobuf-java-util:$protobufVersion")
+
+        // Commons Compress: CVE-2024-25710, CVE-2024-26308
+        force("org.apache.commons:commons-compress:$commonsCompressVersion")
     }
 }

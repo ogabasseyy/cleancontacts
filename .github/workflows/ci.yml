@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
     - name: set up JDK 21
-      uses: actions/setup-java@3a4f6114f18e3a449fb3b7229c1fe57b1637da24 # v4.7.0
+      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -38,7 +38,7 @@ jobs:
       run: ./gradlew assembleDebug
 
     - name: Upload Debug APK
-      uses: actions/upload-artifact@4cedc5d8001648987b7a40733618395ed7494f6f # v4.6.0
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
       with:
         name: debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk

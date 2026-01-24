@@ -174,13 +174,43 @@ dependencies {
     // Security Constraint Pins (2026 Best Practice: Resolve transitive CVEs)
     constraints {
         implementation(libs.jose4j) {
-            because("CVE-2023-31582: JWE denial of service")
+            because("CVE-2023-31582 & CVE-2023-51775: JWE denial of service")
         }
         implementation(libs.jdom2) {
-            because("XXE vulnerability in older JDOM versions")
+            because("CVE-2021-33813: XXE vulnerability")
         }
         implementation(libs.commons.compress) {
-            because("CVE-2024-25710: Denial of Service")
+            because("CVE-2024-25710 & CVE-2024-26308: Denial of Service")
         }
+    }
+}
+
+// 2026 Best Practice: Force secure versions across ALL configurations
+// This ensures transitive dependencies are upgraded even if direct deps request older versions
+configurations.all {
+    resolutionStrategy {
+        // Netty: Force latest 4.1.x to fix HTTP/2 Rapid Reset, CRLF injection, and other CVEs
+        force("io.netty:netty-codec-http:4.1.130.Final")
+        force("io.netty:netty-codec-http2:4.1.130.Final")
+        force("io.netty:netty-codec:4.1.130.Final")
+        force("io.netty:netty-common:4.1.130.Final")
+        force("io.netty:netty-handler:4.1.130.Final")
+        force("io.netty:netty-buffer:4.1.130.Final")
+        force("io.netty:netty-transport:4.1.130.Final")
+        force("io.netty:netty-resolver:4.1.130.Final")
+
+        // jose4j: CVE-2023-31582, CVE-2023-51775
+        force("org.bitbucket.b_c:jose4j:0.9.6")
+
+        // JDOM2: CVE-2021-33813 XXE
+        force("org.jdom:jdom2:2.0.6.1")
+
+        // Protobuf: CVE-2024-7254 DoS
+        force("com.google.protobuf:protobuf-java:4.33.4")
+        force("com.google.protobuf:protobuf-kotlin:4.33.4")
+        force("com.google.protobuf:protobuf-java-util:4.33.4")
+
+        // Commons Compress: CVE-2024-25710, CVE-2024-26308
+        force("org.apache.commons:commons-compress:1.28.0")
     }
 }

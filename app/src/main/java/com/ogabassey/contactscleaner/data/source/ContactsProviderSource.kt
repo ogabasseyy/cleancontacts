@@ -436,7 +436,6 @@ class ContactsProviderSource @Inject constructor(
 
     suspend fun deleteContacts(contactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {
         if (contactIds.isEmpty()) return@withContext true
-        val operations = ArrayList<android.content.ContentProviderOperation>()
         contactIds.chunked(400).forEach { batch ->
             val batchOperations = ArrayList<android.content.ContentProviderOperation>()
             batch.forEach { id ->

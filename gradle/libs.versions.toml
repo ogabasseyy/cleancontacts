@@ -32,7 +32,7 @@ datastore = "1.1.2"
 jose4j = "0.9.6"
 netty = "4.1.130.Final"
 jdom2 = "2.0.6.1"
-protobuf = "4.33.3"
+protobuf = "4.33.4"
 commonsCompress = "1.28.0"
 
 
@@ -79,10 +79,9 @@ androidx-datastore-preferences = { group = "androidx.datastore", name = "datasto
 
 # Security Pin Libraries
 jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version.ref = "jose4j" }
-netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
-netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
+netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 jdom2 = { group = "org.jdom", name = "jdom2", version.ref = "jdom2" }
-protobuf-java = { group = "com.google.protobuf", name = "protobuf-java", version.ref = "protobuf" }
+protobuf-bom = { group = "com.google.protobuf", name = "protobuf-bom", version.ref = "protobuf" }
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
 
 

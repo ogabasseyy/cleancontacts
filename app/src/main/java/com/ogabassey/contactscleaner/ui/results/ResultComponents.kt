@@ -257,7 +257,6 @@ fun AccountGroupItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon based on Account Type
-            val iconChar = (group.accountName ?: group.accountType ?: "D").take(1).uppercase()
              
             Box(
                 modifier = Modifier

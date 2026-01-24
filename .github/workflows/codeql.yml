@@ -54,6 +54,11 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
         queries: security-extended,security-and-quality
+        # Exclude generated code to reduce noise (False Positives)
+        config: |
+          paths-ignore:
+            - '**/build/**'
+            - '**/generated/**'
 
     - name: Build Android App (Manual)
       if: matrix.language == 'java-kotlin'

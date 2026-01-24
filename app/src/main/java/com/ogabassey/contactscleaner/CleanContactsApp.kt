@@ -30,7 +30,7 @@ class CleanContactsApp : Application(), Configuration.Provider {
         billingRepository.refresh()
         
         // Eagerly initialize billing flow (accessing property)
-        val packages = billingRepository.packages.value
+        billingRepository.packages.value
     }
 
     override val workManagerConfiguration: Configuration

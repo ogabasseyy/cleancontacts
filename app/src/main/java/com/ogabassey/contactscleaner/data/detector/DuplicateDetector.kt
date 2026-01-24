@@ -10,8 +10,11 @@ import java.util.Locale
 import javax.inject.Inject
 
 class DuplicateDetector @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context? = null
 ) {
+    // Secondary constructor for unit testing
+    constructor() : this(null)
+
 
     fun detectDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val allDuplicates = mutableListOf<DuplicateGroup>()
@@ -168,14 +171,16 @@ class DuplicateDetector @Inject constructor(
     }
 
     private fun getDeviceCountryIso(): String {
+        if (context == null) return Locale.getDefault().country
+        
         return try {
             val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
             val simCountry = tm?.simCountryIso
             val networkCountry = tm?.networkCountryIso
             
             when {
-                !simCountry.isNullOrBlank() -> simCountry.uppercase()
-                !networkCountry.isNullOrBlank() -> networkCountry.uppercase()
+                !simCountry.isNullOrBlank() -> simCountry.uppercase(Locale.getDefault())
+                !networkCountry.isNullOrBlank() -> networkCountry.uppercase(Locale.getDefault())
                 else -> Locale.getDefault().country
             }
         } catch (e: Exception) {

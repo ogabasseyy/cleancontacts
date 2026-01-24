@@ -1,6 +1,7 @@
 package com.ogabassey.contactscleaner.data.detector
 
 import com.ogabassey.contactscleaner.domain.model.Contact
+import com.ogabassey.contactscleaner.domain.model.JunkType
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -23,7 +24,7 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(1, result.size)
-        assertTrue(result[0].reason.contains("Blank contact"))
+        assertEquals(JunkType.NO_NAME, result[0].type)
     }
 
     @Test
@@ -36,7 +37,7 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(2, result.size)
-        assertTrue(result.all { it.reason.contains("Invalid characters") })
+        assertTrue(result.all { it.type == JunkType.INVALID_CHAR })
     }
 
     @Test
@@ -48,7 +49,7 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(1, result.size)
-        assertTrue(result[0].reason.contains("too short"))
+        assertEquals(JunkType.SHORT_NUMBER, result[0].type)
     }
 
     @Test
@@ -60,7 +61,7 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(1, result.size)
-        assertTrue(result[0].reason.contains("too long"))
+        assertEquals(JunkType.LONG_NUMBER, result[0].type)
     }
 
     @Test
@@ -72,7 +73,7 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(1, result.size)
-        assertTrue(result[0].reason.contains("emojis/symbols"))
+        assertEquals(JunkType.SYMBOL_NAME, result[0].type)
     }
 
     @Test

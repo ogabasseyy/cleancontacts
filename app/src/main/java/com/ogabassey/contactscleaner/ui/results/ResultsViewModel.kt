@@ -30,7 +30,7 @@ class ResultsViewModel @Inject constructor(
     private val cleanupContactsUseCase: CleanupContactsUseCase,
     private val scanResultProvider: com.ogabassey.contactscleaner.data.util.ScanResultProvider,
     private val contactRepository: com.ogabassey.contactscleaner.domain.repository.ContactRepository,
-    private val billingRepository: com.ogabassey.contactscleaner.domain.repository.BillingRepository,
+    val billingRepository: com.ogabassey.contactscleaner.domain.repository.BillingRepository,
     private val formatDetector: com.ogabassey.contactscleaner.data.detector.FormatDetector,
     private val exportUseCase: com.ogabassey.contactscleaner.domain.usecase.ExportUseCase,
     private val undoUseCase: com.ogabassey.contactscleaner.domain.usecase.UndoUseCase,

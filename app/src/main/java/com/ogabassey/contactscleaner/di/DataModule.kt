@@ -2,6 +2,8 @@ package com.ogabassey.contactscleaner.di
 
 import android.content.Context
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
+import com.ogabassey.contactscleaner.data.provider.AndroidRegionProvider
+import com.ogabassey.contactscleaner.data.provider.RegionProvider
 import com.ogabassey.contactscleaner.data.detector.JunkDetector
 import com.ogabassey.contactscleaner.data.parser.ContactImportParser
 import com.ogabassey.contactscleaner.data.repository.ContactRepositoryImpl
@@ -57,8 +59,16 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideDuplicateDetector(@ApplicationContext context: Context): DuplicateDetector {
-        return DuplicateDetector(context)
+    fun provideRegionProvider(
+        @ApplicationContext context: Context
+    ): RegionProvider {
+        return AndroidRegionProvider(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDuplicateDetector(regionProvider: RegionProvider): DuplicateDetector {
+        return DuplicateDetector(regionProvider)
     }
 
     @Provides

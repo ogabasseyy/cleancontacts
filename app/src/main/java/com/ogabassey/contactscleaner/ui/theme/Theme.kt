@@ -54,8 +54,10 @@ fun CleanContactsAITheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            // 2026 Edge-to-Edge Best Practice: Status bar should be transparent
+            // Only toggle the icon color (dark icons for light theme)
+            // window.statusBarColor = Color.Transparent.toArgb() // Now handled in MainActivity
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

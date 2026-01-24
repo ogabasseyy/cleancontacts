@@ -153,22 +153,17 @@ dependencies {
     // DataStore Persistence
     implementation(libs.androidx.datastore.preferences)
 
+    // BOM Platforms for Transitive Security (2026 Best Practice)
+    implementation(platform(libs.netty.bom))
+    implementation(platform(libs.protobuf.bom))
+
     // Security Constraint Pins (2026 Best Practice: Resolve transitive CVEs)
     constraints {
         implementation(libs.jose4j) {
             because("CVE-2023-31582: JWE denial of service")
         }
-        implementation(libs.netty.handler) {
-            because("Multiple Netty vulnerabilities in older versions")
-        }
-        implementation(libs.netty.codec.http) {
-            because("HTTP/2 stream exhaustion vulnerability")
-        }
         implementation(libs.jdom2) {
             because("XXE vulnerability in older JDOM versions")
-        }
-        implementation(libs.protobuf.java) {
-            because("Denial of Service (DoS) in older protobuf runtimes")
         }
         implementation(libs.commons.compress) {
             because("CVE-2024-25710: Denial of Service")

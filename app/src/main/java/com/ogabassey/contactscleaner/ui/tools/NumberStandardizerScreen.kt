@@ -154,7 +154,7 @@ fun CountryHeader(
         ) {
             Icon(
                 imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown 
-                             else Icons.Default.KeyboardArrowRight,
+                             else Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = SecondaryNeon,
                 modifier = Modifier.size(24.dp)

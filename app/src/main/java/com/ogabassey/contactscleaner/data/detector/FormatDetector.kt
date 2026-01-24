@@ -99,6 +99,7 @@ class FormatDetector @Inject constructor() {
             // Parse with "+" if missing, though E164 should have it.
             val numStr = if (e164Number.startsWith("+")) e164Number else "+$e164Number"
             val proto = phoneUtil.parse(numStr, "ZZ")
+            val region = phoneUtil.getRegionCodeForNumber(proto)
             return if (region != null && region != "Unknown") {
                 val country = Locale.Builder().setRegion(region).build().displayCountry
                 if (country.isNotBlank()) "$country (+${proto.countryCode})" else "Region +${proto.countryCode}"

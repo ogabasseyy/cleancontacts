@@ -38,6 +38,9 @@ object Export
 @Serializable
 object RecentActions
 
+@Serializable
+object SafeList
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
@@ -53,6 +56,9 @@ fun AppNavigation() {
                 },
                 onNavigateToRecentActions = {
                     navController.navigate(RecentActions)
+                },
+                onNavigateToSafeList = {
+                    navController.navigate(SafeList)
                 }
             )
         }
@@ -109,6 +115,14 @@ fun AppNavigation() {
         composable<RecentActions> {
             com.ogabassey.contactscleaner.ui.history.RecentActionsScreen(
                 onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable<SafeList> {
+            com.ogabassey.contactscleaner.ui.settings.SafeListScreen(
+                onNavigateBack = {
                     navController.popBackStack()
                 }
             )

@@ -27,6 +27,7 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"اس کے ساتھ اشتراک کریں"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g> کے ساتھ اشتراک کریں"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"سکیڑیں"</string>
+    <string msgid="389117264260014992" name="autofill">"آٹو فل"</string>
     <string msgid="881409763997275156" name="call_notification_answer_action">"جواب دیں"</string>
     <string msgid="8793775615905189152" name="call_notification_answer_video_action">"ویڈیو"</string>
     <string msgid="3229508546291798546" name="call_notification_decline_action">"مسترد کریں"</string>
@@ -122,6 +123,7 @@
     <string msgid="7097486360902471446" name="range_start">"رینج کی شروعات"</string>
     <string msgid="6264217191555673260" name="search_menu_title">"تلاش کریں"</string>
     <string msgid="6043586758067023" name="selected">"منتخب کردہ"</string>
+    <string msgid="2792228137354697160" name="snackbar_pane_title">"الرٹ"</string>
     <string msgid="4139871816613051306" name="state_empty">"خالی ہے"</string>
     <string msgid="5834637030682409883" name="state_off">"آف ہے"</string>
     <string msgid="1490883874751719580" name="state_on">"آن ہے"</string>

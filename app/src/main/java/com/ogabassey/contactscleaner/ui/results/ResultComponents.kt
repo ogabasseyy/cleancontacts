@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Call
@@ -116,23 +117,27 @@ fun ContactItem(contact: Contact, accentColor: Color) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(contact.name ?: "Unnamed Contact", color = TextHigh, fontWeight = FontWeight.Bold)
                 
-                // Show Email if duplicate email, else Number
-                val details = if (contact.duplicateType == com.ogabassey.contactscleaner.domain.model.DuplicateType.EMAIL_MATCH && contact.emails.isNotEmpty()) {
+                val details = if (contact.isSensitive && !contact.sensitiveDescription.isNullOrEmpty()) {
+                    contact.sensitiveDescription
+                } else if (contact.duplicateType == com.ogabassey.contactscleaner.domain.model.DuplicateType.EMAIL_MATCH && contact.emails.isNotEmpty()) {
                     contact.emails.first()
                 } else {
                     contact.numbers.firstOrNull() ?: "No Number"
                 }
                 
                 Text(
-                     details,
-                     color = TextMedium, 
+                     details ?: "No Details",
+                     color = if (contact.isSensitive) WarningNeon else TextMedium, 
                      fontSize = 12.sp,
-                     maxLines = 1
+                     maxLines = 1,
+                     fontWeight = if (contact.isSensitive) FontWeight.Bold else FontWeight.Normal
                 )
             }
             
-            // Action Icon (Merge/Delete)
-            if (accentColor == ErrorNeon) {
+            // Action Icon (Merge/Delete/Protect)
+            if (contact.isSensitive) {
+                 Icon(Icons.Default.Lock, "Sensitive", tint = WarningNeon.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+            } else if (accentColor == ErrorNeon) {
                 Icon(Icons.Default.Delete, "Delete", tint = ErrorNeon.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
             } else if (accentColor == WarningNeon) {
                  Icon(Icons.Default.Build, "Merge", tint = WarningNeon.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
@@ -299,8 +304,10 @@ fun ResultsUtilityBar(
     contactType: com.ogabassey.contactscleaner.domain.model.ContactType,
     onDeleteAll: () -> Unit = {},
     onMergeAll: () -> Unit = {},
-    onExportAll: () -> Unit = {}
+    onExportAll: () -> Unit = {},
+    onProtectAll: () -> Unit = {}
 ) {
+    val isSensitive = contactType == com.ogabassey.contactscleaner.domain.model.ContactType.SENSITIVE
     val isDuplicateFilter = contactType.name.startsWith("DUP") && contactType != com.ogabassey.contactscleaner.domain.model.ContactType.DUPLICATE
     val canDelete = contactType.name.startsWith("JUNK") || contactType == com.ogabassey.contactscleaner.domain.model.ContactType.NON_WHATSAPP
     
@@ -363,6 +370,16 @@ fun ResultsUtilityBar(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                 ) {
                     Text("DELETE ALL", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            } else if (isSensitive) {
+                 Button(
+                    onClick = onProtectAll,
+                    colors = ButtonDefaults.buttonColors(containerColor = WarningNeon, contentColor = SpaceBlack),
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                ) {
+                    Text("PROTECT ALL", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -450,6 +467,7 @@ fun getColorForFilter(type: com.ogabassey.contactscleaner.domain.model.ContactTy
         type.name.startsWith("DUP") -> WarningNeon
         type == com.ogabassey.contactscleaner.domain.model.ContactType.WHATSAPP -> SuccessNeon
         type == com.ogabassey.contactscleaner.domain.model.ContactType.TELEGRAM -> SecondaryNeon
+        type == com.ogabassey.contactscleaner.domain.model.ContactType.SENSITIVE -> WarningNeon
         else -> PrimaryNeon
     }
 }

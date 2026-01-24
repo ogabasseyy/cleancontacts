@@ -39,7 +39,8 @@ import kotlin.math.sin
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onNavigateToResults: () -> Unit,
-    onNavigateToRecentActions: () -> Unit = {}
+    onNavigateToRecentActions: () -> Unit = {},
+    onNavigateToSafeList: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     
@@ -312,7 +313,11 @@ fun DashboardScreen(
         ) {
             SettingsContent(
                 versionName = "1.0.0",
-                onDismiss = { showSettingsSheet = false }
+                onDismiss = { showSettingsSheet = false },
+                onNavigateToSafeList = {
+                    showSettingsSheet = false
+                    onNavigateToSafeList()
+                }
             )
         }
     }
@@ -321,7 +326,8 @@ fun DashboardScreen(
 @Composable
 fun SettingsContent(
     versionName: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onNavigateToSafeList: () -> Unit = {}
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     
@@ -349,9 +355,20 @@ fun SettingsContent(
         
         Divider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
         
-        // Privacy Policy
+
+
         SettingsItem(
             icon = Icons.Default.Lock,
+            title = "Safe List",
+            subtitle = "Managed protected contacts",
+            onClick = onNavigateToSafeList
+        )
+        
+        Divider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
+        
+        // Privacy Policy
+        SettingsItem(
+            icon = Icons.Default.Info,
             title = "Privacy Policy",
             subtitle = "How we handle your data",
             onClick = {

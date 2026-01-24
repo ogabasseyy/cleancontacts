@@ -38,11 +38,11 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
     - name: Set up JDK 21
       if: matrix.language == 'java-kotlin'
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -59,6 +59,8 @@ jobs:
           paths-ignore:
             - '**/build/**'
             - '**/generated/**'
+            - '**/ksp/**'
+            - '**/kspCaches/**'
 
     - name: Build Android App (Manual)
       if: matrix.language == 'java-kotlin'
@@ -67,6 +69,6 @@ jobs:
         ./gradlew assembleDebug --no-daemon
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      uses: github/codeql-action/analyze@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
       with:
         category: "/language:${{matrix.language}}"

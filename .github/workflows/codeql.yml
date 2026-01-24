@@ -1,63 +1,67 @@
-# CodeQL Security Analysis Workflow
-# Performs static code analysis to find security vulnerabilities
-
-name: "CodeQL"
+name: "CodeQL Advanced"
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   schedule:
-    # Run weekly on Sundays at 2:00 AM UTC
-    - cron: '0 2 * * 0'
+    - cron: '36 1 * * 6'
   workflow_dispatch:
 
 concurrency:
   group: codeql-${{ github.ref }}
-  # Only cancel in-progress for PRs, allow scheduled/push scans to complete
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     permissions:
+      security-events: write
+      packages: read
       actions: read
       contents: read
-      security-events: write
 
     strategy:
       fail-fast: false
       matrix:
-        language: ['java-kotlin']
+        include:
+        - language: actions
+          build-mode: none
+        - language: java-kotlin
+          build-mode: manual
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: gradle
+    - name: Set up JDK 21
+      if: matrix.language == 'java-kotlin'
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-          queries: security-extended,security-and-quality
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+        queries: security-extended,security-and-quality
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+    - name: Build Android App (Manual)
+      if: matrix.language == 'java-kotlin'
+      run: |
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
 
-      - name: Build with Gradle
-        # Manual build ensures CodeQL captures the compilation (essential for Java/Kotlin)
-        run: ./gradlew assembleDebug --no-daemon
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{ matrix.language }}"
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{matrix.language}}"

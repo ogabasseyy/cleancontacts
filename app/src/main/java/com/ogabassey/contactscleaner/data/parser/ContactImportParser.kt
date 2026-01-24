@@ -39,7 +39,21 @@ class ContactImportParser @Inject constructor() {
     }
 
     private fun parseCSVLine(line: String, id: Long): Contact? {
-        val parts = line.split(',').map { it.trim().removeSurrounding("\"") }
+        val parts = mutableListOf<String>()
+        var current = StringBuilder()
+        var inQuotes = false
+        
+        for (char in line) {
+            when {
+                char == '\"' -> inQuotes = !inQuotes
+                char == ',' && !inQuotes -> {
+                    parts.add(current.toString().trim().removeSurrounding("\""))
+                    current = StringBuilder()
+                }
+                else -> current.append(char)
+            }
+        }
+        parts.add(current.toString().trim().removeSurrounding("\""))
         
         return when {
             parts.size >= 2 -> {

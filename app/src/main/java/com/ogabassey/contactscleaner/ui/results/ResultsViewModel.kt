@@ -308,6 +308,36 @@ class ResultsViewModel @Inject constructor(
             }
         }
     }
+
+    // Ignore List Methods
+    val ignoredContacts = cleanupContactsUseCase.getIgnoredContacts()
+
+    fun ignoreContact(contact: Contact, reason: String) {
+        viewModelScope.launch {
+            cleanupContactsUseCase.ignoreContact(contact.id.toString(), contact.name ?: "Unknown", reason)
+            contactRepository.updateScanResultSummary()
+            // After ignoring, we might want to refresh current lists
+        }
+    }
+
+    fun unignoreContact(id: String) {
+        viewModelScope.launch {
+            cleanupContactsUseCase.unignoreContact(id)
+            contactRepository.updateScanResultSummary()
+        }
+    }
+
+    fun performProtectAll(type: ContactType) {
+        viewModelScope.launch {
+             _uiState.value = ResultsUiState.Processing(0f, "Protecting contacts...")
+             val contacts = contactRepository.getContactsSnapshotByType(type)
+             contacts.forEach { contact ->
+                 cleanupContactsUseCase.ignoreContact(contact.id.toString(), contact.name ?: "Unknown", contact.sensitiveDescription ?: "Potential ID")
+             }
+             _uiState.value = ResultsUiState.Success("Successfully protected ${contacts.size} contacts", shouldRescan = true)
+             contactRepository.updateScanResultSummary()
+        }
+    }
 }
 
 data class FormatGroup(

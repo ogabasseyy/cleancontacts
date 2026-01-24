@@ -1,7 +1,7 @@
 package com.ogabassey.contactscleaner.di;
 
-import android.content.Context;
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector;
+import com.ogabassey.contactscleaner.data.provider.RegionProvider;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.Preconditions;
@@ -12,7 +12,7 @@ import dagger.internal.ScopeMetadata;
 import javax.annotation.processing.Generated;
 
 @ScopeMetadata("javax.inject.Singleton")
-@QualifierMetadata("dagger.hilt.android.qualifiers.ApplicationContext")
+@QualifierMetadata
 @DaggerGenerated
 @Generated(
     value = "dagger.internal.codegen.ComponentProcessor",
@@ -28,28 +28,28 @@ import javax.annotation.processing.Generated;
     "nullness:initialization.field.uninitialized"
 })
 public final class DataModule_ProvideDuplicateDetectorFactory implements Factory<DuplicateDetector> {
-  private final Provider<Context> contextProvider;
+  private final Provider<RegionProvider> regionProvider;
 
-  public DataModule_ProvideDuplicateDetectorFactory(Provider<Context> contextProvider) {
-    this.contextProvider = contextProvider;
+  public DataModule_ProvideDuplicateDetectorFactory(Provider<RegionProvider> regionProvider) {
+    this.regionProvider = regionProvider;
   }
 
   @Override
   public DuplicateDetector get() {
-    return provideDuplicateDetector(contextProvider.get());
+    return provideDuplicateDetector(regionProvider.get());
   }
 
   public static DataModule_ProvideDuplicateDetectorFactory create(
-      javax.inject.Provider<Context> contextProvider) {
-    return new DataModule_ProvideDuplicateDetectorFactory(Providers.asDaggerProvider(contextProvider));
+      javax.inject.Provider<RegionProvider> regionProvider) {
+    return new DataModule_ProvideDuplicateDetectorFactory(Providers.asDaggerProvider(regionProvider));
   }
 
   public static DataModule_ProvideDuplicateDetectorFactory create(
-      Provider<Context> contextProvider) {
-    return new DataModule_ProvideDuplicateDetectorFactory(contextProvider);
+      Provider<RegionProvider> regionProvider) {
+    return new DataModule_ProvideDuplicateDetectorFactory(regionProvider);
   }
 
-  public static DuplicateDetector provideDuplicateDetector(Context context) {
-    return Preconditions.checkNotNullFromProvides(DataModule.INSTANCE.provideDuplicateDetector(context));
+  public static DuplicateDetector provideDuplicateDetector(RegionProvider regionProvider) {
+    return Preconditions.checkNotNullFromProvides(DataModule.INSTANCE.provideDuplicateDetector(regionProvider));
   }
 }

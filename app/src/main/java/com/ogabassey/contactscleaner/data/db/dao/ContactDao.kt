@@ -40,6 +40,9 @@ interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' ORDER BY display_name ASC")
     fun getSimilarNameContactsPaged(): PagingSource<Int, LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_sensitive = 1 ORDER BY display_name ASC")
+    fun getSensitiveContactsPaged(): PagingSource<Int, LocalContact>
     
     // --- Bulk Updates for Analysis Form ---
     @Query("UPDATE contacts SET duplicate_type = 'NUMBER_MATCH' WHERE normalized_number IN (SELECT normalized_number FROM contacts WHERE normalized_number IS NOT NULL AND normalized_number != '' GROUP BY normalized_number HAVING COUNT(*) > 1)")
@@ -127,6 +130,9 @@ interface ContactDao {
     @Query("SELECT * FROM contacts WHERE is_format_issue = 1 ORDER BY detected_region ASC, normalized_number ASC")
     fun getFormatIssueContactsPaged(): PagingSource<Int, LocalContact>
 
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_sensitive = 1")
+    fun countSensitive(): Int
+
 
     // --- Grouped Queries for Competitor Style View ---
     @Query("SELECT normalized_number as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' GROUP BY normalized_number HAVING COUNT(*) > 1 ORDER BY count DESC")
@@ -204,6 +210,9 @@ interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE duplicate_type IS NOT NULL")
     suspend fun getDuplicateContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_sensitive = 1")
+    suspend fun getSensitiveContactsSnapshot(): List<LocalContact>
 
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")
     suspend fun getAllContacts(): List<LocalContact>

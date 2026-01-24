@@ -1,58 +1,58 @@
 [
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/xml_data_extraction_rules.xml.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/xml/data_extraction_rules.xml"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-hdpi/ic_launcher.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/drawable_ic_launcher_background.xml.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/drawable/ic_launcher_background.xml"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xhdpi/ic_launcher.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xxhdpi_ic_launcher_round.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xxhdpi/ic_launcher_round.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/drawable/ic_launcher_foreground.xml"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xxxhdpi_ic_launcher.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xxxhdpi/ic_launcher.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-mdpi/ic_launcher.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-hdpi_ic_launcher.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-hdpi/ic_launcher.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xxxhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-hdpi_ic_launcher_round.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-hdpi/ic_launcher_round.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xxhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/drawable_ic_launcher_foreground.xml.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/drawable/ic_launcher_foreground.xml"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-mdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/xml_backup_rules.xml.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/xml/backup_rules.xml"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/xml_backup_rules.xml.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/xml/backup_rules.xml"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-mdpi_ic_launcher.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-mdpi/ic_launcher.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xhdpi/ic_launcher_round.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xhdpi_ic_launcher.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xhdpi/ic_launcher.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/xml_data_extraction_rules.xml.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/xml/data_extraction_rules.xml"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xxhdpi_ic_launcher.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xxhdpi/ic_launcher.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xxhdpi/ic_launcher.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xxxhdpi/ic_launcher_round.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/drawable/ic_launcher_background.xml"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-xhdpi_ic_launcher_round.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-xhdpi/ic_launcher_round.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-xxxhdpi/ic_launcher.png"
     },
     {
-        "merged": "com.ogabassey.contactscleaner.app-debug-84:/mipmap-mdpi_ic_launcher_round.png.flat",
-        "source": "com.ogabassey.contactscleaner.app-main-86:/mipmap-mdpi/ic_launcher_round.png"
+        "merged": "com.ogabassey.contactscleaner.app-debug-70:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "com.ogabassey.contactscleaner.app-main-72:/mipmap-hdpi/ic_launcher_round.png"
     }
 ]

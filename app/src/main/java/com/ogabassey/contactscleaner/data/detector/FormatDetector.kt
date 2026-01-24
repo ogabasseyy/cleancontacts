@@ -73,7 +73,11 @@ class FormatDetector @Inject constructor() {
                 // This prevents libphonenumber from "correcting" to a different number
                 if (formatted == plusNumber) {
                     val regionCode = phoneUtil.getRegionCodeForNumber(proto) ?: "Unknown"
-                    val countryName = Locale.Builder().setRegion(regionCode).build().displayCountry
+                    val countryName = if (regionCode != "Unknown") {
+                        Locale.Builder().setRegion(regionCode).build().displayCountry
+                    } else {
+                        ""
+                    }
                     
                     return FormatIssue(
                         normalizedNumber = formatted,
@@ -96,7 +100,7 @@ class FormatDetector @Inject constructor() {
             val numStr = if (e164Number.startsWith("+")) e164Number else "+$e164Number"
             val proto = phoneUtil.parse(numStr, "ZZ")
             val region = phoneUtil.getRegionCodeForNumber(proto)
-            return if (region != null) {
+            return if (region != null && region != "Unknown") {
                 val country = Locale.Builder().setRegion(region).build().displayCountry
                 if (country.isNotBlank()) "$country (+${proto.countryCode})" else "Region +${proto.countryCode}"
             } else {

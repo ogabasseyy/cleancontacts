@@ -99,6 +99,8 @@ object DataModule {
         junkDetector: JunkDetector,
         duplicateDetector: DuplicateDetector,
         formatDetector: com.ogabassey.contactscleaner.data.detector.FormatDetector,
+        sensitiveDetector: com.ogabassey.contactscleaner.data.detector.SensitiveDataDetector,
+        ignoredContactDao: com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao,
         scanResultProvider: com.ogabassey.contactscleaner.data.util.ScanResultProvider
     ): ContactRepository {
         return ContactRepositoryImpl(
@@ -107,6 +109,8 @@ object DataModule {
             junkDetector = junkDetector,
             duplicateDetector = duplicateDetector,
             formatDetector = formatDetector,
+            sensitiveDetector = sensitiveDetector,
+            ignoredContactDao = ignoredContactDao,
             scanResultProvider = scanResultProvider
         )
     }
@@ -126,4 +130,8 @@ object DataModule {
         )
     }
 
+    @Provides
+    fun provideIgnoredContactDao(database: ContactDatabase): com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao {
+        return database.ignoredContactDao()
+    }
 }

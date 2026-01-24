@@ -160,7 +160,8 @@ fun ScanResultsDetailScreen(
                     contactType = contactType,
                     onDeleteAll = { viewModel.performCleanup(contactType) },
                     onMergeAll = { viewModel.performMerge(contactType) },
-                    onExportAll = { viewModel.performBulkExport(contactType) }
+                    onExportAll = { viewModel.performBulkExport(contactType) },
+                    onProtectAll = { viewModel.performProtectAll(contactType) }
                 )
 
                 // List Content

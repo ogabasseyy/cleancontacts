@@ -807,6 +807,7 @@ id checkbox
 id checked
 id chronometer
 id collapseActionView
+id compose_prefetch_scheduler
 id compose_view_saveable_id_tag
 id consume_window_insets_tag
 id content
@@ -899,11 +900,13 @@ id tag_accessibility_actions
 id tag_accessibility_clickable_spans
 id tag_accessibility_heading
 id tag_accessibility_pane_title
+id tag_compat_insets_dispatch
 id tag_on_apply_window_listener
 id tag_on_receive_content_listener
 id tag_on_receive_content_mime_types
 id tag_screen_reader_focusable
 id tag_state_description
+id tag_system_bar_state_monitor
 id tag_transition_group
 id tag_unhandled_key_event_manager
 id tag_unhandled_key_listeners
@@ -922,7 +925,9 @@ id unchecked
 id uniform
 id up
 id useLogo
+id view_tree_disjoint_parent
 id view_tree_lifecycle_owner
+id view_tree_navigation_event_dispatcher_owner
 id view_tree_on_back_pressed_dispatcher_owner
 id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
@@ -1019,6 +1024,7 @@ string abc_shareactionprovider_share_with_application
 string abc_toolbar_collapse_description
 string androidx_startup
 string app_name
+string autofill
 string btn_apply_cleanup
 string btn_continue
 string btn_grant_permissions
@@ -1136,6 +1142,7 @@ string results_title
 string scanning_message
 string search_menu_title
 string selected
+string snackbar_pane_title
 string state_empty
 string state_off
 string state_on
@@ -1314,7 +1321,6 @@ style Base_Widget_AppCompat_Toolbar_Button_Navigation
 style DialogWindowTheme
 style EdgeToEdgeFloatingDialogTheme
 style EdgeToEdgeFloatingDialogWindowTheme
-style FloatingDialogTheme
 style FloatingDialogWindowTheme
 style Platform_AppCompat
 style Platform_AppCompat_Light

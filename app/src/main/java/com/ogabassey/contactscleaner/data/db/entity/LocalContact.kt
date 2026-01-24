@@ -28,5 +28,7 @@ data class LocalContact(
     @ColumnInfo(name = "duplicate_type") val duplicateType: String?, // Enum name
     @ColumnInfo(name = "is_format_issue") val isFormatIssue: Boolean,
     @ColumnInfo(name = "detected_region") val detectedRegion: String?, // "US", "NG", etc.
+    @ColumnInfo(name = "is_sensitive") val isSensitive: Boolean = false,
+    @ColumnInfo(name = "sensitive_description") val sensitiveDescription: String? = null,
     @ColumnInfo(name = "last_synced") val lastSynced: Long
 )

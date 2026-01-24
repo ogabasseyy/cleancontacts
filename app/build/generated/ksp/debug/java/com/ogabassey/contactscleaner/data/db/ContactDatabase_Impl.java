@@ -13,6 +13,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao;
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao_Impl;
+import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao;
+import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao_Impl;
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao;
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao_Impl;
 import java.lang.Class;
@@ -35,25 +37,29 @@ public final class ContactDatabase_Impl extends ContactDatabase {
 
   private volatile UndoDao _undoDao;
 
+  private volatile IgnoredContactDao _ignoredContactDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(5) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `contacts` (`id` INTEGER NOT NULL, `display_name` TEXT, `normalized_number` TEXT, `raw_numbers` TEXT NOT NULL, `raw_emails` TEXT NOT NULL, `is_whatsapp` INTEGER NOT NULL, `is_telegram` INTEGER NOT NULL, `account_type` TEXT, `account_name` TEXT, `is_junk` INTEGER NOT NULL, `junk_type` TEXT, `duplicate_type` TEXT, `is_format_issue` INTEGER NOT NULL, `detected_region` TEXT, `last_synced` INTEGER NOT NULL, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `contacts` (`id` INTEGER NOT NULL, `display_name` TEXT, `normalized_number` TEXT, `raw_numbers` TEXT NOT NULL, `raw_emails` TEXT NOT NULL, `is_whatsapp` INTEGER NOT NULL, `is_telegram` INTEGER NOT NULL, `account_type` TEXT, `account_name` TEXT, `is_junk` INTEGER NOT NULL, `junk_type` TEXT, `duplicate_type` TEXT, `is_format_issue` INTEGER NOT NULL, `detected_region` TEXT, `is_sensitive` INTEGER NOT NULL, `sensitive_description` TEXT, `last_synced` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_contacts_normalized_number` ON `contacts` (`normalized_number`)");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_contacts_display_name` ON `contacts` (`display_name`)");
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_contacts_raw_emails` ON `contacts` (`raw_emails`)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `undo_logs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `actionType` TEXT NOT NULL, `originalDataJson` TEXT NOT NULL, `description` TEXT NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `ignored_contacts` (`id` TEXT NOT NULL, `displayName` TEXT NOT NULL, `reason` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, PRIMARY KEY(`id`))");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e7d5973c91ea6967bf37cc7232c3055c')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3fc6ffb59167790e03c6ae3598f16651')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `contacts`");
         db.execSQL("DROP TABLE IF EXISTS `undo_logs`");
+        db.execSQL("DROP TABLE IF EXISTS `ignored_contacts`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -97,7 +103,7 @@ public final class ContactDatabase_Impl extends ContactDatabase {
       @NonNull
       public RoomOpenHelper.ValidationResult onValidateSchema(
           @NonNull final SupportSQLiteDatabase db) {
-        final HashMap<String, TableInfo.Column> _columnsContacts = new HashMap<String, TableInfo.Column>(15);
+        final HashMap<String, TableInfo.Column> _columnsContacts = new HashMap<String, TableInfo.Column>(17);
         _columnsContacts.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsContacts.put("display_name", new TableInfo.Column("display_name", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsContacts.put("normalized_number", new TableInfo.Column("normalized_number", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
@@ -112,6 +118,8 @@ public final class ContactDatabase_Impl extends ContactDatabase {
         _columnsContacts.put("duplicate_type", new TableInfo.Column("duplicate_type", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsContacts.put("is_format_issue", new TableInfo.Column("is_format_issue", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsContacts.put("detected_region", new TableInfo.Column("detected_region", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsContacts.put("is_sensitive", new TableInfo.Column("is_sensitive", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsContacts.put("sensitive_description", new TableInfo.Column("sensitive_description", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
         _columnsContacts.put("last_synced", new TableInfo.Column("last_synced", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
         final HashSet<TableInfo.ForeignKey> _foreignKeysContacts = new HashSet<TableInfo.ForeignKey>(0);
         final HashSet<TableInfo.Index> _indicesContacts = new HashSet<TableInfo.Index>(3);
@@ -140,9 +148,23 @@ public final class ContactDatabase_Impl extends ContactDatabase {
                   + " Expected:\n" + _infoUndoLogs + "\n"
                   + " Found:\n" + _existingUndoLogs);
         }
+        final HashMap<String, TableInfo.Column> _columnsIgnoredContacts = new HashMap<String, TableInfo.Column>(4);
+        _columnsIgnoredContacts.put("id", new TableInfo.Column("id", "TEXT", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsIgnoredContacts.put("displayName", new TableInfo.Column("displayName", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsIgnoredContacts.put("reason", new TableInfo.Column("reason", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsIgnoredContacts.put("timestamp", new TableInfo.Column("timestamp", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysIgnoredContacts = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesIgnoredContacts = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoIgnoredContacts = new TableInfo("ignored_contacts", _columnsIgnoredContacts, _foreignKeysIgnoredContacts, _indicesIgnoredContacts);
+        final TableInfo _existingIgnoredContacts = TableInfo.read(db, "ignored_contacts");
+        if (!_infoIgnoredContacts.equals(_existingIgnoredContacts)) {
+          return new RoomOpenHelper.ValidationResult(false, "ignored_contacts(com.ogabassey.contactscleaner.data.db.entity.IgnoredContact).\n"
+                  + " Expected:\n" + _infoIgnoredContacts + "\n"
+                  + " Found:\n" + _existingIgnoredContacts);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "e7d5973c91ea6967bf37cc7232c3055c", "eb9b47c1133a30cabf89414be052e338");
+    }, "3fc6ffb59167790e03c6ae3598f16651", "c6127e87f3e9d7f8eab16577ac793b66");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -153,7 +175,7 @@ public final class ContactDatabase_Impl extends ContactDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "contacts","undo_logs");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "contacts","undo_logs","ignored_contacts");
   }
 
   @Override
@@ -164,6 +186,7 @@ public final class ContactDatabase_Impl extends ContactDatabase {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `contacts`");
       _db.execSQL("DELETE FROM `undo_logs`");
+      _db.execSQL("DELETE FROM `ignored_contacts`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -180,6 +203,7 @@ public final class ContactDatabase_Impl extends ContactDatabase {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(ContactDao.class, ContactDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(UndoDao.class, UndoDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(IgnoredContactDao.class, IgnoredContactDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -222,6 +246,20 @@ public final class ContactDatabase_Impl extends ContactDatabase {
           _undoDao = new UndoDao_Impl(this);
         }
         return _undoDao;
+      }
+    }
+  }
+
+  @Override
+  public IgnoredContactDao ignoredContactDao() {
+    if (_ignoredContactDao != null) {
+      return _ignoredContactDao;
+    } else {
+      synchronized(this) {
+        if(_ignoredContactDao == null) {
+          _ignoredContactDao = new IgnoredContactDao_Impl(this);
+        }
+        return _ignoredContactDao;
       }
     }
   }

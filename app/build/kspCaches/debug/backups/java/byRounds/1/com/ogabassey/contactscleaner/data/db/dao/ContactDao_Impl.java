@@ -55,7 +55,7 @@ public final class ContactDao_Impl implements ContactDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `contacts` (`id`,`display_name`,`normalized_number`,`raw_numbers`,`raw_emails`,`is_whatsapp`,`is_telegram`,`account_type`,`account_name`,`is_junk`,`junk_type`,`duplicate_type`,`is_format_issue`,`detected_region`,`last_synced`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `contacts` (`id`,`display_name`,`normalized_number`,`raw_numbers`,`raw_emails`,`is_whatsapp`,`is_telegram`,`account_type`,`account_name`,`is_junk`,`junk_type`,`duplicate_type`,`is_format_issue`,`detected_region`,`is_sensitive`,`sensitive_description`,`last_synced`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -107,7 +107,14 @@ public final class ContactDao_Impl implements ContactDao {
         } else {
           statement.bindString(14, entity.getDetectedRegion());
         }
-        statement.bindLong(15, entity.getLastSynced());
+        final int _tmp_4 = entity.isSensitive() ? 1 : 0;
+        statement.bindLong(15, _tmp_4);
+        if (entity.getSensitiveDescription() == null) {
+          statement.bindNull(16);
+        } else {
+          statement.bindString(16, entity.getSensitiveDescription());
+        }
+        statement.bindLong(17, entity.getLastSynced());
       }
     };
     this.__preparedStmtOfMarkDuplicateNumbers = new SharedSQLiteStatement(__db) {
@@ -259,6 +266,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -327,9 +336,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -359,6 +378,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -427,9 +448,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -459,6 +490,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -527,9 +560,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -559,6 +602,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -627,9 +672,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -659,6 +714,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -727,9 +784,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -759,6 +826,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -827,9 +896,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -859,6 +938,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -927,9 +1008,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -959,6 +1050,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1027,9 +1120,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1059,6 +1162,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1127,9 +1232,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1159,6 +1274,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1227,9 +1344,131 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
+          _result.add(_item);
+        }
+        return _result;
+      }
+    };
+  }
+
+  @Override
+  public PagingSource<Integer, LocalContact> getSensitiveContactsPaged() {
+    final String _sql = "SELECT * FROM contacts WHERE is_sensitive = 1 ORDER BY display_name ASC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    return new LimitOffsetPagingSource<LocalContact>(_statement, __db, "contacts") {
+      @Override
+      @NonNull
+      protected List<LocalContact> convertRows(@NonNull final Cursor cursor) {
+        final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(cursor, "id");
+        final int _cursorIndexOfDisplayName = CursorUtil.getColumnIndexOrThrow(cursor, "display_name");
+        final int _cursorIndexOfNormalizedNumber = CursorUtil.getColumnIndexOrThrow(cursor, "normalized_number");
+        final int _cursorIndexOfRawNumbers = CursorUtil.getColumnIndexOrThrow(cursor, "raw_numbers");
+        final int _cursorIndexOfRawEmails = CursorUtil.getColumnIndexOrThrow(cursor, "raw_emails");
+        final int _cursorIndexOfIsWhatsApp = CursorUtil.getColumnIndexOrThrow(cursor, "is_whatsapp");
+        final int _cursorIndexOfIsTelegram = CursorUtil.getColumnIndexOrThrow(cursor, "is_telegram");
+        final int _cursorIndexOfAccountType = CursorUtil.getColumnIndexOrThrow(cursor, "account_type");
+        final int _cursorIndexOfAccountName = CursorUtil.getColumnIndexOrThrow(cursor, "account_name");
+        final int _cursorIndexOfIsJunk = CursorUtil.getColumnIndexOrThrow(cursor, "is_junk");
+        final int _cursorIndexOfJunkType = CursorUtil.getColumnIndexOrThrow(cursor, "junk_type");
+        final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
+        final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
+        final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
+        final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
+        final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
+        while (cursor.moveToNext()) {
+          final LocalContact _item;
+          final long _tmpId;
+          _tmpId = cursor.getLong(_cursorIndexOfId);
+          final String _tmpDisplayName;
+          if (cursor.isNull(_cursorIndexOfDisplayName)) {
+            _tmpDisplayName = null;
+          } else {
+            _tmpDisplayName = cursor.getString(_cursorIndexOfDisplayName);
+          }
+          final String _tmpNormalizedNumber;
+          if (cursor.isNull(_cursorIndexOfNormalizedNumber)) {
+            _tmpNormalizedNumber = null;
+          } else {
+            _tmpNormalizedNumber = cursor.getString(_cursorIndexOfNormalizedNumber);
+          }
+          final String _tmpRawNumbers;
+          _tmpRawNumbers = cursor.getString(_cursorIndexOfRawNumbers);
+          final String _tmpRawEmails;
+          _tmpRawEmails = cursor.getString(_cursorIndexOfRawEmails);
+          final boolean _tmpIsWhatsApp;
+          final int _tmp;
+          _tmp = cursor.getInt(_cursorIndexOfIsWhatsApp);
+          _tmpIsWhatsApp = _tmp != 0;
+          final boolean _tmpIsTelegram;
+          final int _tmp_1;
+          _tmp_1 = cursor.getInt(_cursorIndexOfIsTelegram);
+          _tmpIsTelegram = _tmp_1 != 0;
+          final String _tmpAccountType;
+          if (cursor.isNull(_cursorIndexOfAccountType)) {
+            _tmpAccountType = null;
+          } else {
+            _tmpAccountType = cursor.getString(_cursorIndexOfAccountType);
+          }
+          final String _tmpAccountName;
+          if (cursor.isNull(_cursorIndexOfAccountName)) {
+            _tmpAccountName = null;
+          } else {
+            _tmpAccountName = cursor.getString(_cursorIndexOfAccountName);
+          }
+          final boolean _tmpIsJunk;
+          final int _tmp_2;
+          _tmp_2 = cursor.getInt(_cursorIndexOfIsJunk);
+          _tmpIsJunk = _tmp_2 != 0;
+          final String _tmpJunkType;
+          if (cursor.isNull(_cursorIndexOfJunkType)) {
+            _tmpJunkType = null;
+          } else {
+            _tmpJunkType = cursor.getString(_cursorIndexOfJunkType);
+          }
+          final String _tmpDuplicateType;
+          if (cursor.isNull(_cursorIndexOfDuplicateType)) {
+            _tmpDuplicateType = null;
+          } else {
+            _tmpDuplicateType = cursor.getString(_cursorIndexOfDuplicateType);
+          }
+          final boolean _tmpIsFormatIssue;
+          final int _tmp_3;
+          _tmp_3 = cursor.getInt(_cursorIndexOfIsFormatIssue);
+          _tmpIsFormatIssue = _tmp_3 != 0;
+          final String _tmpDetectedRegion;
+          if (cursor.isNull(_cursorIndexOfDetectedRegion)) {
+            _tmpDetectedRegion = null;
+          } else {
+            _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
+          }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
+          final long _tmpLastSynced;
+          _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1319,6 +1558,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1387,9 +1628,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1679,6 +1930,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1747,9 +2000,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1779,6 +2042,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1847,9 +2112,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1879,6 +2154,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -1947,9 +2224,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -1979,6 +2266,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -2047,9 +2336,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -2079,6 +2378,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -2147,9 +2448,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -2179,6 +2490,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -2247,9 +2560,19 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
@@ -2279,6 +2602,8 @@ public final class ContactDao_Impl implements ContactDao {
         final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(cursor, "duplicate_type");
         final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(cursor, "is_format_issue");
         final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(cursor, "detected_region");
+        final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(cursor, "is_sensitive");
+        final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(cursor, "sensitive_description");
         final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(cursor, "last_synced");
         final List<LocalContact> _result = new ArrayList<LocalContact>(cursor.getCount());
         while (cursor.moveToNext()) {
@@ -2347,14 +2672,44 @@ public final class ContactDao_Impl implements ContactDao {
           } else {
             _tmpDetectedRegion = cursor.getString(_cursorIndexOfDetectedRegion);
           }
+          final boolean _tmpIsSensitive;
+          final int _tmp_4;
+          _tmp_4 = cursor.getInt(_cursorIndexOfIsSensitive);
+          _tmpIsSensitive = _tmp_4 != 0;
+          final String _tmpSensitiveDescription;
+          if (cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+            _tmpSensitiveDescription = null;
+          } else {
+            _tmpSensitiveDescription = cursor.getString(_cursorIndexOfSensitiveDescription);
+          }
           final long _tmpLastSynced;
           _tmpLastSynced = cursor.getLong(_cursorIndexOfLastSynced);
-          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+          _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
           _result.add(_item);
         }
         return _result;
       }
     };
+  }
+
+  @Override
+  public int countSensitive() {
+    final String _sql = "SELECT COUNT(*) FROM contacts WHERE is_sensitive = 1";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    __db.assertNotSuspendingTransaction();
+    final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+    try {
+      final int _result;
+      if (_cursor.moveToFirst()) {
+        _result = _cursor.getInt(0);
+      } else {
+        _result = 0;
+      }
+      return _result;
+    } finally {
+      _cursor.close();
+      _statement.release();
+    }
   }
 
   @Override
@@ -2537,6 +2892,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -2605,9 +2962,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -2647,6 +3014,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -2715,9 +3084,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -2757,6 +3136,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -2825,9 +3206,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3145,6 +3536,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3213,9 +3606,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3264,6 +3667,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3332,9 +3737,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item_1 = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item_1 = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item_1);
           }
           return _result;
@@ -3383,6 +3798,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3451,9 +3868,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item_1 = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item_1 = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item_1);
           }
           return _result;
@@ -3491,6 +3918,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3559,9 +3988,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3599,6 +4038,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3667,9 +4108,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3707,6 +4158,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3775,9 +4228,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3815,6 +4278,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3883,9 +4348,139 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
+  public Object getSensitiveContactsSnapshot(
+      final Continuation<? super List<LocalContact>> $completion) {
+    final String _sql = "SELECT * FROM contacts WHERE is_sensitive = 1";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<List<LocalContact>>() {
+      @Override
+      @NonNull
+      public List<LocalContact> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfDisplayName = CursorUtil.getColumnIndexOrThrow(_cursor, "display_name");
+          final int _cursorIndexOfNormalizedNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "normalized_number");
+          final int _cursorIndexOfRawNumbers = CursorUtil.getColumnIndexOrThrow(_cursor, "raw_numbers");
+          final int _cursorIndexOfRawEmails = CursorUtil.getColumnIndexOrThrow(_cursor, "raw_emails");
+          final int _cursorIndexOfIsWhatsApp = CursorUtil.getColumnIndexOrThrow(_cursor, "is_whatsapp");
+          final int _cursorIndexOfIsTelegram = CursorUtil.getColumnIndexOrThrow(_cursor, "is_telegram");
+          final int _cursorIndexOfAccountType = CursorUtil.getColumnIndexOrThrow(_cursor, "account_type");
+          final int _cursorIndexOfAccountName = CursorUtil.getColumnIndexOrThrow(_cursor, "account_name");
+          final int _cursorIndexOfIsJunk = CursorUtil.getColumnIndexOrThrow(_cursor, "is_junk");
+          final int _cursorIndexOfJunkType = CursorUtil.getColumnIndexOrThrow(_cursor, "junk_type");
+          final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
+          final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
+          final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
+          final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
+          final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final LocalContact _item;
+            final long _tmpId;
+            _tmpId = _cursor.getLong(_cursorIndexOfId);
+            final String _tmpDisplayName;
+            if (_cursor.isNull(_cursorIndexOfDisplayName)) {
+              _tmpDisplayName = null;
+            } else {
+              _tmpDisplayName = _cursor.getString(_cursorIndexOfDisplayName);
+            }
+            final String _tmpNormalizedNumber;
+            if (_cursor.isNull(_cursorIndexOfNormalizedNumber)) {
+              _tmpNormalizedNumber = null;
+            } else {
+              _tmpNormalizedNumber = _cursor.getString(_cursorIndexOfNormalizedNumber);
+            }
+            final String _tmpRawNumbers;
+            _tmpRawNumbers = _cursor.getString(_cursorIndexOfRawNumbers);
+            final String _tmpRawEmails;
+            _tmpRawEmails = _cursor.getString(_cursorIndexOfRawEmails);
+            final boolean _tmpIsWhatsApp;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfIsWhatsApp);
+            _tmpIsWhatsApp = _tmp != 0;
+            final boolean _tmpIsTelegram;
+            final int _tmp_1;
+            _tmp_1 = _cursor.getInt(_cursorIndexOfIsTelegram);
+            _tmpIsTelegram = _tmp_1 != 0;
+            final String _tmpAccountType;
+            if (_cursor.isNull(_cursorIndexOfAccountType)) {
+              _tmpAccountType = null;
+            } else {
+              _tmpAccountType = _cursor.getString(_cursorIndexOfAccountType);
+            }
+            final String _tmpAccountName;
+            if (_cursor.isNull(_cursorIndexOfAccountName)) {
+              _tmpAccountName = null;
+            } else {
+              _tmpAccountName = _cursor.getString(_cursorIndexOfAccountName);
+            }
+            final boolean _tmpIsJunk;
+            final int _tmp_2;
+            _tmp_2 = _cursor.getInt(_cursorIndexOfIsJunk);
+            _tmpIsJunk = _tmp_2 != 0;
+            final String _tmpJunkType;
+            if (_cursor.isNull(_cursorIndexOfJunkType)) {
+              _tmpJunkType = null;
+            } else {
+              _tmpJunkType = _cursor.getString(_cursorIndexOfJunkType);
+            }
+            final String _tmpDuplicateType;
+            if (_cursor.isNull(_cursorIndexOfDuplicateType)) {
+              _tmpDuplicateType = null;
+            } else {
+              _tmpDuplicateType = _cursor.getString(_cursorIndexOfDuplicateType);
+            }
+            final boolean _tmpIsFormatIssue;
+            final int _tmp_3;
+            _tmp_3 = _cursor.getInt(_cursorIndexOfIsFormatIssue);
+            _tmpIsFormatIssue = _tmp_3 != 0;
+            final String _tmpDetectedRegion;
+            if (_cursor.isNull(_cursorIndexOfDetectedRegion)) {
+              _tmpDetectedRegion = null;
+            } else {
+              _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
+            }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
+            final long _tmpLastSynced;
+            _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;
@@ -3922,6 +4517,8 @@ public final class ContactDao_Impl implements ContactDao {
           final int _cursorIndexOfDuplicateType = CursorUtil.getColumnIndexOrThrow(_cursor, "duplicate_type");
           final int _cursorIndexOfIsFormatIssue = CursorUtil.getColumnIndexOrThrow(_cursor, "is_format_issue");
           final int _cursorIndexOfDetectedRegion = CursorUtil.getColumnIndexOrThrow(_cursor, "detected_region");
+          final int _cursorIndexOfIsSensitive = CursorUtil.getColumnIndexOrThrow(_cursor, "is_sensitive");
+          final int _cursorIndexOfSensitiveDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "sensitive_description");
           final int _cursorIndexOfLastSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "last_synced");
           final List<LocalContact> _result = new ArrayList<LocalContact>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -3990,9 +4587,19 @@ public final class ContactDao_Impl implements ContactDao {
             } else {
               _tmpDetectedRegion = _cursor.getString(_cursorIndexOfDetectedRegion);
             }
+            final boolean _tmpIsSensitive;
+            final int _tmp_4;
+            _tmp_4 = _cursor.getInt(_cursorIndexOfIsSensitive);
+            _tmpIsSensitive = _tmp_4 != 0;
+            final String _tmpSensitiveDescription;
+            if (_cursor.isNull(_cursorIndexOfSensitiveDescription)) {
+              _tmpSensitiveDescription = null;
+            } else {
+              _tmpSensitiveDescription = _cursor.getString(_cursorIndexOfSensitiveDescription);
+            }
             final long _tmpLastSynced;
             _tmpLastSynced = _cursor.getLong(_cursorIndexOfLastSynced);
-            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpLastSynced);
+            _item = new LocalContact(_tmpId,_tmpDisplayName,_tmpNormalizedNumber,_tmpRawNumbers,_tmpRawEmails,_tmpIsWhatsApp,_tmpIsTelegram,_tmpAccountType,_tmpAccountName,_tmpIsJunk,_tmpJunkType,_tmpDuplicateType,_tmpIsFormatIssue,_tmpDetectedRegion,_tmpIsSensitive,_tmpSensitiveDescription,_tmpLastSynced);
             _result.add(_item);
           }
           return _result;

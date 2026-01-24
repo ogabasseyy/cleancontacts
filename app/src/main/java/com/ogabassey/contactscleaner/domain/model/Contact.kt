@@ -14,9 +14,10 @@ data class Contact(
     val isJunk: Boolean = false,
     val junkType: JunkType? = null,
     val duplicateType: DuplicateType? = null,
-    val duplicateGroupId: String? = null,
     val accountType: String? = null,
-    val accountName: String? = null
+    val accountName: String? = null,
+    val isSensitive: Boolean = false,
+    val sensitiveDescription: String? = null
 )
 
 
@@ -59,7 +60,8 @@ data class ScanResult(
     val shortNumberCount: Int = 0,
     val repetitiveNumberCount: Int = 0,
     val symbolNameCount: Int = 0,
-    val formatIssueCount: Int = 0
+    val formatIssueCount: Int = 0,
+    val sensitiveCount: Int = 0 
 )
 
 enum class ContactType {
@@ -70,7 +72,9 @@ enum class ContactType {
     // Granular Duplicates
     DUP_EMAIL, DUP_NUMBER, DUP_NAME, DUP_SIMILAR_NAME,
     // Format Issues
-    FORMAT_ISSUE
+    FORMAT_ISSUE,
+    // Sensitive Data
+    SENSITIVE
 }
 
 data class DuplicateGroup(

@@ -158,16 +158,13 @@ dependencies {
         implementation(libs.jose4j) {
             because("CVE-2023-31582: JWE denial of service")
         }
-        implementation(libs.netty.handler) {
+        implementation(platform(libs.netty.bom)) {
             because("Multiple Netty vulnerabilities in older versions")
-        }
-        implementation(libs.netty.codec.http) {
-            because("HTTP/2 stream exhaustion vulnerability")
         }
         implementation(libs.jdom2) {
             because("XXE vulnerability in older JDOM versions")
         }
-        implementation(libs.protobuf.java) {
+        implementation(platform(libs.protobuf.bom)) {
             because("Denial of Service (DoS) in older protobuf runtimes")
         }
         implementation(libs.commons.compress) {

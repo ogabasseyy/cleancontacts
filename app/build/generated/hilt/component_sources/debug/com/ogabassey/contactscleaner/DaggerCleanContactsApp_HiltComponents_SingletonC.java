@@ -15,11 +15,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.ogabassey.contactscleaner.data.db.ContactDatabase;
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao;
+import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao;
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao;
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector;
 import com.ogabassey.contactscleaner.data.detector.FormatDetector;
 import com.ogabassey.contactscleaner.data.detector.JunkDetector;
+import com.ogabassey.contactscleaner.data.detector.SensitiveDataDetector;
+import com.ogabassey.contactscleaner.data.provider.RegionProvider;
 import com.ogabassey.contactscleaner.data.repository.ScanSettingsRepository;
+import com.ogabassey.contactscleaner.data.repository.UsageRepository;
 import com.ogabassey.contactscleaner.data.source.ContactsProviderSource;
 import com.ogabassey.contactscleaner.data.util.ScanResultProvider;
 import com.ogabassey.contactscleaner.di.DataModule_ProvideBackupRepositoryFactory;
@@ -30,7 +34,9 @@ import com.ogabassey.contactscleaner.di.DataModule_ProvideContactRepositoryFacto
 import com.ogabassey.contactscleaner.di.DataModule_ProvideContactsProviderSourceFactory;
 import com.ogabassey.contactscleaner.di.DataModule_ProvideDuplicateDetectorFactory;
 import com.ogabassey.contactscleaner.di.DataModule_ProvideFileServiceFactory;
+import com.ogabassey.contactscleaner.di.DataModule_ProvideIgnoredContactDaoFactory;
 import com.ogabassey.contactscleaner.di.DataModule_ProvideJunkDetectorFactory;
+import com.ogabassey.contactscleaner.di.DataModule_ProvideRegionProviderFactory;
 import com.ogabassey.contactscleaner.di.DataModule_ProvideUndoDaoFactory;
 import com.ogabassey.contactscleaner.domain.repository.BackupRepository;
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository;
@@ -539,7 +545,7 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
           return (T) new RecentActionsViewModel(singletonCImpl.provideBackupRepositoryProvider.get(), singletonCImpl.provideContactRepositoryProvider.get());
 
           case 4: // com.ogabassey.contactscleaner.ui.results.ResultsViewModel 
-          return (T) new ResultsViewModel(viewModelCImpl.getContactsPagedUseCase(), viewModelCImpl.cleanupContactsUseCase(), singletonCImpl.scanResultProvider.get(), singletonCImpl.provideContactRepositoryProvider.get(), singletonCImpl.provideBillingRepositoryProvider.get(), singletonCImpl.formatDetectorProvider.get(), viewModelCImpl.exportUseCase(), viewModelCImpl.undoUseCase());
+          return (T) new ResultsViewModel(viewModelCImpl.getContactsPagedUseCase(), viewModelCImpl.cleanupContactsUseCase(), singletonCImpl.scanResultProvider.get(), singletonCImpl.provideContactRepositoryProvider.get(), singletonCImpl.provideBillingRepositoryProvider.get(), singletonCImpl.formatDetectorProvider.get(), viewModelCImpl.exportUseCase(), viewModelCImpl.undoUseCase(), singletonCImpl.usageRepositoryProvider.get());
 
           default: throw new AssertionError(id);
         }
@@ -629,9 +635,13 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
 
     private Provider<JunkDetector> provideJunkDetectorProvider;
 
+    private Provider<RegionProvider> provideRegionProvider;
+
     private Provider<DuplicateDetector> provideDuplicateDetectorProvider;
 
     private Provider<FormatDetector> formatDetectorProvider;
+
+    private Provider<SensitiveDataDetector> sensitiveDataDetectorProvider;
 
     private Provider<ScanSettingsRepository> scanSettingsRepositoryProvider;
 
@@ -642,6 +652,8 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
     private Provider<FileService> provideFileServiceProvider;
 
     private Provider<BackupRepository> provideBackupRepositoryProvider;
+
+    private Provider<UsageRepository> usageRepositoryProvider;
 
     private SingletonCImpl(ApplicationContextModule applicationContextModuleParam) {
       this.applicationContextModule = applicationContextModuleParam;
@@ -657,6 +669,10 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
       return DataModule_ProvideContactDaoFactory.provideContactDao(provideContactDatabaseProvider.get());
     }
 
+    private IgnoredContactDao ignoredContactDao() {
+      return DataModule_ProvideIgnoredContactDaoFactory.provideIgnoredContactDao(provideContactDatabaseProvider.get());
+    }
+
     private UndoDao undoDao() {
       return DataModule_ProvideUndoDaoFactory.provideUndoDao(provideContactDatabaseProvider.get());
     }
@@ -667,13 +683,16 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
       this.provideContactDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<ContactDatabase>(singletonCImpl, 2));
       this.provideContactsProviderSourceProvider = DoubleCheck.provider(new SwitchingProvider<ContactsProviderSource>(singletonCImpl, 3));
       this.provideJunkDetectorProvider = DoubleCheck.provider(new SwitchingProvider<JunkDetector>(singletonCImpl, 4));
+      this.provideRegionProvider = DoubleCheck.provider(new SwitchingProvider<RegionProvider>(singletonCImpl, 6));
       this.provideDuplicateDetectorProvider = DoubleCheck.provider(new SwitchingProvider<DuplicateDetector>(singletonCImpl, 5));
-      this.formatDetectorProvider = DoubleCheck.provider(new SwitchingProvider<FormatDetector>(singletonCImpl, 6));
-      this.scanSettingsRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ScanSettingsRepository>(singletonCImpl, 8));
-      this.scanResultProvider = DoubleCheck.provider(new SwitchingProvider<ScanResultProvider>(singletonCImpl, 7));
+      this.formatDetectorProvider = DoubleCheck.provider(new SwitchingProvider<FormatDetector>(singletonCImpl, 7));
+      this.sensitiveDataDetectorProvider = DoubleCheck.provider(new SwitchingProvider<SensitiveDataDetector>(singletonCImpl, 8));
+      this.scanSettingsRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ScanSettingsRepository>(singletonCImpl, 10));
+      this.scanResultProvider = DoubleCheck.provider(new SwitchingProvider<ScanResultProvider>(singletonCImpl, 9));
       this.provideContactRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ContactRepository>(singletonCImpl, 1));
-      this.provideFileServiceProvider = DoubleCheck.provider(new SwitchingProvider<FileService>(singletonCImpl, 9));
-      this.provideBackupRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<BackupRepository>(singletonCImpl, 10));
+      this.provideFileServiceProvider = DoubleCheck.provider(new SwitchingProvider<FileService>(singletonCImpl, 11));
+      this.provideBackupRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<BackupRepository>(singletonCImpl, 12));
+      this.usageRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<UsageRepository>(singletonCImpl, 13));
     }
 
     @Override
@@ -721,7 +740,7 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
           return (T) DataModule_ProvideBillingRepositoryFactory.provideBillingRepository();
 
           case 1: // com.ogabassey.contactscleaner.domain.repository.ContactRepository 
-          return (T) DataModule_ProvideContactRepositoryFactory.provideContactRepository(singletonCImpl.contactDao(), singletonCImpl.provideContactsProviderSourceProvider.get(), singletonCImpl.provideJunkDetectorProvider.get(), singletonCImpl.provideDuplicateDetectorProvider.get(), singletonCImpl.formatDetectorProvider.get(), singletonCImpl.scanResultProvider.get());
+          return (T) DataModule_ProvideContactRepositoryFactory.provideContactRepository(singletonCImpl.contactDao(), singletonCImpl.provideContactsProviderSourceProvider.get(), singletonCImpl.provideJunkDetectorProvider.get(), singletonCImpl.provideDuplicateDetectorProvider.get(), singletonCImpl.formatDetectorProvider.get(), singletonCImpl.sensitiveDataDetectorProvider.get(), singletonCImpl.ignoredContactDao(), singletonCImpl.scanResultProvider.get());
 
           case 2: // com.ogabassey.contactscleaner.data.db.ContactDatabase 
           return (T) DataModule_ProvideContactDatabaseFactory.provideContactDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
@@ -733,22 +752,31 @@ public final class DaggerCleanContactsApp_HiltComponents_SingletonC {
           return (T) DataModule_ProvideJunkDetectorFactory.provideJunkDetector();
 
           case 5: // com.ogabassey.contactscleaner.data.detector.DuplicateDetector 
-          return (T) DataModule_ProvideDuplicateDetectorFactory.provideDuplicateDetector(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+          return (T) DataModule_ProvideDuplicateDetectorFactory.provideDuplicateDetector(singletonCImpl.provideRegionProvider.get());
 
-          case 6: // com.ogabassey.contactscleaner.data.detector.FormatDetector 
+          case 6: // com.ogabassey.contactscleaner.data.provider.RegionProvider 
+          return (T) DataModule_ProvideRegionProviderFactory.provideRegionProvider(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+
+          case 7: // com.ogabassey.contactscleaner.data.detector.FormatDetector 
           return (T) new FormatDetector();
 
-          case 7: // com.ogabassey.contactscleaner.data.util.ScanResultProvider 
+          case 8: // com.ogabassey.contactscleaner.data.detector.SensitiveDataDetector 
+          return (T) new SensitiveDataDetector();
+
+          case 9: // com.ogabassey.contactscleaner.data.util.ScanResultProvider 
           return (T) new ScanResultProvider(singletonCImpl.scanSettingsRepositoryProvider.get());
 
-          case 8: // com.ogabassey.contactscleaner.data.repository.ScanSettingsRepository 
+          case 10: // com.ogabassey.contactscleaner.data.repository.ScanSettingsRepository 
           return (T) new ScanSettingsRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 9: // com.ogabassey.contactscleaner.domain.repository.FileService 
+          case 11: // com.ogabassey.contactscleaner.domain.repository.FileService 
           return (T) DataModule_ProvideFileServiceFactory.provideFileService(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 10: // com.ogabassey.contactscleaner.domain.repository.BackupRepository 
+          case 12: // com.ogabassey.contactscleaner.domain.repository.BackupRepository 
           return (T) DataModule_ProvideBackupRepositoryFactory.provideBackupRepository(singletonCImpl.undoDao());
+
+          case 13: // com.ogabassey.contactscleaner.data.repository.UsageRepository 
+          return (T) new UsageRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           default: throw new AssertionError(id);
         }

@@ -32,4 +32,9 @@ interface ContactRepository {
     
     // Undo Support
     suspend fun restoreContacts(contacts: List<Contact>): Boolean
+
+    // Ignore List Support
+    suspend fun ignoreContact(id: String, displayName: String, reason: String): Boolean
+    suspend fun unignoreContact(id: String): Boolean
+    fun getIgnoredContacts(): Flow<List<com.ogabassey.contactscleaner.data.db.entity.IgnoredContact>>
 }

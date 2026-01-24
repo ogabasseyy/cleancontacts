@@ -128,7 +128,7 @@ fun ScanResultsScreen(
                             border = androidx.compose.foundation.BorderStroke(1.dp, SecondaryNeon.copy(alpha = 0.3f)),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp)
+                                .padding(bottom = 8.dp)
                                 .clickable { onNavigateToDetail(ContactType.FORMAT_ISSUE) }
                         ) {
                             Row(
@@ -149,6 +149,53 @@ fun ScanResultsScreen(
                                         style = MaterialTheme.typography.bodySmall,
                                         color = TextHigh
                                     )
+                                }
+                            }
+                        }
+                    }
+
+                    // NEW Safety Check Card for Sensitive Data
+                    if (scanResult.sensitiveCount > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = WarningNeon.copy(alpha = 0.1f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, WarningNeon.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                                .clickable { onNavigateToDetail(ContactType.SENSITIVE) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(40.dp).clip(CircleShape).background(WarningNeon.copy(alpha = 0.2f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Lock, contentDescription = null, tint = WarningNeon)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Safety Check",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = WarningNeon,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        "${scanResult.sensitiveCount} Potential ID numbers found. Review to protect them.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextHigh
+                                    )
+                                }
+                                Button(
+                                    onClick = { onNavigateToDetail(ContactType.SENSITIVE) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = WarningNeon),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier.height(32.dp)
+                                ) {
+                                    Text("REVIEW", color = SpaceBlack, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -398,6 +445,7 @@ fun getFilterTitle(type: ContactType): String {
         ContactType.ACCOUNT -> "Synced Accounts"
         ContactType.TELEGRAM -> "Telegram Contacts"
         ContactType.ALL -> "All System Contacts"
+        ContactType.SENSITIVE -> "Potential ID Numbers"
         else -> type.name
     }
 }

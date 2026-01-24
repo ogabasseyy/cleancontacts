@@ -13,6 +13,8 @@ data class FormatIssue(
     val displayCountry: String
 )
 
+private val NON_DIGIT_REGEX = Regex("[^0-9]")
+
 @Singleton
 class FormatDetector @Inject constructor() {
 
@@ -31,7 +33,7 @@ class FormatDetector @Inject constructor() {
         if (rawNumber.startsWith("+")) return null
         
         // Clean the number (remove spaces, dashes, etc.)
-        val cleanedNumber = rawNumber.replace(Regex("[^0-9]"), "")
+        val cleanedNumber = rawNumber.replace(NON_DIGIT_REGEX, "")
         
         // 2. SPECIAL CASE: Nigerian numbers starting with 234
         // Nigerian format: 234 + 10 digit local number = 13 digits total

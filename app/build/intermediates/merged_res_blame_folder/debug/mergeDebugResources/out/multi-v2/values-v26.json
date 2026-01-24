@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.ogabassey.contactscleaner.app-mergeDebugResources-82:/values-v26/values-v26.xml",
+            "outputFile": "com.ogabassey.contactscleaner.app-mergeDebugResources-68:/values-v26/values-v26.xml",
             "map": [
                 {
-                    "source": "/Users/mac/.gradle/caches/8.13/transforms/779daebf11d62ea78003cb68469fe6dc/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
+                    "source": "/Users/mac/.gradle/caches/8.13/transforms/c58167cc7284bb5d598cbe10707f4bcc/transformed/appcompat-1.6.1/res/values-v26/values-v26.xml",
                     "from": {
                         "startLines": "2,3,4,8,12,16",
                         "startColumns": "4,4,4,4,4,4",

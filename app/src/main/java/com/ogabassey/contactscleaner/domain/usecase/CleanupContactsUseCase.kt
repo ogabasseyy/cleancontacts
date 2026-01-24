@@ -80,4 +80,16 @@ class CleanupContactsUseCase @Inject constructor(
         }
         contactRepository.standardizeAllFormatIssues().collect { emit(it) }
     }
+
+    suspend fun ignoreContact(id: String, displayName: String, reason: String): Boolean {
+        return contactRepository.ignoreContact(id, displayName, reason)
+    }
+
+    suspend fun unignoreContact(id: String): Boolean {
+        return contactRepository.unignoreContact(id)
+    }
+
+    fun getIgnoredContacts(): Flow<List<com.ogabassey.contactscleaner.data.db.entity.IgnoredContact>> {
+        return contactRepository.getIgnoredContacts()
+    }
 }

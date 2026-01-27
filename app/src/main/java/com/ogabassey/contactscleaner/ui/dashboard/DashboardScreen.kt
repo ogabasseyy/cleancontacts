@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -140,8 +142,22 @@ fun DashboardScreen(
                     
                     // Main Button
                     val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val scale by animateFloatAsState(
+                        targetValue = if (isPressed) 0.95f else 1f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        ),
+                        label = "buttonScale"
+                    )
+
                     Box(
                         modifier = Modifier
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
                             .size(160.dp)
                             .shadow(32.dp, CircleShape, spotColor = PrimaryNeon)
                             .clip(CircleShape)
@@ -155,7 +171,8 @@ fun DashboardScreen(
                             )
                             .clickable(
                                 interactionSource = interactionSource,
-                                indication = null
+                                indication = null,
+                                role = Role.Button
                             ) {
                                 if (permissionsState.allPermissionsGranted) {
                                     viewModel.startScan()
@@ -184,9 +201,14 @@ fun DashboardScreen(
                                 )
                             }
                         } else {
+                            val iconDesc = if (!permissionsState.allPermissionsGranted)
+                                "Grant Permissions to Scan"
+                            else
+                                "Start Scan"
+
                             Icon(
                                 imageVector = if (!permissionsState.allPermissionsGranted) Icons.Default.Lock else Icons.Default.Search,
-                                contentDescription = "Scan",
+                                contentDescription = iconDesc,
                                 tint = SpaceBlack,
                                 modifier = Modifier.size(72.dp)
                             )

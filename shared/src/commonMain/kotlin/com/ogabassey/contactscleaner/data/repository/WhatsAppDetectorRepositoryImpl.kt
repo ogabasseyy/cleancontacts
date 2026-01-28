@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.data.repository
 
+import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.data.api.SessionStatus
 import com.ogabassey.contactscleaner.data.api.WhatsAppDetectorApi
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppCheckProgress
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.flow
  * Implementation of WhatsAppDetectorRepository using the VPS-hosted Baileys service.
  *
  * 2026 Best Practice: Repository pattern with clean API abstraction.
+ * Multi-Session Support: Each user gets their own isolated WhatsApp session.
  */
 class WhatsAppDetectorRepositoryImpl(
     private val api: WhatsAppDetectorApi = WhatsAppDetectorApi()
@@ -22,37 +24,45 @@ class WhatsAppDetectorRepositoryImpl(
         return health.status == "ok"
     }
 
-    override suspend fun getSessionStatus(): SessionStatus {
-        return api.getSessionStatus()
+    override suspend fun getSessionStatus(userId: String): SessionStatus {
+        return api.getSessionStatus(userId)
     }
 
-    override suspend fun requestPairingCode(phoneNumber: String): String? {
-        val response = api.requestPairingCode(phoneNumber)
+    override suspend fun requestPairingCode(userId: String, phoneNumber: String): String? {
+        val response = api.requestPairingCode(userId, phoneNumber)
         return if (response.success) response.code else null
     }
 
-    override suspend fun disconnect(): Boolean {
-        val response = api.disconnect()
+    override suspend fun disconnect(userId: String): Boolean {
+        val response = api.disconnect(userId)
         return response.success
     }
 
-    override suspend fun checkNumbers(numbers: List<String>): Map<String, Boolean> {
+    /**
+     * Connect via WebSocket for real-time pairing events.
+     * Provides instant notifications instead of polling.
+     */
+    override fun connectForPairing(userId: String, phoneNumber: String): Flow<PairingEvent> {
+        return api.connectForPairing(userId, phoneNumber)
+    }
+
+    override suspend fun checkNumbers(userId: String, numbers: List<String>): Map<String, Boolean> {
         if (numbers.isEmpty()) return emptyMap()
 
-        val response = api.checkNumbers(numbers)
+        val response = api.checkNumbers(userId, numbers)
         if (!response.success) return emptyMap()
 
         return response.results.associate { it.number to it.hasWhatsApp }
     }
 
-    override fun checkNumbersBatch(numbers: List<String>): Flow<WhatsAppCheckProgress> = flow {
+    override fun checkNumbersBatch(userId: String, numbers: List<String>): Flow<WhatsAppCheckProgress> = flow {
         if (numbers.isEmpty()) {
             emit(WhatsAppCheckProgress.Complete(emptyMap(), 0))
             return@flow
         }
 
         val batchSize = 50
-        val delayMs = 1000L
+        val delayMs = 2000L // Increased delay for rate limiting
         val allResults = mutableMapOf<String, Boolean>()
         var whatsappCount = 0
 
@@ -60,7 +70,7 @@ class WhatsAppDetectorRepositoryImpl(
         var checkedCount = 0
 
         for (batch in batches) {
-            val response = api.checkNumbers(batch)
+            val response = api.checkNumbers(userId, batch)
 
             if (!response.success) {
                 emit(WhatsAppCheckProgress.Error(response.error ?: "Failed to check numbers"))

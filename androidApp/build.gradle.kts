@@ -181,7 +181,8 @@ dependencies {
 
     // BOM Platforms for Transitive Security (2026 Best Practice)
     implementation(platform(libs.netty.bom))
-    implementation(platform(libs.protobuf.bom))
+    // Note: protobuf-bom removed - it overrides force() directives
+    // Protobuf security pins handled via resolutionStrategy.force() below
 
     // Security Constraint Pins (2026 Best Practice: Resolve transitive CVEs)
     constraints {

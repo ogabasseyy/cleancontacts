@@ -3,18 +3,20 @@ package com.ogabassey.contactscleaner.ui.whatsapp
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import com.russhwolf.settings.Settings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * State for WhatsApp linking flow.
@@ -34,9 +36,13 @@ sealed interface WhatsAppLinkState {
 /**
  * ViewModel for WhatsApp linking flow.
  * Manages the state of linking a user's WhatsApp account via pairing code.
+ *
+ * Multi-Session Support: Each device gets a unique session ID stored in Settings.
+ * This allows multiple users to link their WhatsApp independently.
  */
 class WhatsAppLinkViewModel(
-    private val whatsAppRepository: WhatsAppDetectorRepository
+    private val whatsAppRepository: WhatsAppDetectorRepository,
+    private val settings: Settings
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<WhatsAppLinkState>(WhatsAppLinkState.Checking)
@@ -47,19 +53,37 @@ class WhatsAppLinkViewModel(
 
     private var pollingJob: Job? = null
     private var timerJob: Job? = null
+    private var wsJob: Job? = null
+
+    /**
+     * Unique device/session ID for multi-session support.
+     * Generated once and persisted in Settings.
+     */
+    private val deviceId: String by lazy {
+        settings.getStringOrNull(KEY_DEVICE_ID) ?: generateDeviceId().also {
+            settings.putString(KEY_DEVICE_ID, it)
+        }
+    }
 
     init {
         checkConnectionStatus()
     }
 
     /**
-     * Check if WhatsApp is already connected.
+     * Generate a unique device ID using UUID v4.
+     * 2026 Best Practice: Use kotlin.uuid.Uuid for cryptographically secure IDs.
+     */
+    @OptIn(ExperimentalUuidApi::class)
+    private fun generateDeviceId(): String = Uuid.random().toString()
+
+    /**
+     * Check if WhatsApp is already connected for this device.
      */
     fun checkConnectionStatus() {
         viewModelScope.launch {
             _state.update { WhatsAppLinkState.Checking }
             try {
-                val status = whatsAppRepository.getSessionStatus()
+                val status = whatsAppRepository.getSessionStatus(deviceId)
                 _state.update {
                     if (status.connected) WhatsAppLinkState.Connected
                     else WhatsAppLinkState.NotLinked
@@ -72,7 +96,8 @@ class WhatsAppLinkViewModel(
 
     /**
      * Request a pairing code for the given phone number.
-     * User will receive a notification on WhatsApp to enter this code.
+     * Uses WebSocket for real-time updates - pairing code and connection
+     * status are pushed instantly instead of polling.
      *
      * @param phoneNumber Phone number in E.164 format (e.g., +1234567890)
      */
@@ -84,8 +109,14 @@ class WhatsAppLinkViewModel(
             return
         }
 
-        viewModelScope.launch {
-            _state.update { WhatsAppLinkState.RequestingCode(normalizedNumber) }
+        // Cancel any existing jobs
+        wsJob?.cancel()
+        pollingJob?.cancel()
+        timerJob?.cancel()
+
+        _state.update { WhatsAppLinkState.RequestingCode(normalizedNumber) }
+
+        wsJob = viewModelScope.launch {
             try {
                 // Network check
                 if (!whatsAppRepository.isServiceAvailable()) {
@@ -93,17 +124,53 @@ class WhatsAppLinkViewModel(
                     return@launch
                 }
 
-                val code = whatsAppRepository.requestPairingCode(normalizedNumber)
-                if (code != null) {
-                    _state.update { WhatsAppLinkState.WaitingForPairing(code, normalizedNumber) }
-                    startPairingTimer()
-                    startPollingForConnection()
-                } else {
-                    _state.update { WhatsAppLinkState.Error("Failed to get pairing code. Please try again.") }
-                }
+                // Use WebSocket for real-time pairing events
+                whatsAppRepository.connectForPairing(deviceId, normalizedNumber)
+                    .catch { e ->
+                        // WebSocket failed, fall back to HTTP + polling
+                        fallbackToHttpPairing(normalizedNumber)
+                    }
+                    .collect { event ->
+                        when (event) {
+                            is PairingEvent.SessionCreated -> {
+                                // Session started, waiting for code
+                            }
+                            is PairingEvent.PairingCode -> {
+                                _state.update { WhatsAppLinkState.WaitingForPairing(event.code, normalizedNumber) }
+                                startPairingTimer()
+                            }
+                            is PairingEvent.Connected -> {
+                                timerJob?.cancel()
+                                _state.update { WhatsAppLinkState.Connected }
+                            }
+                            is PairingEvent.Error -> {
+                                timerJob?.cancel()
+                                _state.update { WhatsAppLinkState.Error(event.message) }
+                            }
+                        }
+                    }
             } catch (e: Exception) {
-                _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
+                // WebSocket failed, fall back to HTTP + polling
+                fallbackToHttpPairing(normalizedNumber)
             }
+        }
+    }
+
+    /**
+     * Fallback to HTTP-based pairing if WebSocket fails.
+     */
+    private suspend fun fallbackToHttpPairing(normalizedNumber: String) {
+        try {
+            val code = whatsAppRepository.requestPairingCode(deviceId, normalizedNumber)
+            if (code != null) {
+                _state.update { WhatsAppLinkState.WaitingForPairing(code, normalizedNumber) }
+                startPairingTimer()
+                startPollingForConnection()
+            } else {
+                _state.update { WhatsAppLinkState.Error("Failed to get pairing code. Please try again.") }
+            }
+        } catch (e: Exception) {
+            _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
         }
     }
 
@@ -169,7 +236,7 @@ class WhatsAppLinkViewModel(
                 attempts++
 
                 try {
-                    val status = whatsAppRepository.getSessionStatus()
+                    val status = whatsAppRepository.getSessionStatus(deviceId)
                     if (status.connected) {
                         _state.update { WhatsAppLinkState.Connected }
                         return@launch
@@ -188,11 +255,13 @@ class WhatsAppLinkViewModel(
     }
 
     /**
-     * Stop any active polling and reset to not linked state.
+     * Stop any active pairing (WebSocket or polling) and reset to not linked state.
      */
     fun cancelLinking() {
+        wsJob?.cancel()
         pollingJob?.cancel()
         timerJob?.cancel()
+        wsJob = null
         pollingJob = null
         timerJob = null
         _pairingCodeExpiration.value = null
@@ -200,12 +269,12 @@ class WhatsAppLinkViewModel(
     }
 
     /**
-     * Disconnect the current WhatsApp session.
+     * Disconnect the current WhatsApp session for this device.
      */
     fun disconnect() {
         viewModelScope.launch {
             try {
-                whatsAppRepository.disconnect()
+                whatsAppRepository.disconnect(deviceId)
                 _state.update { WhatsAppLinkState.NotLinked }
             } catch (e: Exception) {
                 _state.update { WhatsAppLinkState.Error("Failed to disconnect") }
@@ -222,9 +291,15 @@ class WhatsAppLinkViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        wsJob?.cancel()
         pollingJob?.cancel()
         timerJob?.cancel()
+        wsJob = null
         pollingJob = null
         timerJob = null
+    }
+
+    companion object {
+        private const val KEY_DEVICE_ID = "whatsapp_device_id"
     }
 }

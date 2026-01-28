@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -156,7 +157,16 @@ fun DashboardScreen(
 
                     // Main Button
                     val interactionSource = remember { MutableInteractionSource() }
-                    
+                    val isPressed by interactionSource.collectIsPressedAsState()
+                    val scale by animateFloatAsState(
+                        targetValue = if (isPressed) 0.95f else 1f,
+                        label = "buttonScale",
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessLow
+                        )
+                    )
+
                     val buttonContentDescription = when (val state = uiState) {
                         is DashboardUiState.Scanning -> "Scan in Progress: ${(state.progress * 100).toInt()} percent"
                         else -> if (!permissionsState.allPermissionsGranted) "Grant Permissions to Scan" else "Start Deep Scan"
@@ -165,6 +175,10 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             .size(160.dp)
+                            .graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            }
                             .shadow(32.dp, CircleShape, spotColor = PrimaryNeon)
                             .clip(CircleShape)
                             .background(

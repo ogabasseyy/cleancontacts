@@ -21,9 +21,12 @@ class FileServiceImpl(
             val file = File(context.cacheDir, sanitizedName)
 
             // Verify the resolved path is inside cache directory
-            val cacheCanonical = context.cacheDir.canonicalPath
-            val fileCanonical = file.canonicalPath
-            if (!fileCanonical.startsWith(cacheCanonical)) {
+            val cachePath = context.cacheDir.toPath().toAbsolutePath().normalize()
+            val filePath = file.toPath().toAbsolutePath().normalize()
+
+            // 2026 Security Fix: Use Path.startsWith to prevent partial path traversal
+            // e.g. "/cache_extra" starting with "/cache"
+            if (!filePath.startsWith(cachePath)) {
                 return@withContext Result.failure(SecurityException("Invalid file path: path traversal detected"))
             }
 

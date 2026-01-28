@@ -41,14 +41,18 @@ class FileServiceImpl(
 
     /**
      * Sanitizes a filename to prevent path traversal attacks.
-     * Removes path separators and parent directory references.
+     * Throws SecurityException if a traversal attempt is detected.
      */
     private fun sanitizeFileName(fileName: String): String {
-        // Remove any path separators and normalize
+        // 2026 Security Best Practice: Fail fast on obvious traversal attempts
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw SecurityException("Path traversal attempt detected: $fileName")
+        }
+
+        // Further sanitize to ensure a safe filename (remove leading dots, weird chars)
         return fileName
-            .replace(Regex("[/\\\\]"), "_") // Replace path separators
-            .replace("..", "_")              // Remove parent directory traversal
-            .replace(Regex("^[._]+"), "")    // Remove leading dots/underscores
-            .ifEmpty { "export.csv" }        // Fallback for empty names
+            .replace(Regex("[^a-zA-Z0-0._-]"), "_")
+            .replace(Regex("^[._]+"), "")
+            .ifEmpty { "export.csv" }
     }
 }

@@ -31,47 +31,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - language: java-kotlin
-          build-mode: manual
+        - language: actions
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
-    - name: Set up JDK 21
-      if: matrix.language == 'java-kotlin'
-      uses: actions/setup-java@3a4f6114f18e3a449fb3b7229c1fe57b1637da24 # v4.7.0
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: gradle
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
       with:
         languages: ${{ matrix.language }}
-        build-mode: ${{ matrix.build-mode }}
         queries: security-extended,security-and-quality
-        # Exclude generated code to reduce noise (False Positives)
-        config: |
-          paths-ignore:
-            - '**/build/**'
-            - '**/generated/**'
-            - '**/ksp/**'
-            - '**/kspCaches/**'
-
-    - name: Build Android App (Manual)
-      if: matrix.language == 'java-kotlin'
-      # 2026: CodeQL doesn't support Kotlin 2.3.0 yet (max: 2.2.30)
-      # Make non-blocking until GitHub updates CodeQL support
-      continue-on-error: true
-      run: |
-        chmod +x gradlew
-        ./gradlew :androidApp:assembleDebug --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
-      # 2026: CodeQL doesn't support Kotlin 2.3.0 yet - make non-blocking
-      continue-on-error: true
       with:
         category: "/language:${{matrix.language}}"

@@ -32,7 +32,12 @@ import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkCard
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkState
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkViewModel
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.isAndroid
+import com.ogabassey.contactscleaner.util.isIOS
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -44,15 +49,21 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ResultsScreen(
     viewModel: ResultsViewModel = koinViewModel(),
+    whatsAppViewModel: WhatsAppLinkViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (ContactType) -> Unit = {},
     onNavigateToPaywall: () -> Unit = {},
-    onNavigateToHistory: () -> Unit = {}
+    onNavigateToHistory: () -> Unit = {},
+    onNavigateToWhatsAppLink: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
     val allIssuesCount by viewModel.allIssuesCount.collectAsState(initial = 0)
     val freeActions by viewModel.freeActionsRemaining.collectAsState(initial = 2)
+
+    // 2026 Best Practice: Collect state unconditionally, use platform check in UI logic.
+    // StateFlow collection is cheap; the ViewModel handles platform-specific behavior.
+    val whatsAppState by whatsAppViewModel.state.collectAsState()
 
     Scaffold(
         containerColor = SpaceBlack,
@@ -276,20 +287,73 @@ fun ResultsScreen(
                             )
                         }
 
-                        // WhatsApp Contacts
-                        if (scanResult.whatsAppCount > 0) {
-                            item {
-                                StatCard(
-                                    title = "WhatsApp",
-                                    count = scanResult.whatsAppCount,
-                                    icon = Icons.Default.Email,
-                                    color = PrimaryNeon,
-                                    onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
-                                )
+                        // Platform-specific WhatsApp display
+                        if (isAndroid) {
+                            // Android: Show native WhatsApp counts (detected via account_type)
+                            if (scanResult.whatsAppCount > 0) {
+                                item {
+                                    StatCard(
+                                        title = "WhatsApp",
+                                        count = scanResult.whatsAppCount,
+                                        icon = Icons.Default.Email,
+                                        color = PrimaryNeon,
+                                        onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                    )
+                                }
+                            }
+
+                            // Non-WhatsApp Contacts (Android only - native detection)
+                            if (scanResult.nonWhatsAppCount > 0) {
+                                item {
+                                    StatCard(
+                                        title = "Non-WhatsApp Contacts",
+                                        count = scanResult.nonWhatsAppCount,
+                                        icon = Icons.Default.Phone,
+                                        color = TextMedium,
+                                        onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
+                                    )
+                                }
+                            }
+                        } else {
+                            // iOS: Show link CTA or counts based on WhatsApp connection status
+                            when (whatsAppState) {
+                                is WhatsAppLinkState.Connected -> {
+                                    // Connected: Show WhatsApp counts from VPS detection
+                                    if (scanResult.whatsAppCount > 0) {
+                                        item {
+                                            StatCard(
+                                                title = "WhatsApp",
+                                                count = scanResult.whatsAppCount,
+                                                icon = Icons.Default.Email,
+                                                color = PrimaryNeon,
+                                                onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                            )
+                                        }
+                                    }
+                                    if (scanResult.nonWhatsAppCount > 0) {
+                                        item {
+                                            StatCard(
+                                                title = "Non-WhatsApp Contacts",
+                                                count = scanResult.nonWhatsAppCount,
+                                                icon = Icons.Default.Phone,
+                                                color = TextMedium,
+                                                onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
+                                            )
+                                        }
+                                    }
+                                }
+                                else -> {
+                                    // Not connected: Show CTA to link WhatsApp
+                                    item {
+                                        WhatsAppLinkCard(
+                                            onLinkClick = onNavigateToWhatsAppLink
+                                        )
+                                    }
+                                }
                             }
                         }
 
-                        // Telegram Contacts
+                        // Telegram Contacts (shown on both platforms when detected)
                         if (scanResult.telegramCount > 0) {
                             item {
                                 StatCard(
@@ -298,19 +362,6 @@ fun ResultsScreen(
                                     icon = Icons.AutoMirrored.Filled.Send,
                                     color = SecondaryNeon,
                                     onClick = { onNavigateToDetail(ContactType.TELEGRAM) }
-                                )
-                            }
-                        }
-
-                        // Non-WhatsApp Contacts (Missing Group Restored)
-                        if (scanResult.nonWhatsAppCount > 0) {
-                            item {
-                                StatCard(
-                                    title = "Non-WhatsApp Contacts",
-                                    count = scanResult.nonWhatsAppCount,
-                                    icon = Icons.Default.Phone,
-                                    color = TextMedium,
-                                    onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
                                 )
                             }
                         }

@@ -1,0 +1,100 @@
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.s(:com.google.android.gms@260331035@26.03.31 (260400-858772283):28)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgm.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):3)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at beqb.c(:com.google.android.gms@260331035@26.03.31 (260400-858772283):50)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at beqb.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):66)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at bevs.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):8)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.lang.Thread.run(Thread.java:1119)
+01-27 18:35:31.512 23753  3807 E inqn    : *~*~*~ Previous channel {0} was garbage collected without being shut down! ~*~*~*
+01-27 18:35:31.512 23753  3807 E inqn    :     Make sure to call shutdown()/shutdownNow()
+01-27 18:35:31.512 23753  3807 E inqn    : java.lang.RuntimeException: ManagedChannel allocation site
+01-27 18:35:31.512 23753  3807 E inqn    : 	at inqm.<init>(:com.google.android.gms@260331035@26.03.31 (260400-858772283):21)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at inqn.<init>(:com.google.android.gms@260331035@26.03.31 (260400-858772283):10)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at inql.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):250)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at inam.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at bejy.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):83)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at bejp.t(:com.google.android.gms@260331035@26.03.31 (260400-858772283):119)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at bejp.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at erzw.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):994)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at ftrf.d(:com.google.android.gms@260331035@26.03.31 (260400-858772283):142)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at ftrc.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):17)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gnpg.a(:com.google.android.gms@260331035@26.03.31 (260400-858772283):17)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgm.d(:com.google.android.gms@260331035@26.03.31 (260400-858772283):3)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):47)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.p(:com.google.android.gms@260331035@26.03.31 (260400-858772283):15)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgn.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.p(:com.google.android.gms@260331035@26.03.31 (260400-858772283):15)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwft.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):129)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.p(:com.google.android.gms@260331035@26.03.31 (260400-858772283):15)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgn.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.p(:com.google.android.gms@260331035@26.03.31 (260400-858772283):15)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgn.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.s(:com.google.android.gms@260331035@26.03.31 (260400-858772283):28)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwiw.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.s(:com.google.android.gms@260331035@26.03.31 (260400-858772283):28)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwiw.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.p(:com.google.android.gms@260331035@26.03.31 (260400-858772283):15)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhw.c(:com.google.android.gms@260331035@26.03.31 (260400-858772283):3)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhx.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):6)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwjl.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):73)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhx.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):3)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhy.g(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgr.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgq.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):5)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwhz.execute(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.f(:com.google.android.gms@260331035@26.03.31 (260400-858772283):1)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.m(:com.google.android.gms@260331035@26.03.31 (260400-858772283):101)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgb.s(:com.google.android.gms@260331035@26.03.31 (260400-858772283):28)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgm.e(:com.google.android.gms@260331035@26.03.31 (260400-858772283):3)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at gwgo.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):53)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at beqb.c(:com.google.android.gms@260331035@26.03.31 (260400-858772283):50)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at beqb.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):66)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at bevs.run(:com.google.android.gms@260331035@26.03.31 (260400-858772283):8)
+01-27 18:35:31.512 23753  3807 E inqn    : 	at java.lang.Thread.run(Thread.java:1119)
+01-27 18:35:31.533  1711  1711 E SecVibrator-HAL-AIDL-EXT: V_5_0: performPrebakedHapticPattern 111 : 4000 : 0
+01-27 18:35:31.533  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: [setForceFeedbackAmplitude]amplitude: 4000
+01-27 18:35:31.558  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: [uploadForceFeedbackeffect]ioctl success ,uploaded effect with ID: 0
+01-27 18:35:31.558  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: do_on for timeoutMs: 1000
+01-27 18:35:31.558  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: [triggerForceFeedbackVibration]on: 1
+01-27 18:35:31.589  3960  3960 E g.InputEventApp: Not starting debugger since process cannot load the jdwp agent.
+01-27 18:35:31.626  3960  3960 E ashmem  : Pinning is deprecated since Android Q. Please use trim or other methods.
+01-27 18:35:31.694  2177  3995 E MediaCodec: Media Quality Service not found.
+01-27 18:35:31.696  2177  4005 E mediaserver: Failed to query component interface for required system resources: 6
+01-27 18:35:31.705  2215 28700 E Codec2-ComponentInterface: We have a failed config
+01-27 18:35:31.845  2550  6419 E SensorPowerStatsLayout: Unknown sensor: 1935762019
+01-27 18:35:31.915  1711  1711 E SecVibrator-HAL-AIDL-CORE: V_2_0: Vibrator off
+01-27 18:35:31.915  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: do_off
+01-27 18:35:31.915  1711  1711 E SecVibrator-HAL-AIDL-CORE: HW_API: [triggerForceFeedbackVibration]on: 0
+01-27 18:35:32.147  1742  1765 E HeatmapThread: ECT Thread time in milliseconds: 1769535332
+01-27 18:35:32.149  1742  1765 E HeatmapThread: !@ CAM New BSOH: 100
+01-27 18:35:32.175 23753  4035 E SQLiteLog: (10) POSIX Error : 11 SQLite Error : 3850
+01-27 18:35:32.175 23753  4035 E SQLiteLog: (10) LOCK : Getting lock (4) failed due to (11). The current owner is (26637).

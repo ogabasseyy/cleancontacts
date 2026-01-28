@@ -29,16 +29,16 @@ jobs:
       run: chmod +x gradlew
 
     - name: Lint
-      run: ./gradlew lintDebug
+      run: ./gradlew :androidApp:lintDebug
 
     - name: Unit Test
-      run: ./gradlew testDebugUnitTest
+      run: ./gradlew :androidApp:testDebugUnitTest
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: ./gradlew :androidApp:assembleDebug
 
     - name: Upload Debug APK
       uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
       with:
         name: debug-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+        path: androidApp/build/outputs/apk/debug/androidApp-debug.apk

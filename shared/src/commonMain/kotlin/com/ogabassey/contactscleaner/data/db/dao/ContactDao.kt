@@ -1,0 +1,265 @@
+package com.ogabassey.contactscleaner.data.db.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.ogabassey.contactscleaner.data.db.entity.LocalContact
+import com.ogabassey.contactscleaner.domain.model.AccountGroupSummary
+import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Room DAO for contact operations.
+ *
+ * 2026 KMP Best Practice: Room 2.7.0+ DAOs work across platforms.
+ * All methods use suspend or Flow for cross-platform compatibility.
+ * Paging is handled differently per platform (Android uses room-paging,
+ * iOS uses manual pagination via snapshot queries).
+ */
+@Dao
+interface ContactDao {
+
+    // --- Count Queries (All Suspend for KMP) ---
+    @Query("SELECT COUNT(*) FROM contacts")
+    suspend fun countTotal(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_whatsapp = 1")
+    suspend fun countWhatsApp(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_telegram = 1")
+    suspend fun countTelegram(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_junk = 1")
+    suspend fun countJunk(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type IS NOT NULL")
+    suspend fun countDuplicates(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'NO_NAME'")
+    suspend fun countNoName(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'NO_NUMBER'")
+    suspend fun countNoNumber(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'INVALID_CHAR'")
+    suspend fun countInvalidChar(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'LONG_NUMBER'")
+    suspend fun countLongNumber(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'SHORT_NUMBER'")
+    suspend fun countShortNumber(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'REPETITIVE_DIGITS'")
+    suspend fun countRepetitiveNumber(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'SYMBOL_NAME'")
+    suspend fun countSymbolName(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'NUMERICAL_NAME'")
+    suspend fun countNumericalName(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'EMOJI_NAME'")
+    suspend fun countEmojiName(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'FANCY_FONT_NAME'")
+    suspend fun countFancyFontName(): Int
+
+    @Query("SELECT COUNT(DISTINCT account_type) FROM contacts WHERE account_type IS NOT NULL AND account_type != ''")
+    suspend fun countAccounts(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NUMBER_MATCH'")
+    suspend fun countDuplicateNumbers(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'EMAIL_MATCH'")
+    suspend fun countDuplicateEmails(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NAME_MATCH'")
+    suspend fun countDuplicateNames(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_format_issue = 1")
+    suspend fun countFormatIssues(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE is_sensitive = 1")
+    suspend fun countSensitive(): Int
+
+    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH'")
+    suspend fun countSimilarNames(): Int
+
+    // --- Bulk Updates for Analysis ---
+    @Query("UPDATE contacts SET duplicate_type = 'NUMBER_MATCH' WHERE normalized_number IN (SELECT normalized_number FROM contacts WHERE normalized_number IS NOT NULL AND normalized_number != '' GROUP BY normalized_number HAVING COUNT(*) > 1)")
+    suspend fun markDuplicateNumbers()
+
+    @Query("UPDATE contacts SET duplicate_type = 'EMAIL_MATCH' WHERE raw_emails IN (SELECT raw_emails FROM contacts WHERE raw_emails IS NOT NULL AND raw_emails != '' GROUP BY raw_emails HAVING COUNT(*) > 1) AND duplicate_type IS NULL")
+    suspend fun markDuplicateEmails()
+
+    @Query("UPDATE contacts SET duplicate_type = 'NAME_MATCH' WHERE display_name IN (SELECT display_name FROM contacts WHERE display_name IS NOT NULL AND display_name != '' GROUP BY display_name HAVING COUNT(*) > 1) AND duplicate_type IS NULL")
+    suspend fun markDuplicateNames()
+
+    // --- Grouped Queries for Duplicate Groups ---
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    suspend fun getDuplicateNumberGroups(): List<DuplicateGroupSummary>
+
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'EMAIL_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    suspend fun getDuplicateEmailGroups(): List<DuplicateGroupSummary>
+
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NAME_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    suspend fun getDuplicateNameGroups(): List<DuplicateGroupSummary>
+
+    @Query("SELECT account_type as accountType, account_name as accountName, COUNT(*) as count FROM contacts WHERE account_type IS NOT NULL AND account_type != '' GROUP BY account_type, account_name ORDER BY count DESC")
+    suspend fun getAccountGroups(): List<AccountGroupSummary>
+
+    // --- Contacts by Key ---
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NUMBER_MATCH'")
+    suspend fun getContactsByNumberKey(key: String): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'EMAIL_MATCH'")
+    suspend fun getContactsByEmailKey(key: String): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NAME_MATCH'")
+    suspend fun getContactsByNameKey(key: String): List<LocalContact>
+
+    // --- ID Lists ---
+    @Query("SELECT id FROM contacts WHERE is_whatsapp = 0")
+    suspend fun getNonWhatsAppContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE is_junk = 1")
+    suspend fun getJunkContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'NO_NAME'")
+    suspend fun getNoNameContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'NO_NUMBER'")
+    suspend fun getNoNumberContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'INVALID_CHAR'")
+    suspend fun getInvalidCharContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'LONG_NUMBER'")
+    suspend fun getLongNumberContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'SHORT_NUMBER'")
+    suspend fun getShortNumberContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'REPETITIVE_DIGITS'")
+    suspend fun getRepetitiveNumberContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'SYMBOL_NAME'")
+    suspend fun getSymbolNameContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'NUMERICAL_NAME'")
+    suspend fun getNumericalNameContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE junk_type = 'EMOJI_NAME'")
+    suspend fun getEmojiNameContactIds(): List<Long>
+    @Query("SELECT id FROM contacts WHERE junk_type = 'FANCY_FONT_NAME'")
+    suspend fun getFancyFontNameContactIds(): List<Long>
+
+    @Query("SELECT id FROM contacts WHERE is_format_issue = 1")
+    suspend fun getFormatIssueIds(): List<Long>
+
+    // --- Snapshot Queries ---
+    @Query("SELECT * FROM contacts WHERE is_format_issue = 1 ORDER BY detected_region ASC, normalized_number ASC")
+    suspend fun getFormatIssueContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE id IN (:ids)")
+    suspend fun getContactsByIds(ids: List<Long>): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE id IN (:ids) AND is_format_issue = 1")
+    suspend fun getFormatIssueContactsByIds(ids: List<Long>): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_whatsapp = 1")
+    suspend fun getWhatsAppContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_telegram = 1")
+    suspend fun getTelegramContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_whatsapp = 0")
+    suspend fun getNonWhatsAppContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_junk = 1")
+    suspend fun getJunkContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE duplicate_type IS NOT NULL")
+    suspend fun getDuplicateContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE is_sensitive = 1")
+    suspend fun getSensitiveContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'NO_NAME' ORDER BY display_name ASC")
+    suspend fun getNoNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'NO_NUMBER' ORDER BY display_name ASC")
+    suspend fun getNoNumberContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'INVALID_CHAR' ORDER BY display_name ASC")
+    suspend fun getInvalidCharContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'LONG_NUMBER' ORDER BY display_name ASC")
+    suspend fun getLongNumberContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'SHORT_NUMBER' ORDER BY display_name ASC")
+    suspend fun getShortNumberContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'REPETITIVE_DIGITS' ORDER BY display_name ASC")
+    suspend fun getRepetitiveNumberContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'SYMBOL_NAME' ORDER BY display_name ASC")
+    suspend fun getSymbolNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'NUMERICAL_NAME' ORDER BY display_name ASC")
+    suspend fun getNumericalNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE junk_type = 'EMOJI_NAME' ORDER BY display_name ASC")
+    suspend fun getEmojiNameContactsSnapshot(): List<LocalContact>
+    @Query("SELECT * FROM contacts WHERE junk_type = 'FANCY_FONT_NAME' ORDER BY display_name ASC")
+    suspend fun getFancyFontNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' ORDER BY display_name ASC")
+    suspend fun getDuplicateNumberContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE duplicate_type = 'EMAIL_MATCH' ORDER BY display_name ASC")
+    suspend fun getDuplicateEmailContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE duplicate_type = 'NAME_MATCH' ORDER BY display_name ASC")
+    suspend fun getDuplicateNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' ORDER BY display_name ASC")
+    suspend fun getSimilarNameContactsSnapshot(): List<LocalContact>
+
+    @Query("SELECT * FROM contacts ORDER BY display_name ASC")
+    suspend fun getAllContacts(): List<LocalContact>
+
+    // --- Flow Queries (KMP Compatible) ---
+    @Query("SELECT * FROM contacts ORDER BY display_name ASC")
+    fun getAllContactsFlow(): Flow<List<LocalContact>>
+
+    @Query("SELECT * FROM contacts WHERE is_whatsapp = 1 ORDER BY display_name ASC")
+    fun getWhatsAppContactsFlow(): Flow<List<LocalContact>>
+
+    @Query("SELECT * FROM contacts WHERE is_junk = 1 ORDER BY display_name ASC")
+    fun getJunkContactsFlow(): Flow<List<LocalContact>>
+
+    // --- CRUD Operations ---
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertContacts(contacts: List<LocalContact>)
+
+    @Query("DELETE FROM contacts WHERE id IN (:contactIds)")
+    suspend fun deleteContacts(contactIds: List<Long>)
+
+    @Query("DELETE FROM contacts")
+    suspend fun deleteAll()
+
+    @Query("UPDATE contacts SET is_sensitive = 0 WHERE id = :id")
+    suspend fun resetSensitiveFlag(id: Long)
+
+    @Query("UPDATE contacts SET is_format_issue = 0 WHERE id = :id")
+    suspend fun clearFormatIssueFlag(id: Long)
+
+    @Query("UPDATE contacts SET is_format_issue = 0 WHERE id IN (:ids)")
+    suspend fun clearFormatIssueFlags(ids: List<Long>)
+
+    @Query("SELECT COUNT(*) FROM contacts")
+    suspend fun getCount(): Int
+}

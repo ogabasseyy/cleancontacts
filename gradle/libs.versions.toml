@@ -1,6 +1,6 @@
 [versions]
-agp = "8.9.1"
-kotlin = "2.1.0"
+agp = "9.0.0"
+kotlin = "2.3.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -9,10 +9,14 @@ lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.2"
 composeBom = "2024.12.01"
 navigationCompose = "2.8.5"
+# JetBrains versions for KMP - CMP 1.10.0 with Kotlin 2.3.0
+composeMultiplatform = "1.10.0"
+navigationComposeMultiplatform = "2.9.1"
+lifecycleMultiplatform = "2.8.4"
 serialization = "1.7.3"
-hilt = "2.56.2"
+hilt = "2.57"
 hiltNavigationCompose = "1.2.0"
-ksp = "2.1.0-1.0.29"
+ksp = "2.3.3"
 coroutines = "1.10.1"
 coroutinesPlayServices = "1.10.1"
 mlkitGenAi = "1.0.0-alpha1"
@@ -21,12 +25,19 @@ billingKtx = "7.1.1"
 playServicesAuth = "21.3.0"
 googleApiClient = "2.7.0"
 googlePeople = "v1-rev20251117-2.0.0"
-room = "2.6.1"
+room = "2.8.0"
+sqlite = "2.5.0"
 paging = "3.3.6"
 work = "2.10.0"
 revenuecat = "9.19.2"
 libphonenumber = "8.13.26"
 datastore = "1.1.2"
+
+# KMP Dependencies (2026 Best Practice)
+koin = "4.1.1"
+multiplatformSettings = "1.3.0"
+kotlinxDatetime = "0.7.1"
+ktor = "3.4.0"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions
 jose4j = "0.9.6"
@@ -53,6 +64,7 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+navigation-compose-multiplatform = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeMultiplatform" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
@@ -77,19 +89,54 @@ revenuecat-purchases = { group = "com.revenuecat.purchases", name = "purchases",
 libphonenumber = { group = "com.googlecode.libphonenumber", name = "libphonenumber", version.ref = "libphonenumber" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
+# Room KMP (2026 Best Practice)
+sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
+
+# Koin DI for KMP (replaces Hilt)
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+
+# Multiplatform Settings (replaces DataStore for KMP)
+multiplatform-settings = { group = "com.russhwolf", name = "multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatform-settings-coroutines = { group = "com.russhwolf", name = "multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
+
+# Kotlinx Coroutines KMP
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+
+# Lifecycle ViewModel for Compose Multiplatform
+lifecycle-viewmodel-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleMultiplatform" }
+
+# Kotlinx Datetime for KMP
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
+# Ktor HTTP Client for KMP (2026 Best Practice)
+ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
 # Security Pin Libraries
+# Note: protobuf-bom removed - BOM overrides force() directives, use force() only for protobuf
 jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version.ref = "jose4j" }
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 jdom2 = { group = "org.jdom", name = "jdom2", version.ref = "jdom2" }
-protobuf-bom = { group = "com.google.protobuf", name = "protobuf-bom", version.ref = "protobuf" }
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
 
 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+# 2026 Best Practice: New KMP-native Android library plugin
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+room = { id = "androidx.room", version.ref = "room" }

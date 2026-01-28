@@ -1,3 +1,19 @@
+buildscript {
+    val jose4jVersion = "0.9.6"
+    val jdom2Version = "2.0.6.1"
+    val commonsLang3Version = "3.20.0"
+    val httpClientVersion = "4.5.14"
+
+    configurations.all {
+        resolutionStrategy {
+            force("org.bitbucket.b_c:jose4j:$jose4jVersion")
+            force("org.jdom:jdom2:$jdom2Version")
+            force("org.apache.commons:commons-lang3:$commonsLang3Version")
+            force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+        }
+    }
+}
+
 // Top-level build file for CleanContactsAI KMP project
 plugins {
     // Android plugins (apply false - applied in subprojects)

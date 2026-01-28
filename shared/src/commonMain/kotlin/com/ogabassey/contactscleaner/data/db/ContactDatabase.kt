@@ -23,7 +23,7 @@ import com.ogabassey.contactscleaner.data.db.entity.UndoLog
         UndoLog::class,
         IgnoredContact::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 @ConstructedBy(ContactDatabaseConstructor::class)

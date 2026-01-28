@@ -49,7 +49,6 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ResultsScreen(
     viewModel: ResultsViewModel = koinViewModel(),
-    whatsAppViewModel: WhatsAppLinkViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (ContactType) -> Unit = {},
     onNavigateToPaywall: () -> Unit = {},
@@ -61,9 +60,11 @@ fun ResultsScreen(
     val allIssuesCount by viewModel.allIssuesCount.collectAsState(initial = 0)
     val freeActions by viewModel.freeActionsRemaining.collectAsState(initial = 2)
 
-    // 2026 Best Practice: Collect state unconditionally, use platform check in UI logic.
-    // StateFlow collection is cheap; the ViewModel handles platform-specific behavior.
-    val whatsAppState by whatsAppViewModel.state.collectAsState()
+    // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
+    val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
+    val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
+
+    var showAccountDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = SpaceBlack,
@@ -120,7 +121,6 @@ fun ResultsScreen(
             val listState = rememberLazyListState()
             val accountsCount by viewModel.accountsCount.collectAsState(initial = 0)
             val accountGroups by viewModel.accountGroups.collectAsState()
-            var showAccountDialog by remember { mutableStateOf(false) }
 
             if (showAccountDialog) {
                 AccountSelectionDialog(

@@ -18,10 +18,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -40,9 +45,11 @@ fun WhatsAppLinkScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    val isConnected = state is WhatsAppLinkState.Connected
+    
     // Navigate back when connected
-    LaunchedEffect(state) {
-        if (state is WhatsAppLinkState.Connected) {
+    LaunchedEffect(isConnected) {
+        if (isConnected) {
             onConnected()
         }
     }
@@ -133,6 +140,12 @@ private fun LoadingContent(message: String = "Checking connection...") {
 @Composable
 private fun PhoneInputContent(onSubmit: (String) -> Unit) {
     var phoneNumber by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    val isValid = remember(phoneNumber) {
+        val digits = phoneNumber.filter { it.isDigit() }
+        digits.length in 8..15
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -186,7 +199,12 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { if (phoneNumber.length >= 10) onSubmit(phoneNumber) }
+                onDone = { 
+                    if (isValid) {
+                        keyboardController?.hide()
+                        onSubmit(phoneNumber)
+                    }
+                }
             ),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
@@ -212,8 +230,11 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { onSubmit(phoneNumber) },
-            enabled = phoneNumber.length >= 10,
+            onClick = { 
+                keyboardController?.hide()
+                onSubmit(phoneNumber) 
+            },
+            enabled = isValid,
             colors = ButtonDefaults.buttonColors(
                 containerColor = PrimaryNeon,
                 contentColor = SpaceBlack
@@ -240,8 +261,13 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 private fun PairingCodeContent(
     code: String,
     phoneNumber: String,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    viewModel: WhatsAppLinkViewModel = koinViewModel()
 ) {
+    val expirationSeconds by viewModel.pairingCodeExpiration.collectAsState()
+    val clipboardManager = LocalClipboardManager.current
+    val haptic = LocalHapticFeedback.current
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -289,11 +315,35 @@ private fun PairingCodeContent(
                     letterSpacing = 4.sp
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Copy Button
+                OutlinedButton(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(code))
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryNeon.copy(alpha = 0.3f)),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Icon(Icons.Default.ContentCopy, null, tint = PrimaryNeon, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Copy Code", style = MaterialTheme.typography.labelMedium, color = PrimaryNeon)
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val remainingMinutes = expirationSeconds?.let { it / 60 } ?: 0
+                    val remainingSeconds = expirationSeconds?.let { it % 60 } ?: 0
+                    val timeString = expirationSeconds?.let { 
+                        "${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}"
+                    } ?: "--:--"
+
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
@@ -301,7 +351,7 @@ private fun PairingCodeContent(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Waiting for connection...",
+                        "Code expires in $timeString",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMedium
                     )

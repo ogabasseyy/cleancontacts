@@ -45,6 +45,8 @@ netty = "4.1.130.Final"
 jdom2 = "2.0.6.1"
 protobuf = "4.33.4"
 commonsCompress = "1.28.0"
+commonsLang3 = "3.20.0"
+httpClient = "4.5.14"
 
 
 
@@ -124,6 +126,8 @@ jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version.ref = "jose4j" 
 netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 jdom2 = { group = "org.jdom", name = "jdom2", version.ref = "jdom2" }
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang3" }
+httpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "httpClient" }
 
 
 

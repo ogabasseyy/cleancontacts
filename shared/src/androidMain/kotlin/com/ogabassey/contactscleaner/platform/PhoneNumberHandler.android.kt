@@ -80,7 +80,6 @@ actual class PhoneNumberHandler actual constructor() {
                     } else {
                         ""
                     }
-
                     return FormatAnalysis(
                         normalizedNumber = formatted,
                         countryCode = proto.countryCode,

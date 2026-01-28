@@ -56,8 +56,17 @@ class ContactSyncWorker(
 
             android.util.Log.d("ContactSyncWorker", "Sync complete. Indexed ${entities.size} contacts.")
             Result.success()
+        } catch (e: SecurityException) {
+            // 2026 Best Practice: Permanent failure - missing permissions, don't retry
+            android.util.Log.e("ContactSyncWorker", "Sync failed - permission denied", e)
+            Result.failure()
+        } catch (e: IllegalStateException) {
+            // Permanent failure - content provider unavailable
+            android.util.Log.e("ContactSyncWorker", "Sync failed - provider unavailable", e)
+            Result.failure()
         } catch (e: Exception) {
-            android.util.Log.e("ContactSyncWorker", "Sync failed", e)
+            // Transient failure - retry for other exceptions
+            android.util.Log.e("ContactSyncWorker", "Sync failed - will retry", e)
             Result.retry()
         }
     }

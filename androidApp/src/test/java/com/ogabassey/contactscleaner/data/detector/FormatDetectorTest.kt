@@ -59,7 +59,8 @@ class FormatDetectorTest {
     }
 
     @Test
-    fun `analyze should not return format issue if suggested number matches original`() {
+    fun `analyze should return normalized number when missing plus prefix`() {
+        // 2026 Best Practice: Test name matches behavior - number without + gets normalized
         val result = detector.analyze("2348012345678")
         assertNotNull(result)
         assertEquals("+2348012345678", result?.normalizedNumber)

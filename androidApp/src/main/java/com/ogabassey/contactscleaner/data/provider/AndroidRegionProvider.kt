@@ -13,12 +13,10 @@ class AndroidRegionProvider(
     private val context: Context
 ) : RegionProvider {
 
+    // 2026 Best Practice: Locale.displayCountry doesn't throw; returns region code if unrecognized
     override fun getDisplayCountry(regionCode: String): String {
-        return try {
-            Locale("", regionCode).displayCountry
-        } catch (e: Exception) {
-            regionCode
-        }
+        val displayCountry = Locale("", regionCode).displayCountry
+        return displayCountry.ifEmpty { regionCode }
     }
 
     override fun getRegionIso(): String {

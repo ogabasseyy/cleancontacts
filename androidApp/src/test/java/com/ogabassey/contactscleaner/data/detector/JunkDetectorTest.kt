@@ -75,7 +75,8 @@ class JunkDetectorTest {
         val result = junkDetector.detectJunk(contacts)
 
         assertEquals(1, result.size)
-        assertEquals(JunkType.SYMBOL_NAME, result[0].type)
+        // JunkDetector checks for EMOJI_NAME before SYMBOL_NAME
+        assertEquals(JunkType.EMOJI_NAME, result[0].type)
     }
 
     @Test

@@ -51,15 +51,16 @@ class FileServiceImplTest {
     @Test
     fun `generateCsvFile sanitizes illegal characters`() = runBlocking {
         // Test sanitization of characters that are illegal in filenames but not path traversals
-        val fileName = "test exports! @#$.csv"
-        val expectedSanitized = "test_exports______-_.csv" // Based on [^a-zA-Z0-0._-]
+        // Include digits to verify the 0-9 regex fix
+        val fileName = "test exports 2026! @#$.csv"
+        val expectedSanitized = "test_exports_2026_____.csv"
 
         val result = fileService.generateCsvFile(fileName, content = "some content")
 
         assertTrue("Result should be success", result.isSuccess)
         val path = result.getOrNull()
         assertNotNull(path)
-        assertTrue("Filename should be sanitized", path!!.endsWith("test_exports______-_.csv") || path.contains("test_exports"))
+        assertEquals("Filename should be strictly sanitized", expectedSanitized, File(path!!).name)
     }
 
     @Test

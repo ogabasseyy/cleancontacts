@@ -47,6 +47,9 @@ kotlin {
             // Serialization
             implementation(libs.kotlinx.serialization.json)
 
+            // Datetime
+            implementation(libs.kotlinx.datetime)
+
             // Koin DI
             implementation(libs.koin.core)
 

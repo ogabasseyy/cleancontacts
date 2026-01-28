@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * State for WhatsApp linking flow.
@@ -38,7 +42,11 @@ class WhatsAppLinkViewModel(
     private val _state = MutableStateFlow<WhatsAppLinkState>(WhatsAppLinkState.Checking)
     val state: StateFlow<WhatsAppLinkState> = _state.asStateFlow()
 
+    private val _pairingCodeExpiration = MutableStateFlow<Long?>(null)
+    val pairingCodeExpiration: StateFlow<Long?> = _pairingCodeExpiration.asStateFlow()
+
     private var pollingJob: Job? = null
+    private var timerJob: Job? = null
 
     init {
         checkConnectionStatus()
@@ -79,15 +87,46 @@ class WhatsAppLinkViewModel(
         viewModelScope.launch {
             _state.update { WhatsAppLinkState.RequestingCode(normalizedNumber) }
             try {
+                // Network check
+                if (!whatsAppRepository.isServiceAvailable()) {
+                    _state.update { WhatsAppLinkState.Error("WhatsApp service is currently unavailable. Please check your internet connection.") }
+                    return@launch
+                }
+
                 val code = whatsAppRepository.requestPairingCode(normalizedNumber)
                 if (code != null) {
                     _state.update { WhatsAppLinkState.WaitingForPairing(code, normalizedNumber) }
+                    startPairingTimer()
                     startPollingForConnection()
                 } else {
                     _state.update { WhatsAppLinkState.Error("Failed to get pairing code. Please try again.") }
                 }
             } catch (e: Exception) {
                 _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
+            }
+        }
+    }
+
+    /**
+     * Start a 20-minute countdown timer for the pairing code.
+     */
+    private fun startPairingTimer() {
+        timerJob?.cancel()
+        val startTime = Clock.System.now().toEpochMilliseconds()
+        val expirationMillis = startTime + (20 * 60 * 1000L).toLong()
+        _pairingCodeExpiration.value = 1200L // 20 minutes in seconds
+
+        timerJob = viewModelScope.launch {
+            while (true) {
+                val now = Clock.System.now().toEpochMilliseconds()
+                val remainingSeconds = (expirationMillis - now) / 1000
+                if (remainingSeconds <= 0) {
+                    _pairingCodeExpiration.value = 0
+                    _state.update { WhatsAppLinkState.Error("Pairing code expired. Please request a new one.") }
+                    break
+                }
+                _pairingCodeExpiration.value = remainingSeconds
+                delay(1000)
             }
         }
     }
@@ -153,7 +192,10 @@ class WhatsAppLinkViewModel(
      */
     fun cancelLinking() {
         pollingJob?.cancel()
+        timerJob?.cancel()
         pollingJob = null
+        timerJob = null
+        _pairingCodeExpiration.value = null
         _state.update { WhatsAppLinkState.NotLinked }
     }
 
@@ -181,6 +223,8 @@ class WhatsAppLinkViewModel(
     override fun onCleared() {
         super.onCleared()
         pollingJob?.cancel()
+        timerJob?.cancel()
         pollingJob = null
+        timerJob = null
     }
 }

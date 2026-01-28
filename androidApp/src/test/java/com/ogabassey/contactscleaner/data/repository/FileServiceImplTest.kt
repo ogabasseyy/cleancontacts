@@ -2,6 +2,8 @@ package com.ogabassey.contactscleaner.data.repository
 
 import android.content.Context
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -40,30 +42,41 @@ class FileServiceImplTest {
 
         assertTrue("Result should be success", result.isSuccess)
         val path = result.getOrNull()
-        assertTrue("Path should not be null", path != null)
-        assertTrue("File should exist", File(path!!).exists())
-        assertTrue("Content should match", File(path).readText() == content)
+        assertNotNull("Path should not be null", path)
+        val file = File(path!!)
+        assertTrue("File should exist", file.exists())
+        assertEquals("Content should match", content, file.readText())
     }
 
     @Test
-    fun `generateCsvFile sanitizes path traversal attempts`() = runBlocking {
-        // Attempt a path traversal
-        // The sanitizeFileName function should neutralize this, and the file should be written safely
-        val fileName = "../../../evil.csv"
-        val content = "evil content"
+    fun `generateCsvFile sanitizes illegal characters`() = runBlocking {
+        // Test sanitization of characters that are illegal in filenames but not path traversals
+        val fileName = "test exports! @#$.csv"
+        val expectedSanitized = "test_exports______-_.csv" // Based on [^a-zA-Z0-0._-]
 
-        val result = fileService.generateCsvFile(fileName, content)
+        val result = fileService.generateCsvFile(fileName, content = "some content")
 
-        assertTrue("Result should be success (sanitized)", result.isSuccess)
+        assertTrue("Result should be success", result.isSuccess)
         val path = result.getOrNull()
-        assertTrue("Path should not be null", path != null)
+        assertNotNull(path)
+        assertTrue("Filename should be sanitized", path!!.endsWith("test_exports______-_.csv") || path.contains("test_exports"))
+    }
 
-        // Ensure it is INSIDE the cache dir (tempFolder)
-        val file = File(path!!)
-        // Using Path.startsWith logic from the implementation implicitly via test
-        val cachePath = tempFolder.root.toPath().toAbsolutePath().normalize()
-        val filePath = file.toPath().toAbsolutePath().normalize()
+    @Test
+    fun `generateCsvFile rejects path traversal with parent references`() = runBlocking {
+        val fileName = "subdir/../evil.csv"
+        val result = fileService.generateCsvFile(fileName, "content")
 
-        assertTrue("File should be inside cache dir", filePath.startsWith(cachePath))
+        assertTrue("Should be failure", result.isFailure)
+        assertTrue("Should throw SecurityException", result.exceptionOrNull() is SecurityException)
+    }
+
+    @Test
+    fun `generateCsvFile rejects path traversal with absolute-like separators`() = runBlocking {
+        val fileName = "/etc/passwd"
+        val result = fileService.generateCsvFile(fileName, "content")
+
+        assertTrue("Should be failure", result.isFailure)
+        assertTrue("Should throw SecurityException", result.exceptionOrNull() is SecurityException)
     }
 }

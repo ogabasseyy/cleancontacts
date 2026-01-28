@@ -1,6 +1,8 @@
 package com.ogabassey.contactscleaner.data.source
 
 import android.content.ContentResolver
+import android.content.OperationApplicationException
+import android.os.RemoteException
 import android.provider.ContactsContract
 import com.ogabassey.contactscleaner.domain.model.Contact
 import kotlinx.coroutines.Dispatchers
@@ -489,10 +491,14 @@ class ContactsProviderSource @Inject constructor(
                         .build()
                 )
             }
+            // 2026 Best Practice: Catch specific exceptions from applyBatch
             try {
                 contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
-            } catch (e: Exception) {
-                android.util.Log.e("ContactsProviderSource", "Error deleting batch", e)
+            } catch (e: RemoteException) {
+                android.util.Log.e("ContactsProviderSource", "Remote error deleting batch", e)
+                return@withContext false
+            } catch (e: OperationApplicationException) {
+                android.util.Log.e("ContactsProviderSource", "Operation error deleting batch", e)
                 return@withContext false
             }
         }
@@ -558,11 +564,15 @@ class ContactsProviderSource @Inject constructor(
             )
         }
 
+        // 2026 Best Practice: Catch specific exceptions from applyBatch
         try {
             contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
             true
-        } catch (e: Exception) {
-            android.util.Log.e("ContactsProviderSource", "Merge failed", e)
+        } catch (e: RemoteException) {
+            android.util.Log.e("ContactsProviderSource", "Remote error merging contacts", e)
+            false
+        } catch (e: OperationApplicationException) {
+            android.util.Log.e("ContactsProviderSource", "Operation error merging contacts", e)
             false
         }
     }
@@ -612,12 +622,16 @@ class ContactsProviderSource @Inject constructor(
         if (allOps.isEmpty()) return@withContext true
         
         // 2. Apply in chunky batches of 400
+        // 2026 Best Practice: Catch specific exceptions from applyBatch
         var success = true
         allOps.chunked(400).forEach { batch ->
             try {
                 contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
-            } catch (e: Exception) {
-                android.util.Log.e("ContactsProviderSource", "Bulk update batch failed", e)
+            } catch (e: RemoteException) {
+                android.util.Log.e("ContactsProviderSource", "Remote error in bulk update", e)
+                success = false
+            } catch (e: OperationApplicationException) {
+                android.util.Log.e("ContactsProviderSource", "Operation error in bulk update", e)
                 success = false
             }
         }
@@ -676,14 +690,18 @@ class ContactsProviderSource @Inject constructor(
             }
         }
 
+        // 2026 Best Practice: Catch specific exceptions from applyBatch
         try {
             // Apply in batches of 400 to avoid TransactionTooLargeException
             operations.chunked(400).forEach { batch ->
                 contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
             }
             true
-        } catch (e: Exception) {
-            android.util.Log.e("ContactsProviderSource", "Error restoring contacts", e)
+        } catch (e: RemoteException) {
+            android.util.Log.e("ContactsProviderSource", "Remote error restoring contacts", e)
+            false
+        } catch (e: OperationApplicationException) {
+            android.util.Log.e("ContactsProviderSource", "Operation error restoring contacts", e)
             false
         }
     }

@@ -16,7 +16,7 @@ import kotlinx.serialization.json.Json
  * 2026 Best Practice: Uses Ktor for KMP HTTP client.
  */
 class WhatsAppDetectorApi(
-    private val baseUrl: String = "http://82.29.190.219:3456"
+    private val baseUrl: String = "https://api.contactscleaner.tech"
 ) {
     private val client = HttpClient {
         install(ContentNegotiation) {

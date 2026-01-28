@@ -45,13 +45,26 @@ class ContactRepositoryImpl constructor(
         emit(ScanStatus.Progress(0.01f, "Initializing database..."))
         
         // 2. Fetch Total Count for Progress
+        // 2026 Best Practice: Handle specific exceptions and surface failures
         var totalToProcess = 0
         try {
              val allIds = contactsProviderSource.getVerifiedContactIds()
              emit(ScanStatus.Progress(0.05f, "Fetching contact list..."))
              totalToProcess = allIds.size
+        } catch (e: SecurityException) {
+            // Missing contacts permission
+            android.util.Log.e("ContactRepository", "Permission denied when fetching contacts", e)
+            emit(ScanStatus.Error("Permission denied. Please grant contacts permission."))
+            return@flow
+        } catch (e: IllegalStateException) {
+            // ContentProvider unavailable
+            android.util.Log.e("ContactRepository", "ContentProvider unavailable", e)
+            emit(ScanStatus.Error("Contacts provider unavailable. Please try again."))
+            return@flow
         } catch (e: Exception) {
-            totalToProcess = 1000
+            // Log unexpected errors but continue with fallback
+            android.util.Log.w("ContactRepository", "Failed to get contact count, using fallback", e)
+            totalToProcess = 1000 // Fallback for progress calculation only
         }
         
         if (totalToProcess == 0) {
@@ -261,13 +274,16 @@ class ContactRepositoryImpl constructor(
             description = "Deleted ${contacts.size} contacts from $type"
         )
         
+        // 2026 Best Practice: Track processed count accurately for progress
         var successCount = 0
-        contacts.chunked(50).forEachIndexed { index, batch ->
+        var processedCount = 0
+        contacts.chunked(50).forEach { batch ->
             val ids = batch.map { it.id }
             if (deleteContacts(ids)) {
                 successCount += batch.size
             }
-            val progress = ((index + 1) * 50).toFloat() / contacts.size.toFloat()
+            processedCount += batch.size
+            val progress = processedCount.toFloat() / contacts.size.toFloat()
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Deleted $successCount of ${contacts.size}"))
         }
 
@@ -298,7 +314,10 @@ class ContactRepositoryImpl constructor(
     override suspend fun mergeContacts(contactIds: List<Long>, customName: String?): Boolean {
         return contactsProviderSource.mergeContacts(contactIds, customName)
     }
-    override suspend fun saveContacts(contacts: List<Contact>): Boolean = false
+    // 2026 Best Practice: Implement saveContacts by delegating to platform source
+    override suspend fun saveContacts(contacts: List<Contact>): Boolean {
+        return contactsProviderSource.restoreContacts(contacts)
+    }
 
     override suspend fun getDuplicateGroups(type: ContactType): List<com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary> {
         return when(type) {

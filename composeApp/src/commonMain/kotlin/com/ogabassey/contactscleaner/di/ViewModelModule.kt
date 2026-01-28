@@ -4,6 +4,7 @@ import com.ogabassey.contactscleaner.ui.dashboard.DashboardViewModel
 import com.ogabassey.contactscleaner.ui.history.RecentActionsViewModel
 import com.ogabassey.contactscleaner.ui.paywall.PaywallViewModel
 import com.ogabassey.contactscleaner.ui.results.ResultsViewModel
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -33,4 +34,7 @@ val viewModelModule = module {
 
     // CategoryViewModel for Lists (Junk, Duplicates, etc.) with ContactRepository, BillingRepository, UsageRepository
     viewModel { com.ogabassey.contactscleaner.ui.category.CategoryViewModel(get(), get(), get()) }
+
+    // WhatsAppLinkViewModel with WhatsAppDetectorRepository
+    viewModel { WhatsAppLinkViewModel(get()) }
 }

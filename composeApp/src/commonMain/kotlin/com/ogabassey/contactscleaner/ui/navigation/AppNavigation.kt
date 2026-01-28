@@ -31,6 +31,7 @@ import com.ogabassey.contactscleaner.ui.settings.SafeListScreen
 import com.ogabassey.contactscleaner.ui.history.HistoryScreen
 import com.ogabassey.contactscleaner.ui.category.CategoryDetailScreen
 import com.ogabassey.contactscleaner.ui.duplicates.DuplicateSubGroupsScreen
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkScreen
 import kotlinx.serialization.Serializable
 
 /**
@@ -44,6 +45,7 @@ import kotlinx.serialization.Serializable
 @Serializable object PaywallRoute
 @Serializable object DuplicateGroupsRoute
 @Serializable object HistoryRoute
+@Serializable object WhatsAppLinkRoute
 @Serializable data class CategoryDetailRoute(val typeName: String)
 
 /**
@@ -79,7 +81,15 @@ fun AppNavigation(
                         }
                     },
                     onNavigateToPaywall = { navController.navigate(PaywallRoute) },
-                    onNavigateToHistory = { navController.navigate(HistoryRoute) }
+                    onNavigateToHistory = { navController.navigate(HistoryRoute) },
+                    onNavigateToWhatsAppLink = { navController.navigate(WhatsAppLinkRoute) }
+                )
+            }
+
+            composable<WhatsAppLinkRoute> {
+                WhatsAppLinkScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onConnected = { navController.popBackStack() }
                 )
             }
 

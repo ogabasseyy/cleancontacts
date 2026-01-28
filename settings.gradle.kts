@@ -15,4 +15,10 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "CleanContactsAI"
-include(":app")
+
+// KMP Modules (2026 Best Practice)
+include(":shared")
+include(":composeApp")
+
+// Platform-specific app modules
+include(":androidApp")

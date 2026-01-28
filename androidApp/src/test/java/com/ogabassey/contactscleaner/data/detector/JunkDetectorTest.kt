@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.data.detector
 
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.JunkType
+import com.ogabassey.contactscleaner.platform.TextAnalyzer
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -12,7 +13,8 @@ class JunkDetectorTest {
 
     @Before
     fun setup() {
-        junkDetector = JunkDetector()
+        // Use the actual Android TextAnalyzer implementation
+        junkDetector = JunkDetector(TextAnalyzer())
     }
 
     @Test

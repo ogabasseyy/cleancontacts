@@ -4,7 +4,6 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
 
 class ContactImportParserTest {
 
@@ -22,7 +21,7 @@ class ContactImportParserTest {
             Jane Smith,+9876543210
         """.trimIndent()
 
-        val result = parser.parseFile(ByteArrayInputStream(csv.toByteArray()), "test.csv")
+        val result = parser.parseFile(csv, "test.csv")
 
         assertEquals(2, result.validContacts.size)
         assertEquals("John Doe", result.validContacts[0].name)
@@ -36,7 +35,7 @@ class ContactImportParserTest {
             +9876543210
         """.trimIndent()
 
-        val result = parser.parseFile(ByteArrayInputStream(csv.toByteArray()), "test.csv")
+        val result = parser.parseFile(csv, "test.csv")
 
         assertEquals(2, result.validContacts.size)
         assertNull(result.validContacts[0].name)
@@ -50,7 +49,7 @@ class ContactImportParserTest {
             09011223344
         """.trimIndent()
 
-        val result = parser.parseFile(ByteArrayInputStream(txt.toByteArray()), "test.txt")
+        val result = parser.parseFile(txt, "test.txt")
 
         assertEquals(3, result.validContacts.size)
         assertTrue(result.validContacts.all { it.name == null })
@@ -60,12 +59,12 @@ class ContactImportParserTest {
     fun `skip empty lines`() {
         val csv = """
             John,+111111
-            
+
             Jane,+222222
-            
+
         """.trimIndent()
 
-        val result = parser.parseFile(ByteArrayInputStream(csv.toByteArray()), "test.csv")
+        val result = parser.parseFile(csv, "test.csv")
 
         assertEquals(2, result.validContacts.size)
     }
@@ -77,7 +76,7 @@ class ContactImportParserTest {
             "Jane, Smith","+9876543210"
         """.trimIndent()
 
-        val result = parser.parseFile(ByteArrayInputStream(csv.toByteArray()), "test.csv")
+        val result = parser.parseFile(csv, "test.csv")
 
         assertEquals(2, result.validContacts.size)
         assertEquals("John Doe", result.validContacts[0].name)

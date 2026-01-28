@@ -51,7 +51,7 @@ class FileServiceImpl(
 
         // Further sanitize to ensure a safe filename (remove leading dots, weird chars)
         return fileName
-            .replace(Regex("[^a-zA-Z0-0._-]"), "_")
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
             .replace(Regex("^[._]+"), "")
             .ifEmpty { "export.csv" }
     }

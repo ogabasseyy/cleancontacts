@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -525,12 +526,15 @@ fun ResultMiniStat(count: Int, label: String, color: Color) {
 
 @Composable
 fun OrbitalFeatures(radius: Dp) {
-    val features = listOf(
-        OrbitalItem(Icons.Default.Email, SecondaryNeon),
-        OrbitalItem(Icons.Default.Delete, ErrorNeon),
-        OrbitalItem(Icons.Default.Face, WarningNeon),
-        OrbitalItem(Icons.Default.Lock, PrimaryNeon)
-    )
+    // ⚡ Bolt Optimization: Memoize list to prevent reallocation
+    val features = remember {
+        listOf(
+            OrbitalItem(Icons.Default.Email, SecondaryNeon),
+            OrbitalItem(Icons.Default.Delete, ErrorNeon),
+            OrbitalItem(Icons.Default.Face, WarningNeon),
+            OrbitalItem(Icons.Default.Lock, PrimaryNeon)
+        )
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
     val rotation by infiniteTransition.animateFloat(
@@ -543,16 +547,20 @@ fun OrbitalFeatures(radius: Dp) {
         label = "rotation"
     )
 
+    // ⚡ Bolt Optimization: Use graphicsLayer for animations to avoid layout thrashing
+    val density = LocalDensity.current
+    val radiusPx = with(density) { radius.toPx() }
+
     features.forEachIndexed { index, item ->
         val angleDeg = (index * 90f) + rotation
         val angleRad = angleDeg.toDouble() * PI / 180.0
 
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.offset(
-                x = (radius.value * cos(angleRad)).dp,
-                y = (radius.value * sin(angleRad)).dp
-            )
+            modifier = Modifier.graphicsLayer {
+                translationX = (radiusPx * cos(angleRad)).toFloat()
+                translationY = (radiusPx * sin(angleRad)).toFloat()
+            }
         ) {
             Box(
                 modifier = Modifier

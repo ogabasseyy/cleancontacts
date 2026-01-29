@@ -449,12 +449,25 @@ fun SettingsContent(
             .padding(24.dp)
             .padding(bottom = 32.dp)
     ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = PrimaryNeon
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = PrimaryNeon
+            )
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close Settings",
+                    tint = Color.White.copy(alpha = 0.6f)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

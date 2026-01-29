@@ -93,11 +93,10 @@ fun WhatsAppLinkScreen(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
+            // 2026 Best Practice: Simple fade transitions, no conflicting slides with navigation
             AnimatedContent(
                 targetState = state,
-                transitionSpec = {
-                    fadeIn() + slideInHorizontally() togetherWith fadeOut() + slideOutHorizontally()
-                },
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
                 label = "WhatsAppLinkStateTransition"
             ) { currentState ->
                 when (currentState) {

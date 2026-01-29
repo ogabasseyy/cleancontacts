@@ -45,7 +45,8 @@ class WhatsAppLinkViewModel(
     private val settings: Settings
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<WhatsAppLinkState>(WhatsAppLinkState.Checking)
+    // 2026 Best Practice: Start with NotLinked to avoid spinner flash on screen open
+    private val _state = MutableStateFlow<WhatsAppLinkState>(WhatsAppLinkState.NotLinked)
     val state: StateFlow<WhatsAppLinkState> = _state.asStateFlow()
 
     private val _pairingCodeExpiration = MutableStateFlow<Long?>(null)
@@ -78,18 +79,17 @@ class WhatsAppLinkViewModel(
 
     /**
      * Check if WhatsApp is already connected for this device.
+     * 2026 Best Practice: Silent background check - no spinner, only update if connected.
      */
     fun checkConnectionStatus() {
         viewModelScope.launch {
-            _state.update { WhatsAppLinkState.Checking }
             try {
                 val status = whatsAppRepository.getSessionStatus(deviceId)
-                _state.update {
-                    if (status.connected) WhatsAppLinkState.Connected
-                    else WhatsAppLinkState.NotLinked
+                if (status.connected) {
+                    _state.update { WhatsAppLinkState.Connected }
                 }
             } catch (e: Exception) {
-                _state.update { WhatsAppLinkState.NotLinked }
+                // Silently fail - stay on current state
             }
         }
     }

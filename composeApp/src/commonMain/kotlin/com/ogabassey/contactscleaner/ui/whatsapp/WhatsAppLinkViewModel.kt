@@ -213,6 +213,10 @@ class WhatsAppLinkViewModel(
                 try {
                     val status = whatsAppRepository.getSessionStatus(deviceId)
                     if (status.connected) {
+                        // Cancel timer when connected
+                        timerJob?.cancel()
+                        timerJob = null
+                        _pairingCodeExpiration.value = null
                         _state.update { WhatsAppLinkState.Connected }
                         return@launch
                     }

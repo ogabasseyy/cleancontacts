@@ -96,8 +96,7 @@ class WhatsAppLinkViewModel(
 
     /**
      * Request a pairing code for the given phone number.
-     * Uses WebSocket for real-time updates - pairing code and connection
-     * status are pushed instantly instead of polling.
+     * 2026 Best Practice: Use HTTP directly - simpler, more reliable than WebSocket.
      *
      * @param phoneNumber Phone number in E.164 format (e.g., +1234567890)
      */
@@ -124,42 +123,18 @@ class WhatsAppLinkViewModel(
                     return@launch
                 }
 
-                // Use WebSocket for real-time pairing events
-                whatsAppRepository.connectForPairing(deviceId, normalizedNumber)
-                    .catch { e ->
-                        // WebSocket failed, fall back to HTTP + polling
-                        fallbackToHttpPairing(normalizedNumber)
-                    }
-                    .collect { event ->
-                        when (event) {
-                            is PairingEvent.SessionCreated -> {
-                                // Session started, waiting for code
-                            }
-                            is PairingEvent.PairingCode -> {
-                                _state.update { WhatsAppLinkState.WaitingForPairing(event.code, normalizedNumber) }
-                                startPairingTimer()
-                            }
-                            is PairingEvent.Connected -> {
-                                timerJob?.cancel()
-                                _state.update { WhatsAppLinkState.Connected }
-                            }
-                            is PairingEvent.Error -> {
-                                timerJob?.cancel()
-                                _state.update { WhatsAppLinkState.Error(event.message) }
-                            }
-                        }
-                    }
+                // Use HTTP directly (no WebSocket on backend)
+                requestPairingViaHttp(normalizedNumber)
             } catch (e: Exception) {
-                // WebSocket failed, fall back to HTTP + polling
-                fallbackToHttpPairing(normalizedNumber)
+                _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
             }
         }
     }
 
     /**
-     * Fallback to HTTP-based pairing if WebSocket fails.
+     * Request pairing code via HTTP and poll for connection status.
      */
-    private suspend fun fallbackToHttpPairing(normalizedNumber: String) {
+    private suspend fun requestPairingViaHttp(normalizedNumber: String) {
         try {
             val code = whatsAppRepository.requestPairingCode(deviceId, normalizedNumber)
             if (code != null) {

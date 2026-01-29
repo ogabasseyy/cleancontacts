@@ -13,27 +13,36 @@ class SensitiveDataDetector(
     private val phoneNumberHandler: PhoneNumberHandler
 ) {
 
-    // --- Global ID Patterns (Strict Regex to minimize False Positives) ---
+    companion object {
+        private const val MAX_INPUT_LENGTH = 100
 
-    // USA SSN: XXX-XX-XXXX (Strict formatting)
-    private val US_SSN_REGEX = Regex("\\b(?!000|666|9\\d{2})\\d{3}-(?!00)\\d{2}-(?!0000)\\d{4}\\b")
+        // --- Global ID Patterns (Strict Regex to minimize False Positives) ---
 
-    // UK National Insurance: 2 letters, 6 digits, 1 letter
-    private val UK_NINO_REGEX = Regex("\\b[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\\d{6}[A-D\\s]?\\b", RegexOption.IGNORE_CASE)
+        // USA SSN: XXX-XX-XXXX (Strict formatting)
+        private val US_SSN_REGEX = Regex("\\b(?!000|666|9\\d{2})\\d{3}-(?!00)\\d{2}-(?!0000)\\d{4}\\b")
 
-    // India Passport: 1 Letter + 7 Digits (e.g., A1234567)
-    private val INDIA_PASSPORT_REGEX = Regex("\\b[A-Z]\\d{7}\\b")
+        // UK National Insurance: 2 letters, 6 digits, 1 letter
+        private val UK_NINO_REGEX = Regex("\\b[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\\d{6}[A-D\\s]?\\b", RegexOption.IGNORE_CASE)
 
-    // China Resident ID (18 digits)
-    private val CHINA_ID_REGEX = Regex("\\b\\d{17}[0-9Xx]\\b")
+        // India Passport: 1 Letter + 7 Digits (e.g., A1234567)
+        private val INDIA_PASSPORT_REGEX = Regex("\\b[A-Z]\\d{7}\\b")
 
-    // Credit Card (Luhn-validatable candidates: 13-19 digits)
-    private val CREDIT_CARD_REGEX = Regex("\\b(?:4\\d{12}(?:\\d{3})?|5[1-5]\\d{14}|3[47]\\d{13}|6(?:011|5\\d{2})\\d{12})\\b")
+        // China Resident ID (18 digits)
+        private val CHINA_ID_REGEX = Regex("\\b\\d{17}[0-9Xx]\\b")
 
-    // Nigeria NIN/BVN (11 Digits)
-    private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}$")
+        // Credit Card (Luhn-validatable candidates: 13-19 digits)
+        private val CREDIT_CARD_REGEX = Regex("\\b(?:4\\d{12}(?:\\d{3})?|5[1-5]\\d{14}|3[47]\\d{13}|6(?:011|5\\d{2})\\d{12})\\b")
+
+        // Nigeria NIN/BVN (11 Digits)
+        private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}$")
+    }
 
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {
+        // 2026 Security Fix: Prevent ReDoS by limiting input length
+        if (value.length > MAX_INPUT_LENGTH) {
+            return null
+        }
+
         val cleanValue = value.trim()
         // State of the Art Fix 2026: whitelist ALL valid phone numbers.
         // If libphonenumber says it's valid, it's not a sensitive ID.

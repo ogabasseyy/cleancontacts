@@ -57,4 +57,13 @@ class SensitiveDataDetectorTest {
         assertNotNull(match)
         assertEquals(SensitiveType.UK_NINO, match?.type)
     }
+
+    @Test
+    fun `ignores input exceeding max length`() {
+        // Create a string longer than 100 characters
+        val longString = "A".repeat(101)
+        val match = detector.analyze(longString)
+
+        assertNull("Should ignore input exceeding max length", match)
+    }
 }

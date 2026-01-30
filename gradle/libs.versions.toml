@@ -16,7 +16,7 @@ lifecycleMultiplatform = "2.8.4"
 serialization = "1.7.3"
 hilt = "2.57"
 hiltNavigationCompose = "1.2.0"
-ksp = "2.3.5"
+ksp = "2.3.4"
 coroutines = "1.10.1"
 coroutinesPlayServices = "1.10.1"
 mlkitGenAi = "1.0.0-beta1"
@@ -123,7 +123,8 @@ ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
+# 2026 Fix: ktor-client-websockets 3.4.0 not yet on Maven Central, use 3.3.3
+ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", version = "3.3.3" }
 
 # Security Pin Libraries
 # Note: protobuf-bom removed - BOM overrides force() directives, use force() only for protobuf

@@ -57,4 +57,17 @@ class SensitiveDataDetectorTest {
         assertNotNull(match)
         assertEquals(SensitiveType.UK_NINO, match?.type)
     }
+
+    @Test
+    fun `ignores overly long input to prevent ReDoS`() {
+        // Create a string longer than 100 chars that contains a valid SSN at the end
+        val prefix = "a".repeat(150)
+        val ssn = "123-45-6789"
+        val longInput = prefix + ssn
+
+        // This should return null because input length > 100
+        val match = detector.analyze(longInput)
+
+        assertNull("Should return null for input > 100 chars to prevent ReDoS", match)
+    }
 }

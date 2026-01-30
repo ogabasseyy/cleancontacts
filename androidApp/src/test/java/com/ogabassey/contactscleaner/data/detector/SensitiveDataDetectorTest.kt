@@ -66,4 +66,14 @@ class SensitiveDataDetectorTest {
 
         assertNull("Should ignore input exceeding max length", match)
     }
+
+    @Test
+    fun `processes input at exactly max length`() {
+        // 100 characters: 89 padding + 11 char SSN pattern
+        val paddedSSN = "A".repeat(89) + "123-45-6789"
+        val match = detector.analyze(paddedSSN)
+
+        assertNotNull("Should process input at exactly max length", match)
+        assertEquals(SensitiveType.USA_SSN, match?.type)
+    }
 }

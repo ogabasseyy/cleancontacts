@@ -36,8 +36,16 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
             println("⚠️ Database directory error: ${nsError.localizedDescription}")
         }
 
-        val path = documentDirectory?.path ?: ""
-        "$path/${ContactDatabase.DATABASE_NAME}.db"
+        // 2026 Fix: Handle null documentDirectory properly - use fallback path
+        val path = documentDirectory?.path
+        if (path.isNullOrEmpty()) {
+            // Fallback to tmp directory if Documents is unavailable
+            val fallbackPath = NSFileManager.defaultManager.temporaryDirectory.path ?: "/tmp"
+            println("⚠️ Using fallback database path: $fallbackPath")
+            "$fallbackPath/${ContactDatabase.DATABASE_NAME}.db"
+        } else {
+            "$path/${ContactDatabase.DATABASE_NAME}.db"
+        }
     }
 
     return Room.databaseBuilder<ContactDatabase>(

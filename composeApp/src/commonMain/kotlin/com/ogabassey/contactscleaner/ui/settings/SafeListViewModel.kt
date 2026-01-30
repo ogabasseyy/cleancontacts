@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ogabassey.contactscleaner.data.db.entity.IgnoredContact
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +38,9 @@ class SafeListViewModel(
                         _uiState.value = SafeListUiState.Success
                     }
                 }
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always re-throw CancellationException
+                throw e
             } catch (e: Exception) {
                 _uiState.value = SafeListUiState.Error(e.message ?: "Failed to load safe list")
             }
@@ -50,6 +54,9 @@ class SafeListViewModel(
                 if (!success) {
                     _uiState.value = SafeListUiState.Error("Failed to remove from safe list")
                 }
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always re-throw CancellationException
+                throw e
             } catch (e: Exception) {
                 _uiState.value = SafeListUiState.Error(e.message ?: "Failed to remove from safe list")
             }

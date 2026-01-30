@@ -109,6 +109,11 @@ class ResultsViewModel(
         }
     }
 
+    /**
+     * Retry pending action after paywall dismissal.
+     * 2026 Fix: Don't unconditionally set Idle - let the action determine final state
+     * 2026 Fix: Increment free-action usage on retry for non-premium users
+     */
     fun retryPendingAction() {
         viewModelScope.launch {
             val isPremium = billingRepository.isPremium.first()
@@ -120,9 +125,21 @@ class ResultsViewModel(
                     pendingAction = null
                     temp
                 }
-                action?.invoke()
+                if (action != null) {
+                    // 2026 Fix: Increment free action usage for non-premium users
+                    if (!isPremium) {
+                        usageRepository.incrementFreeActions()
+                    }
+                    action.invoke()
+                    // Note: action.invoke() will set the appropriate state (Success/Error)
+                } else {
+                    // No pending action - safe to set Idle
+                    _uiState.value = ResultsUiState.Idle
+                }
+            } else {
+                // Still can't perform - show paywall again
+                _uiState.value = ResultsUiState.ShowPaywall
             }
-            _uiState.value = ResultsUiState.Idle
         }
     }
 

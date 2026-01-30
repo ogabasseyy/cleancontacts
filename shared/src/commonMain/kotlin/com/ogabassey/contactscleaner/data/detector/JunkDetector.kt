@@ -83,28 +83,27 @@ class JunkDetector(
         }
 
         // 3. Name Analysis
-        if (!name.isNullOrBlank()) {
-            // A. Numerical Name (e.g. "123", "0801...")
-            if (NUMERICAL_NAME_REGEX.matches(name)) {
-                return JunkType.NUMERICAL_NAME
-            }
+        // 2026 Fix: name is guaranteed non-null here after line 58 check
+        // A. Numerical Name (e.g. "123", "0801...")
+        if (NUMERICAL_NAME_REGEX.matches(name)) {
+            return JunkType.NUMERICAL_NAME
+        }
 
-            // B. Fancy Font Names
-            if (textAnalyzer.hasFancyFonts(name)) {
-                return JunkType.FANCY_FONT_NAME
-            }
+        // B. Fancy Font Names
+        if (textAnalyzer.hasFancyFonts(name)) {
+            return JunkType.FANCY_FONT_NAME
+        }
 
-            // C. Emoji Only Names
-            // 2026 KMP Best Practice: Use platform-specific TextAnalyzer for robust emoji detection.
-            if (textAnalyzer.isEmojiOnly(name)) {
-                return JunkType.EMOJI_NAME
-            }
+        // C. Emoji Only Names
+        // 2026 KMP Best Practice: Use platform-specific TextAnalyzer for robust emoji detection.
+        if (textAnalyzer.isEmojiOnly(name)) {
+            return JunkType.EMOJI_NAME
+        }
 
-            // C. Symbol Only Names (e.g. "...", "!!!")
-            // \p{Punct} = Punctuation
-            if (SYMBOL_NAME_REGEX.matches(name)) {
-                return JunkType.SYMBOL_NAME
-            }
+        // D. Symbol Only Names (e.g. "...", "!!!")
+        // \p{Punct} = Punctuation
+        if (SYMBOL_NAME_REGEX.matches(name)) {
+            return JunkType.SYMBOL_NAME
         }
 
         return null

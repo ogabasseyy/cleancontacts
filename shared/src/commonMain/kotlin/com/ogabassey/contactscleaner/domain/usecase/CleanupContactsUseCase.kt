@@ -4,6 +4,7 @@ import com.ogabassey.contactscleaner.domain.model.CleanupStatus
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.repository.BackupRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -20,6 +21,9 @@ class CleanupContactsUseCase(
              // 2. Backup (non-blocking - don't fail operation if backup fails)
              try {
                  backupRepository.performBackup(contactsToDelete, "Delete", "Deleted ${contactsToDelete.size} ${type.name} contacts")
+             } catch (e: CancellationException) {
+                 // 2026 Best Practice: Always re-throw CancellationException
+                 throw e
              } catch (e: Exception) {
                  println("Warning: Backup failed before delete: ${e.message}")
              }
@@ -37,6 +41,9 @@ class CleanupContactsUseCase(
             // Backup (non-blocking - don't fail operation if backup fails)
             try {
                 backupRepository.performBackup(contactsToDelete, "Delete", "Deleted ${contactsToDelete.size} contacts")
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always re-throw CancellationException
+                throw e
             } catch (e: Exception) {
                 println("Warning: Backup failed before delete: ${e.message}")
             }
@@ -51,6 +58,9 @@ class CleanupContactsUseCase(
              // Backup (non-blocking - don't fail operation if backup fails)
              try {
                  backupRepository.performBackup(contactsToMerge, "Merge", "Merged duplicates")
+             } catch (e: CancellationException) {
+                 // 2026 Best Practice: Always re-throw CancellationException
+                 throw e
              } catch (e: Exception) {
                  println("Warning: Backup failed before merge: ${e.message}")
              }

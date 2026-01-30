@@ -8,6 +8,7 @@ import com.ogabassey.contactscleaner.domain.model.ScanStatus
 import com.ogabassey.contactscleaner.platform.Logger
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,6 +55,9 @@ class DashboardViewModel(
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always re-throw CancellationException
+                throw e
             } catch (e: Exception) {
                 Logger.e("DashboardViewModel", "Error observing scan results: ${e.message}")
             }

@@ -1,8 +1,5 @@
 package com.ogabassey.contactscleaner.ui.duplicates
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -346,11 +343,9 @@ private fun CrossAccountContactItem(
     onSelectToggle: () -> Unit,
     onContactClick: () -> Unit
 ) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { 50 })
-    ) {
-        Row(
+    // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
+    // Animation is handled by LazyColumn's item appearance
+    Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .glassy(radius = 16.dp)
@@ -428,21 +423,29 @@ private fun CrossAccountContactItem(
     }
 }
 
-@Composable
-private fun AccountBadge(account: AccountInstance) {
-    val (color, icon) = when {
-        account.displayLabel.contains("Google", ignoreCase = true) ->
+/**
+ * 2026 Best Practice: Extract shared account type styling to reduce duplication.
+ * Used by both AccountBadge and AccountSelectionItem.
+ */
+private fun getAccountStyle(displayLabel: String): Pair<Color, androidx.compose.ui.graphics.vector.ImageVector> {
+    return when {
+        displayLabel.contains("Google", ignoreCase = true) ->
             Pair(Color(0xFF4285F4), Icons.Default.Email)
-        account.displayLabel.contains("iCloud", ignoreCase = true) ->
+        displayLabel.contains("iCloud", ignoreCase = true) ->
             Pair(Color(0xFF007AFF), Icons.Default.Cloud)
-        account.displayLabel.contains("WhatsApp", ignoreCase = true) ->
+        displayLabel.contains("WhatsApp", ignoreCase = true) ->
             Pair(SuccessNeon, Icons.Default.Chat)
-        account.displayLabel.contains("Telegram", ignoreCase = true) ->
+        displayLabel.contains("Telegram", ignoreCase = true) ->
             Pair(SecondaryNeon, Icons.Default.Send)
-        account.displayLabel.contains("Exchange", ignoreCase = true) ->
+        displayLabel.contains("Exchange", ignoreCase = true) ->
             Pair(Color(0xFF0078D4), Icons.Default.Business)
         else -> Pair(TextMedium, Icons.Default.AccountCircle)
     }
+}
+
+@Composable
+private fun AccountBadge(account: AccountInstance) {
+    val (color, icon) = getAccountStyle(account.displayLabel)
 
     Surface(
         shape = RoundedCornerShape(4.dp),
@@ -597,19 +600,7 @@ private fun AccountSelectionItem(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
-    val (color, icon) = when {
-        account.displayLabel.contains("Google", ignoreCase = true) ->
-            Pair(Color(0xFF4285F4), Icons.Default.Email)
-        account.displayLabel.contains("iCloud", ignoreCase = true) ->
-            Pair(Color(0xFF007AFF), Icons.Default.Cloud)
-        account.displayLabel.contains("WhatsApp", ignoreCase = true) ->
-            Pair(SuccessNeon, Icons.Default.Chat)
-        account.displayLabel.contains("Telegram", ignoreCase = true) ->
-            Pair(SecondaryNeon, Icons.Default.Send)
-        account.displayLabel.contains("Exchange", ignoreCase = true) ->
-            Pair(Color(0xFF0078D4), Icons.Default.Business)
-        else -> Pair(TextMedium, Icons.Default.AccountCircle)
-    }
+    val (color, icon) = getAccountStyle(account.displayLabel)
 
     Surface(
         modifier = Modifier

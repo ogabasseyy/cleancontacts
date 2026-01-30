@@ -2,23 +2,19 @@ package com.ogabassey.contactscleaner.data.repository
 
 import com.ogabassey.contactscleaner.domain.repository.FileService
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
 import platform.Foundation.NSCachesDirectory
 import platform.Foundation.NSError
-import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
-import platform.Foundation.NSURL
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.create
 import platform.Foundation.writeToFile
-import platform.darwin.NSObject
-import platform.darwin.NSObjectMeta
-import kotlinx.cinterop.ObjCObjectVar
 
 /**
  * iOS FileService implementation using Foundation framework.

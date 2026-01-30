@@ -10,6 +10,7 @@ import com.ogabassey.contactscleaner.data.db.entity.WhatsAppCacheMeta
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppCheckProgress
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -210,6 +211,10 @@ class WhatsAppDetectorRepositoryImpl(
                 businessCount = businessCount,
                 personalCount = personalCount
             ))
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Always re-throw CancellationException
+            cacheDao.setSyncInProgress(false)
+            throw e
         } catch (e: Exception) {
             cacheDao.setSyncInProgress(false)
             emit(WhatsAppSyncProgress.Error(e.message ?: "Sync failed"))

@@ -42,6 +42,10 @@ class CategoryViewModel(
     private val _groupContacts = MutableStateFlow<List<Contact>>(emptyList())
     val groupContacts: StateFlow<List<Contact>> = _groupContacts.asStateFlow()
 
+    // 2026 Best Practice: Track single contact deletion for proper dialog dismissal
+    private val _deletingContactId = MutableStateFlow<Long?>(null)
+    val deletingContactId: StateFlow<Long?> = _deletingContactId.asStateFlow()
+
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
     private var pendingAction: (suspend () -> Unit)? = null
@@ -173,6 +177,9 @@ class CategoryViewModel(
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {
         viewModelScope.launch {
+            // 2026 Best Practice: Track which contact is being deleted for proper dialog state
+            _deletingContactId.value = contact.id
+
             runWithPremiumCheck {
                 pendingAction = null
                 _uiState.value = CategoryUiState.Processing(0f, "Deleting contact...")
@@ -186,7 +193,15 @@ class CategoryViewModel(
                     }
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Deletion failed")
+                } finally {
+                    // Clear deletion tracking INSIDE the action to avoid clearing on paywall
+                    _deletingContactId.value = null
                 }
+            }
+
+            // If paywall was shown (action not executed), clear the tracking
+            if (_uiState.value is CategoryUiState.ShowPaywall) {
+                _deletingContactId.value = null
             }
         }
     }
@@ -214,6 +229,7 @@ class CategoryViewModel(
 
     /**
      * Retry pending action after paywall dismissal.
+     * 2026 Fix: Don't unconditionally set Success - let the action determine final state
      */
     fun retryPendingAction() {
         viewModelScope.launch {
@@ -226,9 +242,21 @@ class CategoryViewModel(
                     pendingAction = null
                     temp
                 }
-                action?.invoke()
+                if (action != null) {
+                    // Increment free action usage for non-premium users
+                    if (!isPremium) {
+                        usageRepository.incrementFreeActions()
+                    }
+                    action.invoke()
+                    // Note: action.invoke() will set the appropriate state (Success/Error)
+                } else {
+                    // No pending action - safe to set Success
+                    _uiState.value = CategoryUiState.Success
+                }
+            } else {
+                // Still can't perform - show paywall again
+                _uiState.value = CategoryUiState.ShowPaywall
             }
-            _uiState.value = CategoryUiState.Success
         }
     }
 }

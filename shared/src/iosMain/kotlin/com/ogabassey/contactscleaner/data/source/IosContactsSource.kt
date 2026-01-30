@@ -455,11 +455,20 @@ class IosContactsSource {
                 normalizedNumber = allNumbers.firstOrNull()
             )
 
-            // Delete old contacts and add merged one
-            val deleted = deleteContacts(platformUids)
-            if (!deleted) return@withContext false
+            // 2026 Fix: Atomic merge - create new contact FIRST, then delete old ones
+            // This prevents data loss if creation fails
+            val restored = restoreContacts(listOf(mergedContact))
+            if (!restored) {
+                println("Failed to create merged contact - aborting merge to prevent data loss")
+                return@withContext false
+            }
 
-            restoreContacts(listOf(mergedContact))
+            // Only delete old contacts after new one is successfully created
+            val deleted = deleteContacts(platformUids)
+            if (!deleted) {
+                println("Warning: Merged contact created but failed to delete old contacts")
+                // Still return true since the merge data is preserved
+            }
             true
         } catch (e: Exception) {
             println("Error merging contacts: ${e.message}")
@@ -483,17 +492,18 @@ class IosContactsSource {
                 CNContactPhoneNumbersKey
             )
 
-            memScoped {
+            // 2026 Fix: Extract result from memScoped to ensure proper propagation
+            val success = memScoped {
                 val errorPtr = alloc<ObjCObjectVar<NSError?>>()
                 val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
                 if (cnContact == null || errorPtr.value != null) {
                     println("Contact not found for UID: $platformUid")
-                    return@withContext false
+                    return@memScoped false
                 }
 
                 val mutableContact = cnContact.mutableCopy() as? CNMutableContact
-                    ?: return@withContext false
+                    ?: return@memScoped false
 
                 // Update the first phone number
                 val newPhoneNumbers = mutableListOf<Any?>()
@@ -520,6 +530,7 @@ class IosContactsSource {
 
                 saveErrorPtr.value == null
             }
+            success
         } catch (e: Exception) {
             println("Error updating contact: ${e.message}")
             false

@@ -8,7 +8,7 @@
 
 **Prevention:** Always use `java.nio.file.Path` API (`toPath().toAbsolutePath().normalize().startsWith(...)`) which respects path components.
 
-## 2026-02-04 - ReDoS Risk in Regex-heavy Detectors
+## 2026-01-29 - ReDoS Risk in Regex-heavy Detectors
 
 **Vulnerability:** `SensitiveDataDetector` applied multiple complex Regex patterns on user-provided input without length limits, exposing the app to Regular Expression Denial of Service (ReDoS).
 

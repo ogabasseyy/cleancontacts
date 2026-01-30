@@ -38,12 +38,13 @@ class SensitiveDataDetector(
     }
 
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {
+        val cleanValue = value.trim()
+
         // 2026 Security Fix: Prevent ReDoS by limiting input length
-        if (value.length > MAX_INPUT_LENGTH) {
+        // Check AFTER trimming for consistent behavior with whitespace-padded inputs
+        if (cleanValue.length > MAX_INPUT_LENGTH) {
             return null
         }
-
-        val cleanValue = value.trim()
         // State of the Art Fix 2026: whitelist ALL valid phone numbers.
         // If libphonenumber says it's valid, it's not a sensitive ID.
         // This handles international formats (+234) and local formats robustly.
@@ -106,13 +107,9 @@ class SensitiveDataDetector(
         }
 
         // 6. Check for Nigeria NIN / BVN (The Tricky One)
+        // 2026 Fix: Redundant phone validation removed - already checked at line 62
         val cleanedForNIN = cleanValue.replace(" ", "")
         if (NIGERIA_11_DIGIT_REGEX.matches(cleanedForNIN)) {
-            // If it IS a valid phone number, assume it's a contact, not PII
-            if (phoneNumberHandler.isValidNumber(cleanValue, region)) {
-                return null
-            }
-
             // It's 11 digits but NOT a valid phone number - high probability of NIN/BVN
             return SensitiveMatch(
                 cleanValue,

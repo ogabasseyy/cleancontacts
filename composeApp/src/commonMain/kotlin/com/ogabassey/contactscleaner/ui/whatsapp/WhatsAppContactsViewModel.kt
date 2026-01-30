@@ -114,6 +114,7 @@ class WhatsAppContactsViewModel(
 
     /**
      * Export contacts to CSV format.
+     * 2026 Fix: Properly escape CSV values to handle quotes, commas, and newlines.
      */
     fun exportToCsv(): String {
         val contacts = getFilteredContacts()
@@ -121,12 +122,12 @@ class WhatsAppContactsViewModel(
         sb.appendLine("Phone Number,Name,Push Name,Is Business,Category,Email,Website,Address")
 
         for (contact in contacts) {
-            val name = contact.name?.replace(",", ";") ?: ""
-            val pushName = contact.pushName?.replace(",", ";") ?: ""
-            val category = contact.businessProfile?.category?.replace(",", ";") ?: ""
-            val email = contact.businessProfile?.email?.replace(",", ";") ?: ""
-            val website = contact.businessProfile?.website?.joinToString(";") ?: ""
-            val address = contact.businessProfile?.address?.replace(",", ";")?.replace("\n", " ") ?: ""
+            val name = escapeCsvValue(contact.name ?: "")
+            val pushName = escapeCsvValue(contact.pushName ?: "")
+            val category = escapeCsvValue(contact.businessProfile?.category ?: "")
+            val email = escapeCsvValue(contact.businessProfile?.email ?: "")
+            val website = escapeCsvValue(contact.businessProfile?.website?.joinToString(";") ?: "")
+            val address = escapeCsvValue(contact.businessProfile?.address ?: "")
 
             sb.appendLine("${contact.phoneNumber},$name,$pushName,${contact.isBusiness},$category,$email,$website,$address")
         }
@@ -134,6 +135,18 @@ class WhatsAppContactsViewModel(
         val csv = sb.toString()
         _exportData.update { csv }
         return csv
+    }
+
+    /**
+     * 2026 Best Practice: Proper RFC 4180 CSV escaping.
+     * Wraps field in quotes if it contains special characters, and escapes internal quotes.
+     */
+    private fun escapeCsvValue(value: String): String {
+        return if (value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r')) {
+            "\"${value.replace("\"", "\"\"")}\""
+        } else {
+            value
+        }
     }
 
     /**

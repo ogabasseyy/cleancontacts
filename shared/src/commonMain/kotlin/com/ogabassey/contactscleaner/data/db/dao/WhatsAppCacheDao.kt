@@ -18,6 +18,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WhatsAppCacheDao {
 
+    companion object {
+        // 2026 Fix: Extract hardcoded key to constant
+        const val SYNC_STATUS_KEY = "sync_status"
+    }
+
     // ============================================
     // Phone Numbers Cache
     // ============================================

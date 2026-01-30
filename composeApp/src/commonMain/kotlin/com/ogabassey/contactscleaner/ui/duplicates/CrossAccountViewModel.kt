@@ -225,6 +225,7 @@ class CrossAccountViewModel(
 
     /**
      * Retry pending action after paywall dismissal.
+     * 2026 Fix: Don't unconditionally set Success - let the action determine final state
      */
     fun retryPendingAction() {
         viewModelScope.launch {
@@ -237,9 +238,21 @@ class CrossAccountViewModel(
                     pendingAction = null
                     temp
                 }
-                action?.invoke()
+                if (action != null) {
+                    // Increment free action usage for non-premium users
+                    if (!isPremium) {
+                        usageRepository.incrementFreeActions()
+                    }
+                    action.invoke()
+                    // Note: action.invoke() will set the appropriate state (Success/Error)
+                } else {
+                    // No pending action - safe to set Success
+                    _uiState.value = CrossAccountUiState.Success
+                }
+            } else {
+                // Still can't perform - show paywall again
+                _uiState.value = CrossAccountUiState.ShowPaywall
             }
-            _uiState.value = CrossAccountUiState.Success
         }
     }
 }

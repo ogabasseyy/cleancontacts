@@ -236,7 +236,11 @@ class WhatsAppDetectorApi(
             send(PairingEvent.Error(e.message ?: "WebSocket connection failed"))
         }
 
-        awaitClose { }
+        awaitClose {
+            // 2026 Best Practice: Log cleanup for debugging, no active resources to close
+            // WebSocket session is already closed by the time we reach here
+            println("WhatsApp pairing WebSocket connection closed")
+        }
     }
 
     private fun parsePairingEvent(jsonText: String): PairingEvent {

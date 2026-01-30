@@ -13,7 +13,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Shared ViewModel for Category Detail Screens (Junk, Duplicates, Accounts, etc.)
@@ -39,13 +42,16 @@ class CategoryViewModel(
     private val _groupContacts = MutableStateFlow<List<Contact>>(emptyList())
     val groupContacts: StateFlow<List<Contact>> = _groupContacts.asStateFlow()
 
-    private var pendingAction: (() -> Unit)? = null
+    // 2026 Best Practice: Mutex for thread-safe access to pendingAction
+    private val actionMutex = Mutex()
+    private var pendingAction: (suspend () -> Unit)? = null
 
     /**
      * Run an action with premium/trial check.
      */
     private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
-        val isPremium = billingRepository.isPremium.value
+        // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
+        val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
@@ -54,8 +60,8 @@ class CategoryViewModel(
                 usageRepository.incrementFreeActions()
             }
         } else {
-            pendingAction = {
-                viewModelScope.launch { runWithPremiumCheck(action) }
+            actionMutex.withLock {
+                pendingAction = action
             }
             _uiState.value = CategoryUiState.ShowPaywall
         }
@@ -86,6 +92,8 @@ class CategoryViewModel(
 
     fun loadGroupContacts(groupKey: String, type: ContactType) {
         viewModelScope.launch {
+            // 2026 Best Practice: Clear stale state immediately when navigating to new group
+            _groupContacts.value = emptyList()
             try {
                 val contacts = contactRepository.getContactsInGroup(groupKey, type)
                 _groupContacts.value = contacts
@@ -169,7 +177,7 @@ class CategoryViewModel(
                 pendingAction = null
                 _uiState.value = CategoryUiState.Processing(0f, "Deleting contact...")
                 try {
-                    val success = contactRepository.deleteContacts(listOf(contact.id))
+                    val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
                     if (success) {
                         _uiState.value = CategoryUiState.Success
                         loadCategory(type)
@@ -194,6 +202,33 @@ class CategoryViewModel(
             is CleanupStatus.Error -> {
                 _uiState.value = CategoryUiState.Error(status.message)
             }
+        }
+    }
+
+    /**
+     * Reset UI state to Success (clears error/processing states).
+     */
+    fun resetState() {
+        _uiState.value = CategoryUiState.Success
+    }
+
+    /**
+     * Retry pending action after paywall dismissal.
+     */
+    fun retryPendingAction() {
+        viewModelScope.launch {
+            val isPremium = billingRepository.isPremium.first()
+            val canPerform = usageRepository.canPerformFreeAction()
+
+            if (isPremium || canPerform) {
+                val action = actionMutex.withLock {
+                    val temp = pendingAction
+                    pendingAction = null
+                    temp
+                }
+                action?.invoke()
+            }
+            _uiState.value = CategoryUiState.Success
         }
     }
 }

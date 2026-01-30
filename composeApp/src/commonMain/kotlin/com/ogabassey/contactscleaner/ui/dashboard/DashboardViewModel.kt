@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 /**
@@ -44,10 +45,17 @@ class DashboardViewModel(
 
         // Observe existing scan results from provider
         viewModelScope.launch {
-            scanResultProvider.scanResultFlow.collect { result ->
-                if (result != null && _uiState.value == DashboardUiState.Idle) {
-                    _uiState.value = DashboardUiState.ShowingResults(result)
+            try {
+                scanResultProvider.scanResultFlow.collect { result ->
+                    if (result != null) {
+                        val currentState = _uiState.value
+                        if (currentState is DashboardUiState.Idle || currentState is DashboardUiState.ShowingResults) {
+                            _uiState.value = DashboardUiState.ShowingResults(result)
+                        }
+                    }
                 }
+            } catch (e: Exception) {
+                Logger.e("DashboardViewModel", "Error observing scan results: ${e.message}")
             }
         }
     }
@@ -62,23 +70,33 @@ class DashboardViewModel(
         Logger.d("DashboardViewModel", "startScan called")
         viewModelScope.launch {
             _uiState.value = DashboardUiState.Scanning(0f)
-            
-            scanContactsUseCase().collect { status ->
-                 when(status) {
-                     is ScanStatus.Progress -> {
-                         _uiState.value = DashboardUiState.Scanning(status.progress, status.message)
+
+            try {
+                scanContactsUseCase().collect { status ->
+                     when(status) {
+                         is ScanStatus.Progress -> {
+                             _uiState.value = DashboardUiState.Scanning(status.progress, status.message)
+                         }
+                         is ScanStatus.Success -> {
+                             _uiState.value = DashboardUiState.Scanning(1.0f)
+                             delay(500)
+                             // 2026 Best Practice: Check coroutine active after delay to avoid stale updates
+                             ensureActive()
+                             // Guard against state changes during delay
+                             if (_uiState.value is DashboardUiState.Scanning) {
+                                 _events.send(DashboardEvent.NavigateToResults)
+                                 _uiState.value = DashboardUiState.ShowingResults(status.result)
+                             }
+                         }
+                         is ScanStatus.Error -> {
+                             Logger.e("DashboardViewModel", "Scan error: ${status.message}")
+                             _uiState.value = DashboardUiState.Error(status.message)
+                         }
                      }
-                     is ScanStatus.Success -> {
-                         _uiState.value = DashboardUiState.Scanning(1.0f)
-                         delay(500)
-                         _events.send(DashboardEvent.NavigateToResults)
-                         _uiState.value = DashboardUiState.ShowingResults(status.result)
-                     }
-                     is ScanStatus.Error -> {
-                         Logger.e("DashboardViewModel", "Scan error: ${status.message}")
-                         _uiState.value = DashboardUiState.Error(status.message)
-                     }
-                 }
+                }
+            } catch (e: Exception) {
+                Logger.e("DashboardViewModel", "Scan failed: ${e.message}")
+                _uiState.value = DashboardUiState.Error(e.message ?: "Scan failed unexpectedly")
             }
         }
     }

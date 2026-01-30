@@ -31,7 +31,9 @@ import com.ogabassey.contactscleaner.ui.settings.SafeListScreen
 import com.ogabassey.contactscleaner.ui.history.HistoryScreen
 import com.ogabassey.contactscleaner.ui.category.CategoryDetailScreen
 import com.ogabassey.contactscleaner.ui.duplicates.DuplicateSubGroupsScreen
+import com.ogabassey.contactscleaner.ui.duplicates.CrossAccountDetailScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkScreen
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsScreen
 import kotlinx.serialization.Serializable
 
 /**
@@ -44,8 +46,10 @@ import kotlinx.serialization.Serializable
 @Serializable object ReviewSensitiveRoute
 @Serializable object PaywallRoute
 @Serializable object DuplicateGroupsRoute
+@Serializable object CrossAccountRoute
 @Serializable object HistoryRoute
 @Serializable object WhatsAppLinkRoute
+@Serializable object WhatsAppContactsRoute
 @Serializable data class CategoryDetailRoute(val typeName: String)
 
 /**
@@ -82,7 +86,8 @@ fun AppNavigation(
                     },
                     onNavigateToPaywall = { navController.navigate(PaywallRoute) },
                     onNavigateToHistory = { navController.navigate(HistoryRoute) },
-                    onNavigateToWhatsAppLink = { navController.navigate(WhatsAppLinkRoute) }
+                    onNavigateToWhatsAppLink = { navController.navigate(WhatsAppLinkRoute) },
+                    onNavigateToWhatsAppContacts = { navController.navigate(WhatsAppContactsRoute) }
                 )
             }
 
@@ -90,6 +95,13 @@ fun AppNavigation(
                 WhatsAppLinkScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onConnected = { navController.popBackStack() }
+                )
+            }
+
+            composable<WhatsAppContactsRoute> {
+                WhatsAppContactsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLink = { navController.navigate(WhatsAppLinkRoute) }
                 )
             }
 
@@ -126,7 +138,8 @@ fun AppNavigation(
 
             composable<ReviewSensitiveRoute> {
                 SensitiveReviewScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToSafeList = { navController.navigate(SafeListRoute) }
                 )
             }
 
@@ -140,8 +153,18 @@ fun AppNavigation(
                 DuplicateSubGroupsScreen(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToDetail = { contactType ->
-                        navController.navigate(CategoryDetailRoute(contactType.name))
+                        if (contactType == ContactType.DUP_CROSS_ACCOUNT) {
+                            navController.navigate(CrossAccountRoute)
+                        } else {
+                            navController.navigate(CategoryDetailRoute(contactType.name))
+                        }
                     }
+                )
+            }
+
+            composable<CrossAccountRoute> {
+                CrossAccountDetailScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
         }

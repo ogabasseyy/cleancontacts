@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,9 +35,11 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SensitiveReviewScreen(
     viewModel: ReviewViewModel = koinViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToSafeList: () -> Unit = {}
 ) {
     val contacts by viewModel.contacts.collectAsState()
+    val addedContactName by viewModel.addedToSafeListContact.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadContacts(ContactType.SENSITIVE)
@@ -62,12 +65,80 @@ fun SensitiveReviewScreen(
                         )
                     }
                 },
+                actions = {
+                    IconButton(onClick = onNavigateToSafeList) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = "Safe List",
+                            tint = PrimaryNeon
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
             )
         }
     ) { paddingValues ->
+        // Confirmation Dialog
+        addedContactName?.let { contactName ->
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissConfirmation() },
+                containerColor = SurfaceSpaceElevated,
+                title = {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(PrimaryNeon.copy(alpha = 0.1f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = PrimaryNeon,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = contactName,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "has been added to the safe list.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.dismissConfirmation()
+                            onNavigateToSafeList()
+                        }
+                    ) {
+                        Text("View Safe List", color = PrimaryNeon)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { viewModel.dismissConfirmation() }) {
+                        Text("Continue", color = TextMedium)
+                    }
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()

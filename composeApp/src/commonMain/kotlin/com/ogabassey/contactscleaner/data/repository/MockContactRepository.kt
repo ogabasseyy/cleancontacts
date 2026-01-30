@@ -1,13 +1,7 @@
 package com.ogabassey.contactscleaner.data.repository
 
 import com.ogabassey.contactscleaner.data.db.entity.IgnoredContact
-import com.ogabassey.contactscleaner.domain.model.AccountGroupSummary
-import com.ogabassey.contactscleaner.domain.model.CleanupStatus
-import com.ogabassey.contactscleaner.domain.model.Contact
-import com.ogabassey.contactscleaner.domain.model.ContactType
-import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
-import com.ogabassey.contactscleaner.domain.model.DuplicateType
-import com.ogabassey.contactscleaner.domain.model.ScanStatus
+import com.ogabassey.contactscleaner.domain.model.*
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -39,7 +33,12 @@ class MockContactRepository : ContactRepository {
         emit(ScanStatus.Success(com.ogabassey.contactscleaner.domain.model.ScanResult(total = 500, junkCount = 15, duplicateCount = 10)))
     }
 
-    override suspend fun deleteContacts(contactIds: List<Long>): Boolean {
+    override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
+        delay(500)
+        return Result.success(Unit)
+    }
+
+    override suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean {
         delay(500)
         return true
     }
@@ -103,6 +102,33 @@ class MockContactRepository : ContactRepository {
         emit(CleanupStatus.Success("Standardized 15 contacts"))
     }
 
+    override suspend fun getCrossAccountContacts(): List<CrossAccountContact> {
+        return emptyList()
+    }
+
+    override suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact> {
+        return emptyList()
+    }
+
+    override suspend fun consolidateContactToAccount(
+        matchingKey: String,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Boolean {
+        delay(300)
+        return true
+    }
+
+    override suspend fun consolidateContactsToAccount(
+        matchingKeys: List<String>,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Flow<CleanupStatus> = flow {
+        emit(CleanupStatus.Progress(0f, "Consolidating..."))
+        delay(500)
+        emit(CleanupStatus.Success("Consolidated contacts"))
+    }
+
     override suspend fun getContactsAllSnapshot(): List<Contact> {
         return mockContacts
     }
@@ -153,6 +179,10 @@ class MockContactRepository : ContactRepository {
     }
 
     override suspend fun updateScanResultSummary() {
+        // No-op for mock
+    }
+
+    override suspend fun recalculateWhatsAppCounts() {
         // No-op for mock
     }
 

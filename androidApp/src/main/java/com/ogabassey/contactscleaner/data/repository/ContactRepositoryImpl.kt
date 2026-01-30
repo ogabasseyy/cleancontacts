@@ -11,6 +11,8 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.domain.model.ScanStatus
+import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
+import com.ogabassey.contactscleaner.domain.model.AccountInstance
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import kotlinx.coroutines.Dispatchers
@@ -39,11 +41,12 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun scanContacts(): Flow<ScanStatus> = flow {
         android.util.Log.d("ContactRepository", "Starting Streamed SQL Scan (Optimum Performance)...")
-        
-        // 1. Reset Local DB
-        contactDao.deleteAll()
-        emit(ScanStatus.Progress(0.01f, "Initializing database..."))
-        
+
+        // 2026 Best Practice: Accumulate contacts first, then atomic replace at end
+        // This prevents data loss if operation fails partway through
+        val allEntities = mutableListOf<LocalContact>()
+        emit(ScanStatus.Progress(0.01f, "Initializing scan..."))
+
         // 2. Fetch Total Count for Progress
         // 2026 Best Practice: Handle specific exceptions and surface failures
         var totalToProcess = 0
@@ -169,12 +172,29 @@ class ContactRepositoryImpl constructor(
                     )
                 }
                 
-                contactDao.insertContacts(entities)
+                allEntities.addAll(entities)
                 processedCount += batchContacts.size
-                
-                val syncProgress = 0.05f + (processedCount.toFloat() / totalToProcess.toFloat()) * 0.75f
-                emit(ScanStatus.Progress(syncProgress.coerceAtMost(0.8f), "Syncing contacts (${processedCount.formatWithCommas()})..."))
+
+                val syncProgress = 0.05f + (processedCount.toFloat() / totalToProcess.toFloat()) * 0.70f
+                emit(ScanStatus.Progress(syncProgress.coerceAtMost(0.75f), "Processing contacts (${processedCount.formatWithCommas()})..."))
             }
+
+        // 3.5 Atomic Replace: Delete old + Insert new in single transaction
+        emit(ScanStatus.Progress(0.76f, "Saving contacts to database..."))
+
+        // 2026 Best Practice: Validate data before insert
+        val validatedEntities = allEntities.filter { contact ->
+            val isValid = contact.id > 0 &&
+                (contact.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
+                contact.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
+                contact.rawEmails.length <= 10000
+            if (!isValid) {
+                android.util.Log.w("ContactRepository", "Filtered invalid contact: id=${contact.id}")
+            }
+            isValid
+        }
+
+        contactDao.replaceAllContacts(validatedEntities)
 
         // 4. Post-Process: Run Advanced Kotlin-based Duplicate Detection (Multi-number support)
         emit(ScanStatus.Progress(0.82f, "Analyzing duplicates..."))
@@ -252,12 +272,50 @@ class ContactRepositoryImpl constructor(
         emit(ScanStatus.Success(finalResult))
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun deleteContacts(contactIds: List<Long>): Boolean {
-        val success = contactsProviderSource.deleteContacts(contactIds)
-        if (success) {
-            contactDao.deleteContacts(contactIds)
+    override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
+        return try {
+            // Record for history/undo before deletion
+            if (contacts.isNotEmpty()) {
+                backupRepository.performBackup(
+                    contacts = contacts,
+                    actionType = "DELETE",
+                    description = "Deleted ${contacts.size} contact${if (contacts.size > 1) "s" else ""}"
+                )
+            }
+
+            val ids = contacts.map { it.id }
+            val providerSuccess = contactsProviderSource.deleteContacts(ids)
+
+            // 2026 Best Practice: Always cascade delete to local cache
+            // Even if provider delete fails, clean local cache to avoid stale data
+            try {
+                contactDao.deleteContacts(ids)
+            } catch (e: Exception) {
+                android.util.Log.e("ContactRepository", "Failed to cascade delete to local cache", e)
+            }
+
+            // Update scan result summary to reflect changes
+            updateScanResultSummary()
+
+            if (providerSuccess) Result.success(Unit) else Result.failure(Exception("Failed to delete contacts"))
+        } catch (e: Exception) {
+            Result.failure(e)
         }
-        return success
+    }
+
+    override suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean {
+        val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
+
+        // 2026 Best Practice: Always cascade delete to local cache
+        // Even if provider delete fails, clean local cache to avoid stale data
+        // On next scan, contacts still on device will be re-synced
+        try {
+            contactDao.deleteContacts(contactIds)
+        } catch (e: Exception) {
+            android.util.Log.e("ContactRepository", "Failed to cascade delete to local cache", e)
+        }
+
+        return providerSuccess
     }
 
     override suspend fun deleteContactsByType(type: ContactType): Flow<CleanupStatus> = flow {
@@ -279,7 +337,7 @@ class ContactRepositoryImpl constructor(
         var processedCount = 0
         contacts.chunked(50).forEach { batch ->
             val ids = batch.map { it.id }
-            if (deleteContacts(ids)) {
+            if (deleteContactsByIds(ids)) {
                 successCount += batch.size
             }
             processedCount += batch.size
@@ -296,8 +354,8 @@ class ContactRepositoryImpl constructor(
     private fun LocalContact.toDomain() = Contact(
         id = id,
         name = displayName,
-        numbers = rawNumbers.split(","),
-        emails = rawEmails.takeIf { it.isNotEmpty() }?.split(",") ?: emptyList(),
+        numbers = rawNumbers.split(",").filter { it.isNotBlank() },
+        emails = rawEmails.split(",").filter { it.isNotBlank() },
         normalizedNumber = normalizedNumber,
         isWhatsApp = isWhatsApp,
         isTelegram = isTelegram,
@@ -312,7 +370,12 @@ class ContactRepositoryImpl constructor(
     )
 
     override suspend fun mergeContacts(contactIds: List<Long>, customName: String?): Boolean {
-        return contactsProviderSource.mergeContacts(contactIds, customName)
+        val success = contactsProviderSource.mergeContacts(contactIds, customName)
+        if (success) {
+            // Update scan result summary to reflect merged contacts
+            updateScanResultSummary()
+        }
+        return success
     }
     // 2026 Best Practice: Implement saveContacts by delegating to platform source
     override suspend fun saveContacts(contacts: List<Contact>): Boolean {
@@ -442,6 +505,7 @@ class ContactRepositoryImpl constructor(
             ContactType.DUP_EMAIL -> contactDao.getDuplicateEmailContactsSnapshot()
             ContactType.DUP_NAME -> contactDao.getDuplicateNameContactsSnapshot()
             ContactType.DUP_SIMILAR_NAME -> contactDao.getSimilarNameContactsSnapshot()
+            ContactType.DUP_CROSS_ACCOUNT -> contactDao.getCrossAccountContactsSnapshot()
             // Granular Junk
             ContactType.JUNK_NO_NAME -> contactDao.getNoNameContactsSnapshot()
             ContactType.JUNK_NO_NUMBER -> contactDao.getNoNumberContactsSnapshot()
@@ -491,9 +555,16 @@ class ContactRepositoryImpl constructor(
             emojiNameCount = contactDao.countEmojiName(),
             fancyFontCount = contactDao.countFancyFontName(),
             formatIssueCount = contactDao.countFormatIssues(),
-            sensitiveCount = contactDao.countSensitive()
+            sensitiveCount = contactDao.countSensitive(),
+            crossAccountDuplicateCount = contactDao.countCrossAccountContacts()
         )
         scanResultProvider.scanResult = result
+    }
+
+    override suspend fun recalculateWhatsAppCounts() {
+        // Android uses native WhatsApp detection via account_type, no VPS cache needed.
+        // Just refresh the summary which already has correct counts.
+        updateScanResultSummary()
     }
 
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {
@@ -511,6 +582,8 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun unignoreContact(id: String): Boolean {
         ignoredContactDao.delete(id)
+        // Update scan result to reflect unignored contact
+        updateScanResultSummary()
         return true
     }
 
@@ -521,4 +594,123 @@ class ContactRepositoryImpl constructor(
     override fun getAccountCount(): Flow<Int> = flow {
         emit(contactDao.countAccounts())
     }.flowOn(Dispatchers.IO)
+
+    /**
+     * Get all contacts that exist in multiple accounts, grouped by matching key.
+     */
+    override suspend fun getCrossAccountContacts(): List<CrossAccountContact> {
+        val allInstances = contactDao.getCrossAccountContactsSnapshot()
+
+        // Group by matching_key
+        return allInstances.groupBy { it.matchingKey ?: "" }
+            .filter { it.key.isNotBlank() && it.value.isNotEmpty() }
+            .mapNotNull { (key, instances) ->
+                val first = instances.firstOrNull() ?: return@mapNotNull null
+                CrossAccountContact(
+                    name = first.displayName,
+                    matchingKey = key,
+                    primaryNumber = first.rawNumbers.split(",").filter { it.isNotBlank() }.firstOrNull(),
+                    primaryEmail = first.rawEmails.split(",").filter { it.isNotBlank() }.firstOrNull(),
+                    accounts = instances.map { instance ->
+                        AccountInstance(
+                            contactId = instance.id,
+                            accountType = instance.accountType,
+                            accountName = instance.accountName,
+                            displayLabel = getAccountDisplayLabel(instance.accountType)
+                        )
+                    }
+                )
+            }
+            .sortedBy { it.name ?: "" }
+    }
+
+    /**
+     * Get all instances of a contact across accounts by matching key.
+     */
+    override suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact> {
+        return contactDao.getContactInstancesByMatchingKey(matchingKey).map { it.toDomain() }
+    }
+
+    /**
+     * Consolidate a contact to a single account by deleting it from all other accounts.
+     * @param matchingKey The matching key of the contact to consolidate
+     * @param keepAccountType The account type to keep (e.g., "com.google")
+     * @param keepAccountName The account name to keep (e.g., "user@gmail.com")
+     * @return True if successful
+     */
+    override suspend fun consolidateContactToAccount(
+        matchingKey: String,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Boolean {
+        val instances = contactDao.getContactInstancesByMatchingKey(matchingKey)
+        if (instances.size < 2) return false
+
+        // Find IDs to delete (all except the one to keep)
+        val idsToDelete = instances
+            .filter { it.accountType != keepAccountType || it.accountName != keepAccountName }
+            .map { it.id }
+
+        if (idsToDelete.isEmpty()) return false
+
+        // Record for backup
+        val contactsToDelete = instances
+            .filter { it.id in idsToDelete }
+            .map { it.toDomain() }
+
+        backupRepository.performBackup(
+            contacts = contactsToDelete,
+            actionType = "CONSOLIDATE",
+            description = "Consolidated contact to ${getAccountDisplayLabel(keepAccountType)} ($keepAccountName)"
+        )
+
+        // Delete from device
+        val success = deleteContactsByIds(idsToDelete)
+        if (success) {
+            updateScanResultSummary()
+        }
+        return success
+    }
+
+    /**
+     * Consolidate multiple contacts to a single account.
+     */
+    override suspend fun consolidateContactsToAccount(
+        matchingKeys: List<String>,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Flow<CleanupStatus> = flow {
+        if (matchingKeys.isEmpty()) {
+            emit(CleanupStatus.Success("No contacts to consolidate"))
+            return@flow
+        }
+
+        var successCount = 0
+        matchingKeys.forEachIndexed { index, key ->
+            if (consolidateContactToAccount(key, keepAccountType, keepAccountName)) {
+                successCount++
+            }
+            val progress = (index + 1).toFloat() / matchingKeys.size.toFloat()
+            emit(CleanupStatus.Progress(progress, "Consolidating ${index + 1} of ${matchingKeys.size}"))
+        }
+
+        // Refresh summary
+        updateScanResultSummary()
+
+        emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
+    }
+
+    private fun getAccountDisplayLabel(accountType: String?): String {
+        return when {
+            accountType == null -> "Local"
+            accountType.contains("google", ignoreCase = true) -> "Google"
+            accountType.contains("icloud", ignoreCase = true) -> "iCloud"
+            accountType.contains("whatsapp", ignoreCase = true) -> "WhatsApp"
+            accountType.contains("telegram", ignoreCase = true) -> "Telegram"
+            accountType.contains("exchange", ignoreCase = true) -> "Exchange"
+            accountType.contains("yahoo", ignoreCase = true) -> "Yahoo"
+            accountType.contains("outlook", ignoreCase = true) -> "Outlook"
+            else -> accountType.substringAfterLast(".").replaceFirstChar { it.uppercase() }
+        }
+    }
 }

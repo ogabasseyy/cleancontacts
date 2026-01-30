@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +37,17 @@ sealed interface WhatsAppLinkState {
 }
 
 /**
+ * State for WhatsApp contacts sync progress.
+ */
+@Immutable
+sealed interface SyncState {
+    data object Idle : SyncState
+    @Immutable data class Syncing(val synced: Int, val total: Int, val percent: Int) : SyncState
+    @Immutable data class Complete(val totalCount: Int, val businessCount: Int, val personalCount: Int) : SyncState
+    @Immutable data class Error(val message: String) : SyncState
+}
+
+/**
  * ViewModel for WhatsApp linking flow.
  * Manages the state of linking a user's WhatsApp account via pairing code.
  *
@@ -52,9 +66,14 @@ class WhatsAppLinkViewModel(
     private val _pairingCodeExpiration = MutableStateFlow<Long?>(null)
     val pairingCodeExpiration: StateFlow<Long?> = _pairingCodeExpiration.asStateFlow()
 
+    // Sync state for caching WhatsApp contacts after linking
+    private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
+    val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
+
     private var pollingJob: Job? = null
     private var timerJob: Job? = null
     private var wsJob: Job? = null
+    private var syncJob: Job? = null
 
     /**
      * Unique device/session ID for multi-session support.
@@ -151,6 +170,7 @@ class WhatsAppLinkViewModel(
 
     /**
      * Start a 20-minute countdown timer for the pairing code.
+     * 2026 Best Practice: Use isActive for cancellable loops, ensureActive for cooperative cancellation.
      */
     private fun startPairingTimer() {
         timerJob?.cancel()
@@ -159,7 +179,9 @@ class WhatsAppLinkViewModel(
         _pairingCodeExpiration.value = 1200L // 20 minutes in seconds
 
         timerJob = viewModelScope.launch {
-            while (true) {
+            // 2026 Best Practice: Use isActive for cooperative cancellation
+            while (isActive) {
+                ensureActive() // Check for cancellation before each iteration
                 val now = Clock.System.now().toEpochMilliseconds()
                 val remainingSeconds = (expirationMillis - now) / 1000
                 if (remainingSeconds <= 0) {
@@ -196,6 +218,7 @@ class WhatsAppLinkViewModel(
     /**
      * Start polling for connection status after pairing code is displayed.
      * Uses exponential backoff starting at 2s, max 8s.
+     * 2026 Best Practice: Use isActive and ensureActive for cooperative cancellation.
      */
     private fun startPollingForConnection() {
         // Cancel any existing polling job
@@ -206,18 +229,21 @@ class WhatsAppLinkViewModel(
             val maxAttempts = 40 // ~2 minutes with backoff
             var delayMs = 2000L
 
-            while (attempts < maxAttempts) {
+            while (isActive && attempts < maxAttempts) {
+                ensureActive() // Check for cancellation before each iteration
                 delay(delayMs)
                 attempts++
 
                 try {
                     val status = whatsAppRepository.getSessionStatus(deviceId)
                     if (status.connected) {
-                        // Cancel timer when connected
+                        // Cancel timer when connected - job cleanup is cooperative
                         timerJob?.cancel()
                         timerJob = null
                         _pairingCodeExpiration.value = null
                         _state.update { WhatsAppLinkState.Connected }
+                        // Auto-start sync after successful connection
+                        startWhatsAppSync()
                         return@launch
                     }
                 } catch (e: Exception) {
@@ -228,8 +254,50 @@ class WhatsAppLinkViewModel(
                 delayMs = (delayMs * 1.5).toLong().coerceAtMost(8000L)
             }
 
-            // Timeout reached - show error with retry option
-            _state.update { WhatsAppLinkState.Error("Connection timed out. Please try again.") }
+            // Only show timeout if we weren't cancelled
+            if (isActive) {
+                _state.update { WhatsAppLinkState.Error("Connection timed out. Please try again.") }
+            }
+        }
+    }
+
+    /**
+     * Start syncing WhatsApp contacts to local cache.
+     * 2026 Best Practice: Cache all 51k+ contacts locally for instant lookup during scan.
+     */
+    fun startWhatsAppSync() {
+        syncJob?.cancel()
+        syncJob = viewModelScope.launch {
+            _syncState.value = SyncState.Syncing(0, 0, 0)
+
+            whatsAppRepository.syncAllContactsToCache(deviceId)
+                .catch { e ->
+                    _syncState.value = SyncState.Error(e.message ?: "Sync failed")
+                }
+                .collect { progress ->
+                    when (progress) {
+                        is WhatsAppSyncProgress.InProgress -> {
+                            val percent = if (progress.total > 0) {
+                                ((progress.synced.toFloat() / progress.total) * 100).toInt()
+                            } else 0
+                            _syncState.value = SyncState.Syncing(
+                                synced = progress.synced,
+                                total = progress.total,
+                                percent = percent
+                            )
+                        }
+                        is WhatsAppSyncProgress.Complete -> {
+                            _syncState.value = SyncState.Complete(
+                                totalCount = progress.totalCount,
+                                businessCount = progress.businessCount,
+                                personalCount = progress.personalCount
+                            )
+                        }
+                        is WhatsAppSyncProgress.Error -> {
+                            _syncState.value = SyncState.Error(progress.message)
+                        }
+                    }
+                }
         }
     }
 
@@ -240,9 +308,11 @@ class WhatsAppLinkViewModel(
         wsJob?.cancel()
         pollingJob?.cancel()
         timerJob?.cancel()
+        syncJob?.cancel()
         wsJob = null
         pollingJob = null
         timerJob = null
+        syncJob = null
         _pairingCodeExpiration.value = null
         _state.update { WhatsAppLinkState.NotLinked }
     }
@@ -268,14 +338,24 @@ class WhatsAppLinkViewModel(
         _state.update { WhatsAppLinkState.NotLinked }
     }
 
+    /**
+     * 2026 Best Practice: Clear sync error state separately from main state.
+     * Allows UI to reset sync error without affecting pairing state.
+     */
+    fun clearSyncError() {
+        _syncState.value = SyncState.Idle
+    }
+
     override fun onCleared() {
         super.onCleared()
         wsJob?.cancel()
         pollingJob?.cancel()
         timerJob?.cancel()
+        syncJob?.cancel()
         wsJob = null
         pollingJob = null
         timerJob = null
+        syncJob = null
     }
 
     companion object {

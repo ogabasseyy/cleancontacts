@@ -2,7 +2,12 @@ package com.ogabassey.contactscleaner.data.repository
 
 import com.ogabassey.contactscleaner.domain.repository.FileService
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
@@ -11,6 +16,9 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.create
 import platform.Foundation.writeToFile
+import platform.darwin.NSObject
+import platform.darwin.NSObjectMeta
+import kotlinx.cinterop.ObjCObjectVar
 
 /**
  * iOS FileService implementation using Foundation framework.
@@ -34,17 +42,24 @@ class IosFileService : FileService {
             val filePath = "$cachesDir/$fileName"
 
             val nsString = NSString.create(string = content)
-            val success = nsString.writeToFile(
-                filePath,
-                atomically = true,
-                encoding = NSUTF8StringEncoding,
-                error = null
-            )
 
-            if (success) {
-                Result.success(filePath)
-            } else {
-                Result.failure(Exception("Failed to write file"))
+            // 2026 Best Practice: Capture NSError for proper error handling
+            memScoped {
+                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                val success = nsString.writeToFile(
+                    filePath,
+                    atomically = true,
+                    encoding = NSUTF8StringEncoding,
+                    error = errorPtr.ptr
+                )
+
+                if (success) {
+                    Result.success(filePath)
+                } else {
+                    val nsError = errorPtr.value
+                    val errorMessage = nsError?.localizedDescription ?: "Unknown write error"
+                    Result.failure(Exception("Failed to write file: $errorMessage"))
+                }
             }
         } catch (e: Exception) {
             Result.failure(e)

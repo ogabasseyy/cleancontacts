@@ -6,6 +6,7 @@ import com.ogabassey.contactscleaner.data.db.ContactDatabase
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao
+import com.ogabassey.contactscleaner.data.db.dao.WhatsAppCacheDao
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
 import com.ogabassey.contactscleaner.data.detector.FormatDetector
 import com.ogabassey.contactscleaner.data.detector.JunkDetector
@@ -60,6 +61,7 @@ val sharedModule = module {
     single<ContactDao> { get<ContactDatabase>().contactDao() }
     single<UndoDao> { get<ContactDatabase>().undoDao() }
     single<IgnoredContactDao> { get<ContactDatabase>().ignoredContactDao() }
+    single<WhatsAppCacheDao> { get<ContactDatabase>().whatsAppCacheDao() }
 
     // Parsers
     single { ContactImportParser() }
@@ -81,8 +83,9 @@ val sharedModule = module {
     single { ScanResultProvider() }
 
     // WhatsApp Detector (VPS-hosted Baileys service)
+    // 2026 Best Practice: Local caching for 51k+ WhatsApp contacts
     single { WhatsAppDetectorApi() }
-    single<WhatsAppDetectorRepository> { WhatsAppDetectorRepositoryImpl(get()) }
+    single<WhatsAppDetectorRepository> { WhatsAppDetectorRepositoryImpl(get(), get()) }
 }
 
 /**

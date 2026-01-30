@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 5,
-    "identityHash": "c37b5bad039fefe8871cf84111da541f",
+    "version": 7,
+    "identityHash": "3d7ce9cb2ea482514ee6750df9110504",
     "entities": [
       {
         "tableName": "contacts",
@@ -226,11 +226,100 @@
             "id"
           ]
         }
+      },
+      {
+        "tableName": "whatsapp_cache",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`normalizedNumber` TEXT NOT NULL, `isBusiness` INTEGER NOT NULL, `lastSynced` INTEGER NOT NULL, PRIMARY KEY(`normalizedNumber`))",
+        "fields": [
+          {
+            "fieldPath": "normalizedNumber",
+            "columnName": "normalizedNumber",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBusiness",
+            "columnName": "isBusiness",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSynced",
+            "columnName": "lastSynced",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "normalizedNumber"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_whatsapp_cache_normalizedNumber",
+            "unique": true,
+            "columnNames": [
+              "normalizedNumber"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_whatsapp_cache_normalizedNumber` ON `${TABLE_NAME}` (`normalizedNumber`)"
+          }
+        ]
+      },
+      {
+        "tableName": "whatsapp_cache_meta",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`key` TEXT NOT NULL, `lastFullSync` INTEGER NOT NULL, `totalCount` INTEGER NOT NULL, `businessCount` INTEGER NOT NULL, `personalCount` INTEGER NOT NULL, `syncInProgress` INTEGER NOT NULL, PRIMARY KEY(`key`))",
+        "fields": [
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastFullSync",
+            "columnName": "lastFullSync",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalCount",
+            "columnName": "totalCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "businessCount",
+            "columnName": "businessCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "personalCount",
+            "columnName": "personalCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncInProgress",
+            "columnName": "syncInProgress",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "key"
+          ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c37b5bad039fefe8871cf84111da541f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3d7ce9cb2ea482514ee6750df9110504')"
     ]
   }
 }

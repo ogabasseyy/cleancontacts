@@ -35,6 +35,7 @@ import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.isIOS
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -214,9 +215,17 @@ fun CategoryDetailScreen(
                                             contact = contact,
                                             accentColor = accentColor,
                                             isFormatType = type == ContactType.FORMAT_ISSUE,
-                                            onContactClick = { contactLauncher.openContact(it.id.toString()) },
+                                            onContactClick = { c ->
+                                                // iOS requires platform_uid for CNContactStore lookup
+                                                val targetId = if (isIOS) c.platform_uid ?: c.id.toString() else c.id.toString()
+                                                contactLauncher.openContact(targetId)
+                                            },
                                             onDeleteContact = { contactToDelete = it },
-                                            onEditContact = { contactLauncher.openContact(it.id.toString()) }
+                                            onEditContact = { c ->
+                                                // iOS requires platform_uid for CNContactStore lookup
+                                                val targetId = if (isIOS) c.platform_uid ?: c.id.toString() else c.id.toString()
+                                                contactLauncher.openContact(targetId)
+                                            }
                                         )
                                     }
                                 }
@@ -358,9 +367,17 @@ fun CategoryDetailScreen(
                                 contact = contact,
                                 accentColor = accentColor,
                                 isFormatType = false,
-                                onContactClick = { contactLauncher.openContact(it.id.toString()) },
+                                onContactClick = { c ->
+                                    // iOS requires platform_uid for CNContactStore lookup
+                                    val targetId = if (isIOS) c.platform_uid ?: c.id.toString() else c.id.toString()
+                                    contactLauncher.openContact(targetId)
+                                },
                                 onDeleteContact = { contactToDelete = it },
-                                onEditContact = { contactLauncher.openContact(it.id.toString()) }
+                                onEditContact = { c ->
+                                    // iOS requires platform_uid for CNContactStore lookup
+                                    val targetId = if (isIOS) c.platform_uid ?: c.id.toString() else c.id.toString()
+                                    contactLauncher.openContact(targetId)
+                                }
                             )
                         }
                     }

@@ -162,6 +162,36 @@ class WhatsAppDetectorApi(
     }
 
     /**
+     * Get all WhatsApp contacts with business detection.
+     * Returns contacts synced from WhatsApp with business/personal classification.
+     *
+     * Privacy-compliant: No contacts are sent TO the server.
+     * The server returns WhatsApp contacts FROM the linked session.
+     *
+     * @param userId Unique identifier for the user's session
+     * @param limit Maximum number of contacts to return (default 500)
+     * @param offset Number of contacts to skip (for pagination)
+     * @return WhatsAppContactsResponse with contacts and business detection
+     */
+    suspend fun getContacts(
+        userId: String,
+        limit: Int = 500,
+        offset: Int = 0
+    ): WhatsAppContactsResponse {
+        return try {
+            client.get("$baseUrl/session/$userId/contacts") {
+                parameter("limit", limit)
+                parameter("offset", offset)
+            }.body()
+        } catch (e: Exception) {
+            WhatsAppContactsResponse(
+                success = false,
+                error = e.message
+            )
+        }
+    }
+
+    /**
      * Connect via WebSocket for real-time pairing events.
      * This provides instant notification when pairing code is generated
      * and when WhatsApp connects, instead of polling.
@@ -333,4 +363,36 @@ data class BatchCheckResponse(
     val whatsappCount: Int,
     val results: List<NumberCheckResult>,
     val error: String? = null
+)
+
+// WhatsApp Contacts DTOs
+
+@Serializable
+data class WhatsAppContactsResponse(
+    val success: Boolean,
+    val userId: String? = null,
+    val total: Int = 0,
+    val businessCount: Int = 0,
+    val personalCount: Int = 0,
+    val contacts: List<WhatsAppContact> = emptyList(),
+    val error: String? = null
+)
+
+@Serializable
+data class WhatsAppContact(
+    val jid: String,
+    val phoneNumber: String,
+    val name: String? = null,
+    val pushName: String? = null,
+    val isBusiness: Boolean = false,
+    val businessProfile: BusinessProfile? = null
+)
+
+@Serializable
+data class BusinessProfile(
+    val description: String? = null,
+    val category: String? = null,
+    val email: String? = null,
+    val website: List<String>? = null,
+    val address: String? = null
 )

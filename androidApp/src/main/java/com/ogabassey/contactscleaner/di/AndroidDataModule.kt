@@ -12,7 +12,7 @@ import org.koin.dsl.module
  */
 val androidDataModule = module {
     // Contacts Provider Source
-    single { ContactsProviderSource(androidContext().contentResolver) }
+    single { ContactsProviderSource(androidContext(), androidContext().contentResolver) }
 
     // Repository Implementation
     single<ContactRepository> {

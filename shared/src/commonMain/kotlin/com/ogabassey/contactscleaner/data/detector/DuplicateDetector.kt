@@ -102,7 +102,9 @@ class DuplicateDetector(
             if (contactA.id in processedIds) continue
 
             val currentGroup = mutableListOf(contactA)
-            val nameA = contactA.name!!
+            // 2026 Best Practice: Avoid !! - use safe access with fallback
+            // Name is non-null here due to filter at line 97, but defensive coding is preferred
+            val nameA = contactA.name ?: continue
 
             // Sliding window: Look ahead up to 50 items
             val maxLookAhead = (i + 50).coerceAtMost(sortedContacts.size - 1)
@@ -111,7 +113,8 @@ class DuplicateDetector(
                 val contactB = sortedContacts[j]
                 if (contactB.id in processedIds) continue
 
-                val nameB = contactB.name!!
+                // 2026 Best Practice: Avoid !! - defensive null handling
+                val nameB = contactB.name ?: continue
 
                 // If first character differs, we've passed similar names
                 if (!nameB.startsWith(nameA.take(1), ignoreCase = true)) break

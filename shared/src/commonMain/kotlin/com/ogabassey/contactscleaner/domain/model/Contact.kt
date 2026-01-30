@@ -16,6 +16,8 @@ data class Contact(
     val duplicateType: DuplicateType? = null,
     val accountType: String? = null,
     val accountName: String? = null,
+    val platform_uid: String? = null,
+    val matchingKey: String? = null,
     val isSensitive: Boolean = false,
     val sensitiveDescription: String? = null,
     val formatIssue: FormatIssue? = null
@@ -65,7 +67,8 @@ data class ScanResult(
     val emojiNameCount: Int = 0,
     val fancyFontCount: Int = 0,
     val formatIssueCount: Int = 0,
-    val sensitiveCount: Int = 0 
+    val sensitiveCount: Int = 0,
+    val crossAccountDuplicateCount: Int = 0
 )
 
 enum class ContactType {
@@ -75,7 +78,7 @@ enum class ContactType {
     JUNK_INVALID_CHAR, JUNK_LONG_NUMBER, JUNK_SHORT_NUMBER, JUNK_REPETITIVE, JUNK_SYMBOL,
     JUNK_NUMERICAL_NAME, JUNK_EMOJI_NAME, JUNK_FANCY_FONT,
     // Granular Duplicates
-    DUP_EMAIL, DUP_NUMBER, DUP_NAME, DUP_SIMILAR_NAME,
+    DUP_EMAIL, DUP_NUMBER, DUP_NAME, DUP_SIMILAR_NAME, DUP_CROSS_ACCOUNT,
     // Format Issues
     FORMAT_ISSUE,
     // Sensitive Data
@@ -104,4 +107,26 @@ data class ImportResult(
     val validContacts: List<Contact>,
     val junkContacts: List<JunkContact>,
     val duplicates: List<DuplicateGroup>
+)
+
+/**
+ * Represents a contact that exists in multiple accounts.
+ * Used for the cross-account duplicates feature.
+ */
+data class CrossAccountContact(
+    val name: String?,
+    val matchingKey: String,
+    val primaryNumber: String?,
+    val primaryEmail: String?,
+    val accounts: List<AccountInstance>
+)
+
+/**
+ * Represents a single instance of a contact in a specific account.
+ */
+data class AccountInstance(
+    val contactId: Long,
+    val accountType: String?,
+    val accountName: String?,
+    val displayLabel: String
 )

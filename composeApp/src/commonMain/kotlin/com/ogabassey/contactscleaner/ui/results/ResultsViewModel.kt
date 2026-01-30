@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Results ViewModel for Compose Multiplatform.
@@ -81,14 +83,17 @@ class ResultsViewModel(
         res.junkCount + res.duplicateCount + res.formatIssueCount + res.sensitiveCount + res.fancyFontCount
     } ?: 0 }
 
-    private var pendingAction: (() -> Unit)? = null
+    // 2026 Best Practice: Mutex for thread-safe access to pendingAction
+    private val actionMutex = Mutex()
+    private var pendingAction: (suspend () -> Unit)? = null
 
     /**
      * Run an action with premium/trial check.
      * Shows paywall if user has exhausted free actions and is not premium.
      */
     private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
-        val isPremium = billingRepository.isPremium.value
+        // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
+        val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
@@ -97,8 +102,8 @@ class ResultsViewModel(
                 usageRepository.incrementFreeActions()
             }
         } else {
-            pendingAction = {
-                viewModelScope.launch { runWithPremiumCheck(action) }
+            actionMutex.withLock {
+                pendingAction = action
             }
             _uiState.value = ResultsUiState.ShowPaywall
         }
@@ -106,12 +111,16 @@ class ResultsViewModel(
 
     fun retryPendingAction() {
         viewModelScope.launch {
-            val isPremium = billingRepository.isPremium.value
+            val isPremium = billingRepository.isPremium.first()
             val canPerform = usageRepository.canPerformFreeAction()
 
             if (isPremium || canPerform) {
-                pendingAction?.invoke()
-                pendingAction = null
+                val action = actionMutex.withLock {
+                    val temp = pendingAction
+                    pendingAction = null
+                    temp
+                }
+                action?.invoke()
             }
             _uiState.value = ResultsUiState.Idle
         }
@@ -135,7 +144,8 @@ class ResultsViewModel(
             try {
                 _duplicateGroups.value = contactRepository.getDuplicateGroups(type)
             } catch (e: Exception) {
-                 // Silent error for groups for now
+                println("Error loading duplicate groups: ${e.message}")
+                _duplicateGroups.value = emptyList()
             }
         }
     }
@@ -198,6 +208,20 @@ class ResultsViewModel(
 
     fun resetState() {
         _uiState.value = ResultsUiState.Idle
+    }
+
+    /**
+     * Recalculate WhatsApp/Non-WhatsApp counts after sync completes.
+     * Updates contact flags in DB based on cached WhatsApp numbers.
+     */
+    fun recalculateWhatsAppCounts() {
+        viewModelScope.launch {
+            try {
+                contactRepository.recalculateWhatsAppCounts()
+            } catch (e: Exception) {
+                println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
+            }
+        }
     }
 }
 

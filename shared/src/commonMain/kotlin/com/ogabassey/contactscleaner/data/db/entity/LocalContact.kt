@@ -36,5 +36,6 @@ data class LocalContact(
     @ColumnInfo(name = "is_sensitive") val isSensitive: Boolean = false,
     @ColumnInfo(name = "sensitive_description") val sensitiveDescription: String? = null,
     @ColumnInfo(name = "matching_key") val matchingKey: String? = null,
+    @ColumnInfo(name = "platform_uid") val platformUid: String? = null,
     @ColumnInfo(name = "last_synced") val lastSynced: Long
 )

@@ -33,8 +33,14 @@ class SensitiveDataDetector(
     // Nigeria NIN/BVN (11 Digits)
     private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}$")
 
+    private val MAX_INPUT_LENGTH = 100
+
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {
         val cleanValue = value.trim()
+        if (cleanValue.length > MAX_INPUT_LENGTH) {
+            return null
+        }
+
         // State of the Art Fix 2026: whitelist ALL valid phone numbers.
         // If libphonenumber says it's valid, it's not a sensitive ID.
         // This handles international formats (+234) and local formats robustly.

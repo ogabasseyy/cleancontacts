@@ -337,6 +337,7 @@ fun CrossAccountDetailScreen(
 }
 
 @Composable
+@Composable
 private fun CrossAccountContactItem(
     contact: CrossAccountContact,
     isSelected: Boolean,
@@ -346,80 +347,79 @@ private fun CrossAccountContactItem(
     // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
     // Animation is handled by LazyColumn's item appearance
     Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassy(radius = 16.dp)
-                .clickable { onContactClick() }
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Checkbox
-            Checkbox(
-                checked = isSelected,
-                onCheckedChange = { onSelectToggle() },
-                colors = CheckboxDefaults.colors(
-                    checkedColor = PrimaryNeon,
-                    uncheckedColor = TextMedium,
-                    checkmarkColor = SpaceBlack
-                )
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassy(radius = 16.dp)
+            .clickable { onContactClick() }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Checkbox
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onSelectToggle() },
+            colors = CheckboxDefaults.colors(
+                checkedColor = PrimaryNeon,
+                uncheckedColor = TextMedium,
+                checkmarkColor = SpaceBlack
             )
+        )
 
-            Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
-            // Avatar
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(SecondaryNeon.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    contact.name?.take(1)?.uppercase() ?: "?",
-                    color = SecondaryNeon,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Contact Info
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    contact.name ?: "Unknown",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    contact.primaryNumber ?: contact.primaryEmail ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                // Account Badges
-                Row(
-                    modifier = Modifier.padding(top = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    contact.accounts.forEach { account ->
-                        AccountBadge(account)
-                    }
-                }
-            }
-
-            // Arrow
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = "View details",
-                tint = TextMedium
+        // Avatar
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(SecondaryNeon.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                contact.name?.take(1)?.uppercase() ?: "?",
+                color = SecondaryNeon,
+                fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        // Contact Info
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                contact.name ?: "Unknown",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Text(
+                contact.primaryNumber ?: contact.primaryEmail ?: "",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            // Account Badges
+            Row(
+                modifier = Modifier.padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                contact.accounts.forEach { account ->
+                    AccountBadge(account)
+                }
+            }
+        }
+
+        // Arrow
+        Icon(
+            Icons.Default.ChevronRight,
+            contentDescription = "View details",
+            tint = TextMedium
+        )
     }
 }
 

@@ -337,7 +337,6 @@ fun CrossAccountDetailScreen(
 }
 
 @Composable
-@Composable
 private fun CrossAccountContactItem(
     contact: CrossAccountContact,
     isSelected: Boolean,
@@ -620,9 +619,11 @@ private fun AccountSelectionItem(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // 2026 Fix: onClick = null to avoid duplicate invocation
+            // (Surface.selectable already handles selection semantics)
             RadioButton(
                 selected = isSelected,
-                onClick = onSelect,
+                onClick = null,
                 colors = RadioButtonDefaults.colors(
                     selectedColor = color,
                     unselectedColor = TextMedium

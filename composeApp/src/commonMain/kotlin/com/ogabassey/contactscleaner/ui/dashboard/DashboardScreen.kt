@@ -551,7 +551,7 @@ fun OrbitalFeatures(radius: Dp) {
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
-    val rotation by infiniteTransition.animateFloat(
+    val rotationState = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
@@ -566,12 +566,13 @@ fun OrbitalFeatures(radius: Dp) {
     val radiusPx = with(density) { radius.toPx() }
 
     features.forEachIndexed { index, item ->
-        val angleDeg = (index * 90f) + rotation
-        val angleRad = angleDeg.toDouble() * PI / 180.0
-
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.graphicsLayer {
+                val rotation = rotationState.value
+                val angleDeg = (index * 90f) + rotation
+                val angleRad = angleDeg.toDouble() * PI / 180.0
+
                 translationX = (radiusPx * cos(angleRad)).toFloat()
                 translationY = (radiusPx * sin(angleRad)).toFloat()
             }
@@ -598,7 +599,7 @@ fun OrbitalFeatures(radius: Dp) {
 @Composable
 fun PulseAnimation(color: Color = PrimaryNeon) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
+    val scaleState = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.6f,
         animationSpec = infiniteRepeatable(
@@ -607,7 +608,7 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
         ),
         label = "scale"
     )
-    val alpha by infiniteTransition.animateFloat(
+    val alphaState = infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
@@ -620,8 +621,12 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
     Box(
         modifier = Modifier
             .size(160.dp)
-            .graphicsLayer(scaleX = scale, scaleY = scale)
-            .background(color.copy(alpha = alpha), CircleShape)
+            .graphicsLayer {
+                scaleX = scaleState.value
+                scaleY = scaleState.value
+                alpha = alphaState.value
+            }
+            .background(color, CircleShape)
     )
 }
 

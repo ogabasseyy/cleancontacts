@@ -189,6 +189,10 @@ fun CrossAccountDetailScreen(
                         }
                         else -> {
                             val listState = rememberLazyListState()
+                            // 2026 Fix: Use remember to avoid re-sorting on every recomposition
+                            val sortedContacts = remember(contacts) {
+                                contacts.sortedBy { it.name ?: "" }
+                            }
                             Box(modifier = Modifier.fillMaxSize()) {
                                 LazyColumn(
                                     state = listState,
@@ -197,7 +201,7 @@ fun CrossAccountDetailScreen(
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     items(
-                                        contacts.sortedBy { it.name ?: "" },
+                                        sortedContacts,
                                         key = { it.matchingKey }
                                     ) { contact ->
                                         CrossAccountContactItem(
@@ -269,7 +273,10 @@ fun CrossAccountDetailScreen(
 
     // Bulk Consolidation Dialog
     if (showBulkConsolidateDialog) {
-        val allAccounts = viewModel.getAllUniqueAccounts()
+        // 2026 Fix: Use remember to avoid calling getAllUniqueAccounts() on every recomposition
+        val allAccounts = remember(contacts) {
+            viewModel.getAllUniqueAccounts()
+        }
 
         AlertDialog(
             onDismissRequest = { showBulkConsolidateDialog = false },
@@ -425,8 +432,31 @@ private fun CrossAccountContactItem(
 /**
  * 2026 Best Practice: Extract shared account type styling to reduce duplication.
  * Used by both AccountBadge and AccountSelectionItem.
+ *
+ * Prefers stable accountType matching (e.g., "com.google", "com.apple") over
+ * displayLabel string matching to avoid misclassification with localized labels.
  */
-private fun getAccountStyle(displayLabel: String): Pair<Color, androidx.compose.ui.graphics.vector.ImageVector> {
+private fun getAccountStyle(
+    accountType: String?,
+    displayLabel: String
+): Pair<Color, androidx.compose.ui.graphics.vector.ImageVector> {
+    // First try matching by accountType (stable, not affected by localization)
+    accountType?.let { type ->
+        when {
+            type.contains("google", ignoreCase = true) ->
+                return Pair(Color(0xFF4285F4), Icons.Default.Email)
+            type.contains("apple", ignoreCase = true) || type.contains("icloud", ignoreCase = true) ->
+                return Pair(Color(0xFF007AFF), Icons.Default.Cloud)
+            type.contains("whatsapp", ignoreCase = true) ->
+                return Pair(SuccessNeon, Icons.Default.Chat)
+            type.contains("telegram", ignoreCase = true) ->
+                return Pair(SecondaryNeon, Icons.Default.Send)
+            type.contains("exchange", ignoreCase = true) || type.contains("microsoft", ignoreCase = true) ->
+                return Pair(Color(0xFF0078D4), Icons.Default.Business)
+        }
+    }
+
+    // Fallback to displayLabel matching for unknown accountTypes
     return when {
         displayLabel.contains("Google", ignoreCase = true) ->
             Pair(Color(0xFF4285F4), Icons.Default.Email)
@@ -444,7 +474,7 @@ private fun getAccountStyle(displayLabel: String): Pair<Color, androidx.compose.
 
 @Composable
 private fun AccountBadge(account: AccountInstance) {
-    val (color, icon) = getAccountStyle(account.displayLabel)
+    val (color, icon) = getAccountStyle(account.accountType, account.displayLabel)
 
     Surface(
         shape = RoundedCornerShape(4.dp),
@@ -599,7 +629,7 @@ private fun AccountSelectionItem(
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
-    val (color, icon) = getAccountStyle(account.displayLabel)
+    val (color, icon) = getAccountStyle(account.accountType, account.displayLabel)
 
     Surface(
         modifier = Modifier

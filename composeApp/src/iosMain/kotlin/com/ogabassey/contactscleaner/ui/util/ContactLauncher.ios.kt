@@ -15,8 +15,12 @@ import platform.Foundation.NSError
 import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIApplication
 import platform.UIKit.UIBarButtonItem
-import platform.UIKit.UIBarButtonSystemItemDone
+import platform.UIKit.UIBarButtonSystemItem
 import platform.UIKit.UINavigationController
+import platform.UIKit.UINavigationItem
+import platform.UIKit.UIViewController
+import platform.UIKit.UIWindow
+import platform.UIKit.navigationItem
 
 /**
  * 2026 Best Practice: Singleton handler to prevent garbage collection.
@@ -59,6 +63,16 @@ class IosContactLauncher(
 ) : ContactLauncher {
     private val contactStore = CNContactStore()
 
+    /**
+     * Get the root view controller for presenting modals.
+     * Uses keyWindow which works on all iOS versions.
+     */
+    private fun getRootViewController(): UIViewController? {
+        // 2026 Note: keyWindow is deprecated but universally available
+        // Scene-based APIs have complex Kotlin/Native interop issues
+        return UIApplication.sharedApplication.keyWindow?.rootViewController
+    }
+
     @OptIn(ExperimentalForeignApi::class)
     override fun openContact(id: String) {
         val keysToFetch = listOf(CNContactViewController.descriptorForRequiredKeys())
@@ -80,8 +94,12 @@ class IosContactLauncher(
             contactViewController.allowsEditing = true
             contactViewController.allowsActions = true
 
-            // Reach into the UIKit hierarchy from Compose
-            val rootViewController = UIApplication.sharedApplication.keyWindow?.rootViewController
+            val rootViewController = getRootViewController()
+            if (rootViewController == null) {
+                println("⚠️ Cannot present contact viewer: rootViewController is null")
+                return
+            }
+
             val navigationController = UINavigationController(rootViewController = contactViewController)
 
             // 2026 Best Practice: Create handler BEFORE button and register to prevent GC
@@ -90,16 +108,17 @@ class IosContactLauncher(
 
             // Add Done button with proper target/action
             val doneButton = UIBarButtonItem(
-                barButtonSystemItem = UIBarButtonSystemItemDone,
+                barButtonSystemItem = UIBarButtonSystemItem.UIBarButtonSystemItemDone,
                 target = dismissHandler,
                 action = NSSelectorFromString("dismissModal")
             )
 
-            // Set up dismissal via the navigation item
+            // 2026 Best Practice: Access navigationItem via extension property
+            // Kotlin/Native exposes UIViewController.navigationItem as extension
             contactViewController.navigationItem.rightBarButtonItem = doneButton
 
             // Present modally
-            rootViewController?.presentViewController(
+            rootViewController.presentViewController(
                 navigationController,
                 animated = true,
                 completion = null

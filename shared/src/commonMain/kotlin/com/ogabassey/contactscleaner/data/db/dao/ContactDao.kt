@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Upsert
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.domain.model.AccountGroupSummary
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
@@ -272,6 +273,19 @@ interface ContactDao {
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")
     suspend fun getAllContacts(): List<LocalContact>
 
+    /**
+     * 2026 Best Practice: Paginated contact query to prevent OOM on large datasets.
+     * Use this for batch processing of 50k+ contacts.
+     */
+    @Query("SELECT * FROM contacts ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    suspend fun getContactsBatch(limit: Int, offset: Int): List<LocalContact>
+
+    /**
+     * Get total contact count for batch processing iteration.
+     */
+    @Query("SELECT COUNT(*) FROM contacts")
+    suspend fun getTotalContactCount(): Int
+
     // --- Flow Queries (KMP Compatible) ---
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")
     fun getAllContactsFlow(): Flow<List<LocalContact>>
@@ -283,7 +297,9 @@ interface ContactDao {
     fun getJunkContactsFlow(): Flow<List<LocalContact>>
 
     // --- CRUD Operations ---
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // 2026 Fix: Use @Upsert for semantically correct insert-or-update behavior
+    // @Upsert is cleaner than REPLACE (which does DELETE then INSERT)
+    @Upsert
     suspend fun insertContacts(contacts: List<LocalContact>)
 
     @Query("DELETE FROM contacts WHERE id IN (:contactIds)")

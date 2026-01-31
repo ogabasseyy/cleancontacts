@@ -213,8 +213,10 @@ class WhatsAppDetectorApi(
                 // Now request the pairing code via HTTP (this triggers the WebSocket push)
                 val pairingResponse = requestPairingCode(userId, phoneNumber)
                 if (!pairingResponse.success) {
-                    send(PairingEvent.Error(pairingResponse.error ?: "Failed to request pairing code"))
-                    close()
+                    // 2026 Fix: Use trySend to avoid exception if channel is closed
+                    trySend(PairingEvent.Error(pairingResponse.error ?: "Failed to request pairing code"))
+                    // 2026 Fix: Explicitly close channel after terminal event
+                    channel.close()
                     return@webSocket
                 }
 
@@ -223,17 +225,23 @@ class WhatsAppDetectorApi(
                     if (frame is Frame.Text) {
                         val text = frame.readText()
                         val event = parsePairingEvent(text)
-                        send(event)
+                        // 2026 Fix: Use trySend for safety - channel might be closed if collector cancelled
+                        trySend(event)
 
                         // Close connection when we get a terminal event
                         if (event is PairingEvent.Connected || event is PairingEvent.Error) {
+                            // 2026 Fix: Explicitly close channel after terminal event so Flow completes
+                            channel.close()
                             break
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            send(PairingEvent.Error(e.message ?: "WebSocket connection failed"))
+            // 2026 Fix: Use trySend to safely emit error even if channel is closing
+            trySend(PairingEvent.Error(e.message ?: "WebSocket connection failed"))
+            // 2026 Fix: Explicitly close channel after error so Flow completes
+            channel.close()
         }
 
         awaitClose {
@@ -304,12 +312,23 @@ data class HealthResponse(
 )
 
 @Serializable
+data class BusinessDetectionProgress(
+    val done: Boolean,
+    val inProgress: Boolean,
+    val checked: Int,
+    val total: Int,
+    val businessCount: Int
+)
+
+@Serializable
 data class SessionStatus(
     val connected: Boolean,
     val userId: String? = null,
     val phoneNumber: String? = null,
     val lastActivity: Long? = null,
     val createdAt: Long? = null,
+    val contactsCount: Int? = null,
+    val businessDetectionProgress: BusinessDetectionProgress? = null,
     val error: String? = null
 )
 

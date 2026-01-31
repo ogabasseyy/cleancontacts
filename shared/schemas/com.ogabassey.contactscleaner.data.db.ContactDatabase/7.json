@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "3d7ce9cb2ea482514ee6750df9110504",
+    "identityHash": "2e7e09416cbbf21f148945e75e1dafb5",
     "entities": [
       {
         "tableName": "contacts",
@@ -255,18 +255,7 @@
           "columnNames": [
             "normalizedNumber"
           ]
-        },
-        "indices": [
-          {
-            "name": "index_whatsapp_cache_normalizedNumber",
-            "unique": true,
-            "columnNames": [
-              "normalizedNumber"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_whatsapp_cache_normalizedNumber` ON `${TABLE_NAME}` (`normalizedNumber`)"
-          }
-        ]
+        }
       },
       {
         "tableName": "whatsapp_cache_meta",
@@ -319,7 +308,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3d7ce9cb2ea482514ee6750df9110504')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2e7e09416cbbf21f148945e75e1dafb5')"
     ]
   }
 }

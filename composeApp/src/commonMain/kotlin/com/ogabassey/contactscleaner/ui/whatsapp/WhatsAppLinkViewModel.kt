@@ -7,6 +7,7 @@ import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -107,6 +108,8 @@ class WhatsAppLinkViewModel(
                 if (status.connected) {
                     _state.update { WhatsAppLinkState.Connected }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Silently fail - stay on current state
             }
@@ -144,6 +147,8 @@ class WhatsAppLinkViewModel(
 
                 // Use HTTP directly (no WebSocket on backend)
                 requestPairingViaHttp(normalizedNumber)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
             }
@@ -163,6 +168,8 @@ class WhatsAppLinkViewModel(
             } else {
                 _state.update { WhatsAppLinkState.Error("Failed to get pairing code. Please try again.") }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             _state.update { WhatsAppLinkState.Error(e.message ?: "Failed to request pairing code") }
         }
@@ -325,6 +332,8 @@ class WhatsAppLinkViewModel(
             try {
                 whatsAppRepository.disconnect(deviceId)
                 _state.update { WhatsAppLinkState.NotLinked }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.update { WhatsAppLinkState.Error("Failed to disconnect") }
             }

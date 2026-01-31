@@ -9,6 +9,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,8 @@ import kotlinx.coroutines.sync.withLock
  */
 class CategoryViewModel(
     private val contactRepository: ContactRepository,
-    val billingRepository: BillingRepository,
+    // 2026 Fix: Make private to encapsulate implementation detail
+    private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository
 ) : ViewModel() {
 
@@ -88,6 +90,8 @@ class CategoryViewModel(
                     _contacts.value = result
                 }
                 _uiState.value = CategoryUiState.Success
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = CategoryUiState.Error("Failed to load contacts: ${e.message}")
             }
@@ -101,6 +105,8 @@ class CategoryViewModel(
             try {
                 val contacts = contactRepository.getContactsInGroup(groupKey, type)
                 _groupContacts.value = contacts
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _groupContacts.value = emptyList()
             }
@@ -121,6 +127,8 @@ class CategoryViewModel(
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to merge contacts")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Merge failed")
                 }
@@ -168,6 +176,8 @@ class CategoryViewModel(
                     }
                     // Refresh list
                     loadCategory(type)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
                 }
@@ -191,6 +201,8 @@ class CategoryViewModel(
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Deletion failed")
                 } finally {
@@ -243,12 +255,12 @@ class CategoryViewModel(
                     temp
                 }
                 if (action != null) {
-                    // Increment free action usage for non-premium users
+                    action.invoke()
+                    // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
+                    // This way, failed actions don't consume the user's free trial
                     if (!isPremium) {
                         usageRepository.incrementFreeActions()
                     }
-                    action.invoke()
-                    // Note: action.invoke() will set the appropriate state (Success/Error)
                 } else {
                     // No pending action - safe to set Success
                     _uiState.value = CategoryUiState.Success

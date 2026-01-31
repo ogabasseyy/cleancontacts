@@ -98,6 +98,9 @@ class DashboardViewModel(
                          }
                      }
                 }
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always re-throw CancellationException
+                throw e
             } catch (e: Exception) {
                 Logger.e("DashboardViewModel", "Scan failed: ${e.message}")
                 _uiState.value = DashboardUiState.Error(e.message ?: "Scan failed unexpectedly")

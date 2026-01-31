@@ -11,6 +11,7 @@ import kotlinx.cinterop.value
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSUserDomainMask
 
 /**
@@ -40,9 +41,9 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
         val path = documentDirectory?.path
         if (path.isNullOrEmpty()) {
             // Fallback to tmp directory if Documents is unavailable
-            val fallbackPath = NSFileManager.defaultManager.temporaryDirectory.path ?: "/tmp"
+            val fallbackPath = NSTemporaryDirectory()
             println("⚠️ Using fallback database path: $fallbackPath")
-            "$fallbackPath/${ContactDatabase.DATABASE_NAME}.db"
+            "$fallbackPath${ContactDatabase.DATABASE_NAME}.db"
         } else {
             "$path/${ContactDatabase.DATABASE_NAME}.db"
         }
@@ -51,4 +52,8 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
     return Room.databaseBuilder<ContactDatabase>(
         name = dbFilePath
     )
+}
+@Suppress("NO_ACTUAL_FOR_EXPECT")
+actual object ContactDatabaseConstructor : RoomDatabaseConstructor<ContactDatabase> {
+    override fun initialize(): ContactDatabase = throw NotImplementedError()
 }

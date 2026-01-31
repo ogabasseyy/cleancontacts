@@ -8,6 +8,7 @@ import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,8 @@ import kotlinx.coroutines.sync.withLock
  */
 class CrossAccountViewModel(
     private val contactRepository: ContactRepository,
-    val billingRepository: BillingRepository,
+    // 2026 Fix: Make private to encapsulate implementation detail
+    private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository
 ) : ViewModel() {
 
@@ -80,6 +82,8 @@ class CrossAccountViewModel(
                 val contacts = contactRepository.getCrossAccountContacts()
                 _crossAccountContacts.value = contacts
                 _uiState.value = CrossAccountUiState.Success
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = CrossAccountUiState.Error("Failed to load contacts: ${e.message}")
             }
@@ -154,6 +158,8 @@ class CrossAccountViewModel(
                     } else {
                         _uiState.value = CrossAccountUiState.Error("Failed to consolidate contact")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CrossAccountUiState.Error(e.message ?: "Consolidation failed")
                 }
@@ -191,6 +197,8 @@ class CrossAccountViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CrossAccountUiState.Error(e.message ?: "Consolidation failed")
                 }
@@ -239,12 +247,12 @@ class CrossAccountViewModel(
                     temp
                 }
                 if (action != null) {
-                    // Increment free action usage for non-premium users
+                    action.invoke()
+                    // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
+                    // This way, failed actions don't consume the user's free trial
                     if (!isPremium) {
                         usageRepository.incrementFreeActions()
                     }
-                    action.invoke()
-                    // Note: action.invoke() will set the appropriate state (Success/Error)
                 } else {
                     // No pending action - safe to set Success
                     _uiState.value = CrossAccountUiState.Success

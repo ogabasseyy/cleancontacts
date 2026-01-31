@@ -1,6 +1,9 @@
 package com.ogabassey.contactscleaner.ui.whatsapp
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,15 +14,19 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.ogabassey.contactscleaner.data.api.BusinessDetectionProgress
 import com.ogabassey.contactscleaner.data.api.WhatsAppContact
 import com.ogabassey.contactscleaner.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
@@ -136,8 +143,10 @@ fun WhatsAppContactsScreen(
                         businessCount = currentState.businessCount,
                         personalCount = currentState.personalCount,
                         totalCount = currentState.totalCount,
+                        nonWhatsAppCount = currentState.nonWhatsAppCount,
                         selectedTab = selectedTab,
-                        onTabSelected = { viewModel.selectTab(it) }
+                        onTabSelected = { viewModel.selectTab(it) },
+                        businessDetectionProgress = currentState.businessDetectionProgress
                     )
                 }
             }
@@ -294,27 +303,22 @@ private fun ContactsContent(
     businessCount: Int,
     personalCount: Int,
     totalCount: Int,
+    nonWhatsAppCount: Int,
     selectedTab: ContactsTab,
-    onTabSelected: (ContactsTab) -> Unit
+    onTabSelected: (ContactsTab) -> Unit,
+    businessDetectionProgress: BusinessDetectionProgress? = null
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // Stats header
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = DeepSpace
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatItem(value = totalCount, label = "Total")
-                StatItem(value = businessCount, label = "Business", color = SecondaryNeon)
-                StatItem(value = personalCount, label = "Personal", color = PrimaryNeon)
-            }
-        }
+        // 2026 Best Practice: Animated category cards with populating effect
+        AnimatedCategoryCards(
+            totalCount = totalCount,
+            businessCount = businessCount,
+            personalCount = personalCount,
+            nonWhatsAppCount = nonWhatsAppCount,
+            selectedTab = selectedTab,
+            onTabSelected = onTabSelected,
+            businessDetectionProgress = businessDetectionProgress
+        )
 
         // Tabs
         TabRow(
@@ -387,6 +391,346 @@ private fun ContactsContent(
     }
 }
 
+/**
+ * 2026 Best Practice: Animated category cards with populating count-up effect.
+ * Users see numbers visibly increasing as business detection progresses.
+ */
+@Composable
+private fun AnimatedCategoryCards(
+    totalCount: Int,
+    businessCount: Int,
+    personalCount: Int,
+    nonWhatsAppCount: Int,
+    selectedTab: ContactsTab,
+    onTabSelected: (ContactsTab) -> Unit,
+    businessDetectionProgress: BusinessDetectionProgress?
+) {
+    val isDetecting = businessDetectionProgress?.inProgress == true
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Row with WhatsApp Personal, Business, and Non-WhatsApp cards
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // WhatsApp Personal Card
+            AnimatedCountingCard(
+                modifier = Modifier.weight(1f),
+                count = personalCount,
+                label = "WhatsApp",
+                subtitle = "Personal",
+                icon = Icons.Default.Person,
+                color = PrimaryNeon,
+                isSelected = selectedTab == ContactsTab.PERSONAL,
+                isAnimating = isDetecting,
+                onClick = { onTabSelected(ContactsTab.PERSONAL) }
+            )
+
+            // WhatsApp Business Card
+            AnimatedCountingCard(
+                modifier = Modifier.weight(1f),
+                count = businessCount,
+                label = "WhatsApp",
+                subtitle = "Business",
+                icon = Icons.Default.Business,
+                color = SecondaryNeon,
+                isSelected = selectedTab == ContactsTab.BUSINESS,
+                isAnimating = isDetecting,
+                onClick = { onTabSelected(ContactsTab.BUSINESS) }
+            )
+
+            // Non-WhatsApp Card (Phone contacts without WhatsApp)
+            AnimatedCountingCard(
+                modifier = Modifier.weight(1f),
+                count = nonWhatsAppCount,
+                label = "Phone",
+                subtitle = "Non-WhatsApp",
+                icon = Icons.Default.PhoneDisabled,
+                color = TextMedium,
+                isSelected = false,
+                isAnimating = false,
+                onClick = { /* Non-clickable - informational only */ }
+            )
+        }
+
+        // Detection progress indicator (compact)
+        if (isDetecting && businessDetectionProgress != null) {
+            val progressPercent = if (businessDetectionProgress.total > 0) {
+                (businessDetectionProgress.checked.toFloat() / businessDetectionProgress.total * 100).toInt()
+            } else 0
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                color = DeepSpace
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            // Pulsing indicator
+                            val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                            val alpha by infiniteTransition.animateFloat(
+                                initialValue = 0.3f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(800),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "pulseAlpha"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(SecondaryNeon.copy(alpha = alpha))
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Scanning contacts...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextMedium
+                            )
+                        }
+                        Text(
+                            text = "$progressPercent%",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SecondaryNeon,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { if (businessDetectionProgress.total > 0) businessDetectionProgress.checked.toFloat() / businessDetectionProgress.total else 0f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        color = SecondaryNeon,
+                        trackColor = SpaceBlack
+                    )
+                }
+            }
+        }
+
+        // All contacts card (full width)
+        AnimatedCountingCard(
+            modifier = Modifier.fillMaxWidth(),
+            count = totalCount,
+            label = "All WhatsApp",
+            subtitle = "Contacts",
+            icon = Icons.Default.Contacts,
+            color = Color.White,
+            isSelected = selectedTab == ContactsTab.ALL,
+            isAnimating = false,
+            onClick = { onTabSelected(ContactsTab.ALL) },
+            compact = true
+        )
+    }
+}
+
+/**
+ * 2026 Best Practice: Card with animated count-up effect.
+ * Number animates smoothly when value changes.
+ */
+@Composable
+private fun AnimatedCountingCard(
+    modifier: Modifier = Modifier,
+    count: Int,
+    label: String,
+    subtitle: String,
+    icon: ImageVector,
+    color: Color,
+    isSelected: Boolean,
+    isAnimating: Boolean,
+    onClick: () -> Unit,
+    compact: Boolean = false
+) {
+    // 2026 Best Practice: Continuous interpolation animation
+    // Smoothly counts up digit by digit instead of jumping
+    var displayedCount by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(count) {
+        if (displayedCount == 0 && count > 0) {
+            // Initial load - animate from 0 to count
+            val steps = minOf(count, 60) // Max 60 steps for ~1 second animation
+            val increment = maxOf(1, count / steps)
+            while (displayedCount < count) {
+                displayedCount = minOf(displayedCount + increment, count)
+                kotlinx.coroutines.delay(16) // ~60fps
+            }
+        } else if (count > displayedCount) {
+            // Incremental update - smoothly count up
+            val difference = count - displayedCount
+            val steps = minOf(difference, 30) // Max 30 steps for updates
+            val increment = maxOf(1, difference / steps)
+            while (displayedCount < count) {
+                displayedCount = minOf(displayedCount + increment, count)
+                kotlinx.coroutines.delay(16) // ~60fps
+            }
+        } else {
+            displayedCount = count
+        }
+    }
+
+    // Pulsing glow effect when animating
+    val infiniteTransition = rememberInfiniteTransition(label = "cardPulse")
+    val glowAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+
+    Surface(
+        modifier = modifier
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = if (isSelected) color.copy(alpha = 0.15f) else DeepSpace,
+        border = if (isSelected) BorderStroke(2.dp, color) else null
+    ) {
+        Box {
+            // Animated glow overlay when detecting
+            if (isAnimating) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            color.copy(alpha = glowAlpha),
+                            RoundedCornerShape(16.dp)
+                        )
+                )
+            }
+
+            if (compact) {
+                // Compact horizontal layout for "All" card
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(color.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                icon,
+                                contentDescription = null,
+                                tint = color,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = subtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextMedium
+                            )
+                        }
+                    }
+                    Text(
+                        text = formatCount(displayedCount),
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = color,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                // Full card layout
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Icon
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(color.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Animated count with large font
+                    Text(
+                        text = formatCount(displayedCount),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontSize = 32.sp
+                        ),
+                        color = color,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Labels
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMedium
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = color,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Format count with K/M suffixes for large numbers.
+ * 2026 Best Practice: Use Kotlin multiplatform-compatible formatting (no String.format)
+ */
+private fun formatCount(count: Int): String {
+    return when {
+        count >= 1_000_000 -> {
+            val value = count / 1_000_000.0
+            "${((value * 10).toInt() / 10.0)}M"
+        }
+        count >= 1_000 -> {
+            val value = count / 1_000.0
+            "${((value * 10).toInt() / 10.0)}K"
+        }
+        else -> count.toString()
+    }
+}
+
 @Composable
 private fun StatItem(value: Int, label: String, color: Color = Color.White) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -401,6 +745,71 @@ private fun StatItem(value: Int, label: String, color: Color = Color.White) {
             style = MaterialTheme.typography.bodySmall,
             color = TextMedium
         )
+    }
+}
+
+/**
+ * 2026 Best Practice: Progress banner for background business detection.
+ * Shows user the detection progress with percentage and counts.
+ */
+@Composable
+private fun BusinessDetectionProgressBanner(progress: BusinessDetectionProgress) {
+    val progressPercent = if (progress.total > 0) {
+        (progress.checked.toFloat() / progress.total * 100).toInt()
+    } else 0
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(8.dp),
+        color = SecondaryNeon.copy(alpha = 0.15f)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = SecondaryNeon,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Detecting businesses...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SecondaryNeon,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Text(
+                    text = "${progress.checked} / ${progress.total} ($progressPercent%)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMedium
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { if (progress.total > 0) progress.checked.toFloat() / progress.total else 0f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                color = SecondaryNeon,
+                trackColor = DeepSpace
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "${progress.businessCount} businesses found so far",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextLow
+            )
+        }
     }
 }
 

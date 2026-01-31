@@ -30,9 +30,13 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
+import com.ogabassey.contactscleaner.util.ExportFormat
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import com.ogabassey.contactscleaner.util.isIOS
+import com.ogabassey.contactscleaner.util.rememberShareLauncher
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -48,11 +52,17 @@ fun CategoryDetailScreen(
     viewModel: CategoryViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    val shareLauncher = rememberShareLauncher()
     val uiState by viewModel.uiState.collectAsState()
     val contacts by viewModel.contacts.collectAsState()
     val duplicateGroups by viewModel.duplicateGroups.collectAsState()
     val groupContacts by viewModel.groupContacts.collectAsState()
     val deletingContactId by viewModel.deletingContactId.collectAsState()
+    val exportData by viewModel.exportData.collectAsState()
+
+    // Track export format for proper file extension
+    var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
 
     // 2026 Best Practice: Refresh contacts when returning from native Contacts app
     val contactLauncher = rememberContactLauncher(
@@ -64,6 +74,8 @@ fun CategoryDetailScreen(
     var customMergeName by remember { mutableStateOf("") }
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var contactToDelete by remember { mutableStateOf<Contact?>(null) }
+    var showExportFormatDialog by remember { mutableStateOf(false) }
+    var isGroupExport by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(type) {
@@ -164,7 +176,10 @@ fun CategoryDetailScreen(
                     contactType = type,
                     onDeleteAll = { showConfirmationDialog = true },
                     onMergeAll = { showConfirmationDialog = true },
-                    onExportAll = { /* TODO: Export */ }
+                    onExportAll = {
+                        isGroupExport = false
+                        showExportFormatDialog = true
+                    }
                 )
 
                 // List Content
@@ -295,12 +310,15 @@ fun CategoryDetailScreen(
                     )
 
                     TextButton(
-                        onClick = { /* TODO: Export group */ },
+                        onClick = {
+                            isGroupExport = true
+                            showExportFormatDialog = true
+                        },
                         colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon)
                     ) {
                         Icon(Icons.Default.Share, null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("EXPORT CSV", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("EXPORT", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -571,6 +589,249 @@ fun CategoryDetailScreen(
                         if (hasError) "CLOSE" else "CANCEL",
                         color = if (isDeleting) TextLow else TextMedium
                     )
+                }
+            }
+        )
+    }
+
+    // Export Format Selection Dialog
+    if (showExportFormatDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportFormatDialog = false },
+            containerColor = SurfaceSpaceElevated,
+            title = {
+                Text(
+                    "Export Format",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Choose the export format:",
+                        color = TextMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // CSV Option
+                    Button(
+                        onClick = {
+                            showExportFormatDialog = false
+                            lastExportFormat = ExportFormat.CSV
+                            if (isGroupExport) {
+                                viewModel.exportGroupToCsv()
+                            } else {
+                                viewModel.exportToCsv()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("CSV (Spreadsheet)", fontWeight = FontWeight.Bold)
+                    }
+
+                    // vCard Option
+                    Button(
+                        onClick = {
+                            showExportFormatDialog = false
+                            lastExportFormat = ExportFormat.VCARD
+                            if (isGroupExport) {
+                                viewModel.exportGroupToVCard()
+                            } else {
+                                viewModel.exportToVCard()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SecondaryNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("vCard (Contact File)", fontWeight = FontWeight.Bold)
+                    }
+
+                    // Excel-Compatible Option (CSV with Excel MIME type)
+                    Button(
+                        onClick = {
+                            showExportFormatDialog = false
+                            lastExportFormat = ExportFormat.EXCEL_COMPATIBLE
+                            if (isGroupExport) {
+                                viewModel.exportGroupToCsv()
+                            } else {
+                                viewModel.exportToCsv()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SuccessNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Excel Compatible", fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showExportFormatDialog = false }) {
+                    Text("CANCEL", color = TextMedium)
+                }
+            }
+        )
+    }
+
+    // Export Data Dialog with Share options
+    if (exportData != null) {
+        val fileName = "contacts_export.${lastExportFormat.extension}"
+
+        AlertDialog(
+            onDismissRequest = { viewModel.clearExportData() },
+            containerColor = SurfaceSpaceElevated,
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = SuccessNeon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        "Export Ready",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        "Your contacts have been exported. Choose how to share:",
+                        color = TextMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Preview box
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 120.dp)
+                            .background(SurfaceSpace, RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            exportData?.take(300)?.let {
+                                if ((exportData?.length ?: 0) > 300) "$it..." else it
+                            } ?: "",
+                            color = TextMedium,
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Share buttons grid
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Primary Share button
+                        Button(
+                            onClick = {
+                                exportData?.let {
+                                    shareLauncher.share(it, fileName, lastExportFormat.mimeType)
+                                }
+                                viewModel.clearExportData()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryNeon,
+                                contentColor = SpaceBlack
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Share, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("SHARE", fontWeight = FontWeight.Bold)
+                        }
+
+                        // Google Sheets & Excel row (only for CSV/Excel formats)
+                        if (lastExportFormat != ExportFormat.VCARD) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Google Sheets button
+                                OutlinedButton(
+                                    onClick = {
+                                        exportData?.let {
+                                            shareLauncher.openInGoogleSheets(it, fileName)
+                                        }
+                                        viewModel.clearExportData()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = SuccessNeon
+                                    ),
+                                    border = ButtonDefaults.outlinedButtonBorder(true).copy(
+                                        brush = androidx.compose.ui.graphics.SolidColor(SuccessNeon)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Sheets", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+
+                                // Excel button
+                                OutlinedButton(
+                                    onClick = {
+                                        exportData?.let {
+                                            shareLauncher.openInExcel(it, fileName)
+                                        }
+                                        viewModel.clearExportData()
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = SecondaryNeon
+                                    ),
+                                    border = ButtonDefaults.outlinedButtonBorder(true).copy(
+                                        brush = androidx.compose.ui.graphics.SolidColor(SecondaryNeon)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Excel", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                }
+                            }
+                        }
+
+                        // Copy to clipboard
+                        OutlinedButton(
+                            onClick = {
+                                exportData?.let { clipboardManager.setText(AnnotatedString(it)) }
+                                viewModel.clearExportData()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = TextMedium
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Copy to Clipboard", fontWeight = FontWeight.Medium)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.clearExportData() }) {
+                    Text("CLOSE", color = TextMedium)
                 }
             }
         )

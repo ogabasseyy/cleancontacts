@@ -524,39 +524,42 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun updateScanResultSummary() {
-        android.util.Log.d("ContactRepository", "Updating ScanResult Summary from DB...")
-        val total = contactDao.countTotal()
-        if (total == 0) {
+        android.util.Log.d("ContactRepository", "Updating ScanResult Summary from DB (optimized single query)...")
+
+        // 2026 Best Practice: Use consolidated getScanStats() query instead of 23 separate queries
+        val stats = contactDao.getScanStats()
+
+        if (stats.total == 0) {
             scanResultProvider.scanResult = null
             return
         }
 
         val result = ScanResult(
-            total = total,
-            rawCount = usageRepository.rawScannedCount.first(), 
-            whatsAppCount = contactDao.countWhatsApp(),
-            telegramCount = contactDao.countTelegram(),
-            nonWhatsAppCount = total - contactDao.countWhatsApp(),
-            junkCount = contactDao.countJunk(),
-            duplicateCount = contactDao.countDuplicates(),
-            noNameCount = contactDao.countNoName(),
-            noNumberCount = contactDao.countNoNumber(),
-            emailDuplicateCount = contactDao.countDuplicateEmails(),
-            numberDuplicateCount = contactDao.countDuplicateNumbers(),
-            nameDuplicateCount = contactDao.countDuplicateNames(),
-            accountCount = contactDao.countAccounts(),
-            similarNameCount = contactDao.countSimilarNames(),
-            invalidCharCount = contactDao.countInvalidChar(),
-            longNumberCount = contactDao.countLongNumber(),
-            shortNumberCount = contactDao.countShortNumber(),
-            repetitiveNumberCount = contactDao.countRepetitiveNumber(),
-            symbolNameCount = contactDao.countSymbolName(),
-            numericalNameCount = contactDao.countNumericalName(),
-            emojiNameCount = contactDao.countEmojiName(),
-            fancyFontCount = contactDao.countFancyFontName(),
-            formatIssueCount = contactDao.countFormatIssues(),
-            sensitiveCount = contactDao.countSensitive(),
-            crossAccountDuplicateCount = contactDao.countCrossAccountContacts()
+            total = stats.total,
+            rawCount = usageRepository.rawScannedCount.first(),
+            whatsAppCount = stats.whatsAppCount,
+            telegramCount = stats.telegramCount,
+            nonWhatsAppCount = stats.total - stats.whatsAppCount,
+            junkCount = stats.junkCount,
+            duplicateCount = stats.duplicateCount,
+            noNameCount = stats.noNameCount,
+            noNumberCount = stats.noNumberCount,
+            emailDuplicateCount = stats.duplicateEmailCount,
+            numberDuplicateCount = stats.duplicateNumberCount,
+            nameDuplicateCount = stats.duplicateNameCount,
+            accountCount = stats.accountCount,
+            similarNameCount = stats.similarNameCount,
+            invalidCharCount = stats.invalidCharCount,
+            longNumberCount = stats.longNumberCount,
+            shortNumberCount = stats.shortNumberCount,
+            repetitiveNumberCount = stats.repetitiveNumberCount,
+            symbolNameCount = stats.symbolNameCount,
+            numericalNameCount = stats.numericalNameCount,
+            emojiNameCount = stats.emojiNameCount,
+            fancyFontCount = stats.fancyFontCount,
+            formatIssueCount = stats.formatIssueCount,
+            sensitiveCount = stats.sensitiveCount,
+            crossAccountDuplicateCount = stats.crossAccountCount
         )
         scanResultProvider.scanResult = result
     }

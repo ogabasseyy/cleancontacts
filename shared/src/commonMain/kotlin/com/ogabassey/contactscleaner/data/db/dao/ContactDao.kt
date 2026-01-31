@@ -89,6 +89,39 @@ interface ContactDao {
     @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH'")
     suspend fun countSimilarNames(): Int
 
+    @Query("""
+        SELECT
+            (SELECT COUNT(*) FROM contacts) as total,
+            (SELECT COUNT(*) FROM contacts WHERE is_whatsapp = 1) as whatsAppCount,
+            (SELECT COUNT(*) FROM contacts WHERE is_telegram = 1) as telegramCount,
+            (SELECT COUNT(*) FROM contacts WHERE is_junk = 1) as junkCount,
+            (SELECT COUNT(*) FROM contacts WHERE duplicate_type IS NOT NULL) as duplicateCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'NO_NAME') as noNameCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'NO_NUMBER') as noNumberCount,
+            (SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'EMAIL_MATCH') as emailDuplicateCount,
+            (SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NUMBER_MATCH') as numberDuplicateCount,
+            (SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NAME_MATCH') as nameDuplicateCount,
+            (SELECT COUNT(DISTINCT account_type) FROM contacts WHERE account_type IS NOT NULL AND account_type != '') as accountCount,
+            (SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH') as similarNameCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'INVALID_CHAR') as invalidCharCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'LONG_NUMBER') as longNumberCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'SHORT_NUMBER') as shortNumberCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'REPETITIVE_DIGITS') as repetitiveNumberCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'SYMBOL_NAME') as symbolNameCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'NUMERICAL_NAME') as numericalNameCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'EMOJI_NAME') as emojiNameCount,
+            (SELECT COUNT(*) FROM contacts WHERE junk_type = 'FANCY_FONT_NAME') as fancyFontCount,
+            (SELECT COUNT(*) FROM contacts WHERE is_format_issue = 1) as formatIssueCount,
+            (SELECT COUNT(*) FROM contacts WHERE is_sensitive = 1) as sensitiveCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE matching_key IS NOT NULL AND matching_key != ''
+                GROUP BY matching_key
+                HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
+            )) as crossAccountDuplicateCount
+    """)
+    suspend fun getScanStats(): ScanStats
+
     // --- Cross-Account Duplicates Queries ---
 
     /**

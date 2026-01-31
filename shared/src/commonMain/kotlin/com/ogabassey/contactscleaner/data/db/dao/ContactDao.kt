@@ -9,6 +9,7 @@ import androidx.room.Upsert
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.domain.model.AccountGroupSummary
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
+import com.ogabassey.contactscleaner.data.db.model.DbScanSummary
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -88,6 +89,40 @@ interface ContactDao {
 
     @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH'")
     suspend fun countSimilarNames(): Int
+
+    @Query("""
+        SELECT
+            COUNT(*) as total,
+            COUNT(CASE WHEN is_whatsapp = 1 THEN 1 END) as whatsAppCount,
+            COUNT(CASE WHEN is_telegram = 1 THEN 1 END) as telegramCount,
+            COUNT(CASE WHEN is_junk = 1 THEN 1 END) as junkCount,
+            COUNT(CASE WHEN duplicate_type IS NOT NULL THEN 1 END) as duplicateCount,
+            COUNT(CASE WHEN junk_type = 'NO_NAME' THEN 1 END) as noNameCount,
+            COUNT(CASE WHEN junk_type = 'NO_NUMBER' THEN 1 END) as noNumberCount,
+            COUNT(CASE WHEN junk_type = 'INVALID_CHAR' THEN 1 END) as invalidCharCount,
+            COUNT(CASE WHEN junk_type = 'LONG_NUMBER' THEN 1 END) as longNumberCount,
+            COUNT(CASE WHEN junk_type = 'SHORT_NUMBER' THEN 1 END) as shortNumberCount,
+            COUNT(CASE WHEN junk_type = 'REPETITIVE_DIGITS' THEN 1 END) as repetitiveNumberCount,
+            COUNT(CASE WHEN junk_type = 'SYMBOL_NAME' THEN 1 END) as symbolNameCount,
+            COUNT(CASE WHEN junk_type = 'NUMERICAL_NAME' THEN 1 END) as numericalNameCount,
+            COUNT(CASE WHEN junk_type = 'EMOJI_NAME' THEN 1 END) as emojiNameCount,
+            COUNT(CASE WHEN junk_type = 'FANCY_FONT_NAME' THEN 1 END) as fancyFontCount,
+            COUNT(DISTINCT CASE WHEN account_type IS NOT NULL AND account_type != '' THEN account_type END) as accountCount,
+            COUNT(CASE WHEN duplicate_type = 'NUMBER_MATCH' THEN 1 END) as duplicateNumberCount,
+            COUNT(CASE WHEN duplicate_type = 'EMAIL_MATCH' THEN 1 END) as duplicateEmailCount,
+            COUNT(CASE WHEN duplicate_type = 'NAME_MATCH' THEN 1 END) as duplicateNameCount,
+            COUNT(CASE WHEN duplicate_type = 'SIMILAR_NAME_MATCH' THEN 1 END) as similarNameCount,
+            COUNT(CASE WHEN is_format_issue = 1 THEN 1 END) as formatIssueCount,
+            COUNT(CASE WHEN is_sensitive = 1 THEN 1 END) as sensitiveCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE matching_key IS NOT NULL AND matching_key != ''
+                GROUP BY matching_key
+                HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
+            )) as crossAccountDuplicateCount
+        FROM contacts
+    """)
+    suspend fun getDbScanSummary(): DbScanSummary
 
     // --- Cross-Account Duplicates Queries ---
 

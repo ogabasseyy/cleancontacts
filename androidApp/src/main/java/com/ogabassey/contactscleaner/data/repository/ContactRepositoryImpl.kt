@@ -69,16 +69,16 @@ class ContactRepositoryImpl constructor(
             android.util.Log.w("ContactRepository", "Failed to get contact count, using fallback", e)
             totalToProcess = 1000 // Fallback for progress calculation only
         }
-        
+
         if (totalToProcess == 0) {
             emit(ScanStatus.Success(ScanResult()))
             return@flow
         }
-        
+
         // 3. Stream Process
         val ignoredIds = ignoredContactDao.getAllIds().toSet()
         var processedCount = 0
-        
+
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
             .collect { batchContacts ->
                 val entities = batchContacts.mapNotNull { contact ->
@@ -86,15 +86,15 @@ class ContactRepositoryImpl constructor(
                     // Note: In a production app, we'd pre-load a HashSet of ignored IDs for O(1) check
                     // but for this implementation we'll assume it's small or handled by filter logic.
                     // For performance, we'll implement it as a skip here.
-                    
+
                     val numbers = contact.numbers
                     val primaryNumber = numbers.firstOrNull() ?: ""
                     val isIgnored = ignoredIds.contains(contact.id.toString())
-                    
+
                     // Run Sensitive Data Detection (Safety Net)
                     var isSensitive = false
                     var sensitiveDesc: String? = null
-                    
+
                     if (!isIgnored) {
                         // 1. Scan Name
                         val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
@@ -102,7 +102,7 @@ class ContactRepositoryImpl constructor(
                             isSensitive = true
                             sensitiveDesc = nameMatch.description
                         }
-                        
+
                         // 2. Scan All Numbers (if not already found sensitive in name)
                         if (!isSensitive) {
                             for (num in contact.numbers) {
@@ -123,24 +123,24 @@ class ContactRepositoryImpl constructor(
                     val junkType = if (!isIgnored) {
                         junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
                     } else null
-                    
+
                     // Format Issue Detection (Enhanced)
                     var isFormatIssue = false
                     var detectedNormalized: String? = contact.normalizedNumber
-                    
+
                     // Format detection: Only for non-junk, non-sensitive contacts
                     if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
                         // 1. Check if Provider already flagged it (Old Logic)
                         val normNum = contact.normalizedNumber
-                        if (!primaryNumber.startsWith("+") && 
+                        if (!primaryNumber.startsWith("+") &&
                              !primaryNumber.startsWith("*") &&
                              !primaryNumber.startsWith("#") &&
-                             normNum != null && 
+                             normNum != null &&
                              normNum.startsWith("+") &&
                              normNum != primaryNumber) {
                             isFormatIssue = true
                         }
-                        
+
                         // 2. If not flagged yet, run Advanced "Missing Plus" Check
                         if (!isFormatIssue && !primaryNumber.startsWith("+")) {
                              val issue = formatDetector.analyze(primaryNumber)
@@ -171,7 +171,7 @@ class ContactRepositoryImpl constructor(
                         lastSynced = System.currentTimeMillis()
                     )
                 }
-                
+
                 allEntities.addAll(entities)
                 processedCount += batchContacts.size
 
@@ -198,20 +198,20 @@ class ContactRepositoryImpl constructor(
 
         // 4. Post-Process: Run Advanced Kotlin-based Duplicate Detection (Multi-number support)
         emit(ScanStatus.Progress(0.82f, "Analyzing duplicates..."))
-        
+
         // Fetch all for analysis (using lightweight projection if possible, but full object needed for detector)
         val allContacts = contactDao.getAllContacts().map { it.toDomain() }
         val duplicates = duplicateDetector.detectDuplicates(allContacts)
-        
+
         // Map duplicates to a map for O(1) lookup: ContactID -> Pair(Type, Key)
         val duplicateMap = mutableMapOf<Long, Pair<com.ogabassey.contactscleaner.domain.model.DuplicateType, String>>()
         duplicates.forEach { group ->
             group.contacts.forEach { contact ->
-                // Priority: Ensure we don't overwrite if already processed? 
-                // Actually, `detectDuplicates` aggregates well. 
-                // If a contact is in multiple groups, the last one wins in this simple map, 
+                // Priority: Ensure we don't overwrite if already processed?
+                // Actually, `detectDuplicates` aggregates well.
+                // If a contact is in multiple groups, the last one wins in this simple map,
                 // or we could prioritize NUMBER > EMAIL > NAME.
-                
+
                 val current = duplicateMap[contact.id]
                 // Priority: NUMBER > EMAIL > NAME
                 val newPriority = when(group.duplicateType) {
@@ -226,20 +226,20 @@ class ContactRepositoryImpl constructor(
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.NAME_MATCH -> 1
                     else -> 0
                 }
-                
+
                 if (newPriority >= currentPriority) {
                      duplicateMap[contact.id] = Pair(group.duplicateType, group.matchingKey)
                 }
             }
         }
-        
+
         if (duplicateMap.isNotEmpty()) {
              // Batch update duplicates
-             // Optimized: Convert to LocalContact updates. 
-             // Since we can't easily do partial updates on varying fields for 1000s of rows efficiently via Room 
+             // Optimized: Convert to LocalContact updates.
+             // Since we can't easily do partial updates on varying fields for 1000s of rows efficiently via Room
              // without @Update entity, we will fetch, modify, update.
-             // OR use a raw query loop. 
-             
+             // OR use a raw query loop.
+
              // Safer: Fetch affected IDs, apply changes, update.
              val affectedIds = duplicateMap.keys.toList()
              val affectedContacts = contactDao.getContactsByIds(affectedIds)
@@ -254,20 +254,20 @@ class ContactRepositoryImpl constructor(
              }
              contactDao.insertContacts(updates) // @Insert(OnConflict=REPLACE) updates them
         }
-        
+
         // Remove SQL-based logic calls
         // contactDao.markDuplicateNumbers()
         // contactDao.markDuplicateEmails()
         // contactDao.markDuplicateNames()
 
-        
+
         emit(ScanStatus.Progress(0.95f, "Finalizing report..."))
 
         // 5. Build Result
         usageRepository.updateRawScannedCount(totalToProcess)
         updateScanResultSummary()
         val finalResult = scanResultProvider.scanResult ?: ScanResult()
-        
+
         emit(ScanStatus.Progress(1.0f))
         emit(ScanStatus.Success(finalResult))
     }.flowOn(Dispatchers.IO)
@@ -324,14 +324,14 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No contacts to delete"))
             return@flow
         }
-        
+
         // Record for history
         backupRepository.performBackup(
             contacts = contacts,
             actionType = "DELETE",
             description = "Deleted ${contacts.size} contacts from $type"
         )
-        
+
         // 2026 Best Practice: Track processed count accurately for progress
         var successCount = 0
         var processedCount = 0
@@ -347,7 +347,7 @@ class ContactRepositoryImpl constructor(
 
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Successfully deleted $successCount contacts"))
     }
 
@@ -390,7 +390,7 @@ class ContactRepositoryImpl constructor(
             else -> emptyList()
         }
     }
-    
+
     override suspend fun getAccountGroups(): List<com.ogabassey.contactscleaner.domain.model.AccountGroupSummary> {
         return contactDao.getAccountGroups()
     }
@@ -411,7 +411,7 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No duplicates found"))
             return@flow
         }
-        
+
         var successCount = 0
         groups.forEachIndexed { index, group ->
             val contacts = getContactsInGroup(group.groupKey, type)
@@ -422,7 +422,7 @@ class ContactRepositoryImpl constructor(
                     actionType = "MERGE",
                     description = "Merged ${contacts.size} duplicates (${group.groupKey})"
                 )
-                
+
                 val ids = contacts.map { it.id }
                 if (mergeContacts(ids)) {
                     successCount++
@@ -431,18 +431,18 @@ class ContactRepositoryImpl constructor(
             val progress = (index + 1).toFloat() / groups.size.toFloat()
             emit(CleanupStatus.Progress(progress, "Merging group ${index + 1} of ${groups.size}"))
         }
-        
+
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Merged $successCount groups successfully"))
     }
-        
+
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {
         if (ids.isEmpty()) return true
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
         if (contacts.isEmpty()) return true
-        
+
         val updates = contacts.associate { it.id to (it.normalizedNumber ?: "") }.filterValues { it.isNotBlank() }
         if (updates.isEmpty()) return true
 
@@ -460,10 +460,10 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No formatting issues found"))
             return@flow
         }
-        
+
         var successCount = 0
         val total = ids.size
-        
+
         // Record for history
         val formatIssues = contactDao.getFormatIssueContactsByIds(ids).map { it.toDomain() }
         backupRepository.performBackup(
@@ -471,7 +471,7 @@ class ContactRepositoryImpl constructor(
             actionType = "FORMAT",
             description = "Standardized ${formatIssues.size} numbers"
         )
-        
+
         // 2026 Best Practice: Large batches for high-speed processing
         ids.chunked(500).forEachIndexed { index, batch ->
             if (standardizeFormat(batch)) {
@@ -480,10 +480,10 @@ class ContactRepositoryImpl constructor(
             val progress = successCount.toFloat() / total.toFloat()
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Standardizing... [$successCount of $total]"))
         }
-        
+
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
     }
 
@@ -525,38 +525,38 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun updateScanResultSummary() {
         android.util.Log.d("ContactRepository", "Updating ScanResult Summary from DB...")
-        val total = contactDao.countTotal()
-        if (total == 0) {
+        val summary = contactDao.getDbScanSummary()
+        if (summary.total == 0) {
             scanResultProvider.scanResult = null
             return
         }
 
         val result = ScanResult(
-            total = total,
-            rawCount = usageRepository.rawScannedCount.first(), 
-            whatsAppCount = contactDao.countWhatsApp(),
-            telegramCount = contactDao.countTelegram(),
-            nonWhatsAppCount = total - contactDao.countWhatsApp(),
-            junkCount = contactDao.countJunk(),
-            duplicateCount = contactDao.countDuplicates(),
-            noNameCount = contactDao.countNoName(),
-            noNumberCount = contactDao.countNoNumber(),
-            emailDuplicateCount = contactDao.countDuplicateEmails(),
-            numberDuplicateCount = contactDao.countDuplicateNumbers(),
-            nameDuplicateCount = contactDao.countDuplicateNames(),
-            accountCount = contactDao.countAccounts(),
-            similarNameCount = contactDao.countSimilarNames(),
-            invalidCharCount = contactDao.countInvalidChar(),
-            longNumberCount = contactDao.countLongNumber(),
-            shortNumberCount = contactDao.countShortNumber(),
-            repetitiveNumberCount = contactDao.countRepetitiveNumber(),
-            symbolNameCount = contactDao.countSymbolName(),
-            numericalNameCount = contactDao.countNumericalName(),
-            emojiNameCount = contactDao.countEmojiName(),
-            fancyFontCount = contactDao.countFancyFontName(),
-            formatIssueCount = contactDao.countFormatIssues(),
-            sensitiveCount = contactDao.countSensitive(),
-            crossAccountDuplicateCount = contactDao.countCrossAccountContacts()
+            total = summary.total,
+            rawCount = usageRepository.rawScannedCount.first(),
+            whatsAppCount = summary.whatsAppCount,
+            telegramCount = summary.telegramCount,
+            nonWhatsAppCount = summary.total - summary.whatsAppCount,
+            junkCount = summary.junkCount,
+            duplicateCount = summary.duplicateCount,
+            noNameCount = summary.noNameCount,
+            noNumberCount = summary.noNumberCount,
+            emailDuplicateCount = summary.duplicateEmailCount,
+            numberDuplicateCount = summary.duplicateNumberCount,
+            nameDuplicateCount = summary.duplicateNameCount,
+            accountCount = summary.accountCount,
+            similarNameCount = summary.similarNameCount,
+            invalidCharCount = summary.invalidCharCount,
+            longNumberCount = summary.longNumberCount,
+            shortNumberCount = summary.shortNumberCount,
+            repetitiveNumberCount = summary.repetitiveNumberCount,
+            symbolNameCount = summary.symbolNameCount,
+            numericalNameCount = summary.numericalNameCount,
+            emojiNameCount = summary.emojiNameCount,
+            fancyFontCount = summary.fancyFontCount,
+            formatIssueCount = summary.formatIssueCount,
+            sensitiveCount = summary.sensitiveCount,
+            crossAccountDuplicateCount = summary.crossAccountDuplicateCount
         )
         scanResultProvider.scanResult = result
     }

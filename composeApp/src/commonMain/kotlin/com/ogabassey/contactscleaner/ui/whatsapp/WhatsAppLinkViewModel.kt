@@ -253,6 +253,9 @@ class WhatsAppLinkViewModel(
                         startWhatsAppSync()
                         return@launch
                     }
+                } catch (e: CancellationException) {
+                    // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
+                    throw e
                 } catch (e: Exception) {
                     // Continue polling on transient errors
                 }

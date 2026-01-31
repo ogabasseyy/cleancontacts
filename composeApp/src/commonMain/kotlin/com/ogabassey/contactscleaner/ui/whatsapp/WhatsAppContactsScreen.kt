@@ -43,6 +43,8 @@ fun WhatsAppContactsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val selectedTab by viewModel.selectedTab.collectAsState()
+    // 2026 Best Practice: Collect filteredContacts as StateFlow (computed once per state change)
+    val filteredContacts by viewModel.filteredContacts.collectAsState()
     var showExportMenu by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf("") }
@@ -139,7 +141,8 @@ fun WhatsAppContactsScreen(
                 }
                 is WhatsAppContactsState.Loaded -> {
                     ContactsContent(
-                        contacts = viewModel.getFilteredContacts(),
+                        // 2026 Best Practice: Use derived StateFlow instead of calling method in composition
+                        contacts = filteredContacts,
                         businessCount = currentState.businessCount,
                         personalCount = currentState.personalCount,
                         totalCount = currentState.totalCount,
@@ -164,7 +167,7 @@ fun WhatsAppContactsScreen(
             text = {
                 Column {
                     Text(
-                        "$exportFormat data generated with ${viewModel.getFilteredContacts().size} contacts.",
+                        "$exportFormat data generated with ${filteredContacts.size} contacts.",
                         color = TextMedium
                     )
                     Spacer(modifier = Modifier.height(8.dp))

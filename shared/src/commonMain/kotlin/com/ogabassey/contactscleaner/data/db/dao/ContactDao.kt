@@ -280,11 +280,7 @@ interface ContactDao {
     @Query("SELECT * FROM contacts ORDER BY id ASC LIMIT :limit OFFSET :offset")
     suspend fun getContactsBatch(limit: Int, offset: Int): List<LocalContact>
 
-    /**
-     * Get total contact count for batch processing iteration.
-     */
-    @Query("SELECT COUNT(*) FROM contacts")
-    suspend fun getTotalContactCount(): Int
+    // Note: Use countTotal() for total contact count - no duplicate method needed
 
     // --- Flow Queries (KMP Compatible) ---
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")

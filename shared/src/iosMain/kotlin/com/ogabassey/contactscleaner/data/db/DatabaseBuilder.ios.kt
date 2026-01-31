@@ -8,10 +8,10 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
-import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSUserDomainMask
 
 /**
@@ -37,13 +37,25 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
             println("⚠️ Database directory error: ${nsError.localizedDescription}")
         }
 
-        // 2026 Fix: Handle null documentDirectory properly - use fallback path
+        // 2026 Fix: Handle null documentDirectory properly - use Application Support fallback
         val path = documentDirectory?.path
         if (path.isNullOrEmpty()) {
-            // Fallback to tmp directory if Documents is unavailable
-            val fallbackPath = NSTemporaryDirectory()
-            println("⚠️ Using fallback database path: $fallbackPath")
-            "$fallbackPath${ContactDatabase.DATABASE_NAME}.db"
+            // 2026 Best Practice: Use Application Support for persistent database storage
+            // NSTemporaryDirectory is purgeable by iOS - not suitable for databases
+            errorPtr.value = null
+            val supportDirectory = NSFileManager.defaultManager.URLForDirectory(
+                directory = NSApplicationSupportDirectory,
+                inDomain = NSUserDomainMask,
+                appropriateForURL = null,
+                create = true,
+                error = errorPtr.ptr
+            )
+            val supportPath = supportDirectory?.path
+            require(!supportPath.isNullOrEmpty()) {
+                "Failed to resolve Application Support directory for database"
+            }
+            println("⚠️ Using Application Support fallback path: $supportPath")
+            "$supportPath/${ContactDatabase.DATABASE_NAME}.db"
         } else {
             "$path/${ContactDatabase.DATABASE_NAME}.db"
         }

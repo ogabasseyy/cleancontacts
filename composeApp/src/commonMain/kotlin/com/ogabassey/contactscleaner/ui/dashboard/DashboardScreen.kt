@@ -518,7 +518,10 @@ fun SettingsItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
+            .clickable(
+                enabled = onClick != null,
+                role = if (onClick != null) Role.Button else null
+            ) { onClick?.invoke() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -529,9 +532,16 @@ fun SettingsItem(
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color.White)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
+        }
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.3f)
+            )
         }
     }
 }
@@ -566,7 +576,8 @@ fun OrbitalFeatures(radius: Dp) {
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
-    val rotation by infiniteTransition.animateFloat(
+    // Deferred state read: avoid recomposition on every animation frame
+    val rotationState = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
@@ -576,17 +587,19 @@ fun OrbitalFeatures(radius: Dp) {
         label = "rotation"
     )
 
-    // ⚡ Bolt Optimization: Use graphicsLayer for animations to avoid layout thrashing
+    // Use graphicsLayer for animations to avoid layout thrashing
     val density = LocalDensity.current
     val radiusPx = with(density) { radius.toPx() }
 
     features.forEachIndexed { index, item ->
-        val angleDeg = (index * 90f) + rotation
-        val angleRad = angleDeg.toDouble() * PI / 180.0
-
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.graphicsLayer {
+                // Read state inside lambda to defer until draw phase
+                val rotation = rotationState.value
+                val angleDeg = (index * 90f) + rotation
+                val angleRad = angleDeg.toDouble() * PI / 180.0
+
                 translationX = (radiusPx * cos(angleRad)).toFloat()
                 translationY = (radiusPx * sin(angleRad)).toFloat()
             }
@@ -613,7 +626,8 @@ fun OrbitalFeatures(radius: Dp) {
 @Composable
 fun PulseAnimation(color: Color = PrimaryNeon) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
+    // Deferred state read: avoid recomposition on every animation frame
+    val scaleState = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.6f,
         animationSpec = infiniteRepeatable(
@@ -622,7 +636,7 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
         ),
         label = "scale"
     )
-    val alpha by infiniteTransition.animateFloat(
+    val alphaState = infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
@@ -635,8 +649,13 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
     Box(
         modifier = Modifier
             .size(160.dp)
-            .graphicsLayer(scaleX = scale, scaleY = scale)
-            .background(color.copy(alpha = alpha), CircleShape)
+            .graphicsLayer {
+                // Read state inside lambda to defer until draw phase
+                scaleX = scaleState.value
+                scaleY = scaleState.value
+                alpha = alphaState.value
+            }
+            .background(color, CircleShape)
     )
 }
 

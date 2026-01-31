@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.util
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -63,8 +64,8 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
 
         try {
             context.startActivity(intent)
-        } catch (e: Exception) {
-            // Fallback to share sheet if direct open fails
+        } catch (e: ActivityNotFoundException) {
+            // Fallback to share sheet if Google Sheets can't handle the intent
             share(content, fileName, "text/csv")
         }
     }
@@ -92,8 +93,8 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
 
         try {
             context.startActivity(intent)
-        } catch (e: Exception) {
-            // Fallback to share sheet if direct open fails
+        } catch (e: ActivityNotFoundException) {
+            // Fallback to share sheet if Excel can't handle the intent
             share(content, fileName, "application/vnd.ms-excel")
         }
     }

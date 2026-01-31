@@ -8,12 +8,15 @@ import com.ogabassey.contactscleaner.domain.model.Contact
  */
 object ExportUtils {
 
+    // 2026 Best Practice: Use CharArray with indexOfAny for efficient special character detection
+    private val CSV_SPECIAL_CHARS = charArrayOf(',', '"', '\n', '\r')
+
     /**
      * RFC 4180 compliant CSV escaping.
      * Wraps field in quotes if it contains special characters, and escapes internal quotes.
      */
     fun escapeCsvValue(value: String): String {
-        return if (value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r')) {
+        return if (value.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
             "\"${value.replace("\"", "\"\"")}\""
         } else {
             value
@@ -76,11 +79,11 @@ object ExportUtils {
             }
 
             contact.numbers.forEach { number ->
-                sb.appendLine("TEL;TYPE=CELL:$number")
+                sb.appendLine("TEL;TYPE=CELL:${escapeVCardValue(number)}")
             }
 
             contact.emails.forEach { email ->
-                sb.appendLine("EMAIL:$email")
+                sb.appendLine("EMAIL:${escapeVCardValue(email)}")
             }
 
             if (contact.isWhatsApp) {

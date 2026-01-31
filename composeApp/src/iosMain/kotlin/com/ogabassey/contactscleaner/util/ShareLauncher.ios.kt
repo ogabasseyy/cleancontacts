@@ -11,6 +11,7 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.stringByAppendingPathComponent
 import platform.Foundation.writeToFile
+import platform.CoreGraphics.CGRectZero
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
 
@@ -40,27 +41,15 @@ class IosShareLauncher : ShareLauncher {
 
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun openInGoogleSheets(content: String, fileName: String) {
-        if (!isGoogleSheetsAvailable()) {
-            // Fallback to system share sheet
-            share(content, fileName, "text/csv")
-            return
-        }
-
-        // Write file and share - Google Sheets will be in the share sheet options
-        // Direct URL scheme opening with file content isn't straightforward on iOS
-        // The share sheet allows users to select Google Sheets
+        // iOS cannot directly open files in specific apps via URL schemes
+        // The share sheet allows users to select Google Sheets if installed
         share(content, fileName, "text/csv")
     }
 
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun openInExcel(content: String, fileName: String) {
-        if (!isExcelAvailable()) {
-            // Fallback to system share sheet
-            share(content, fileName, "text/csv")
-            return
-        }
-
-        // Write file and share - Excel will be in the share sheet options
+        // iOS cannot directly open files in specific apps via URL schemes
+        // The share sheet allows users to select Excel if installed
         share(content, fileName, "text/csv")
     }
 
@@ -98,16 +87,23 @@ class IosShareLauncher : ShareLauncher {
         return NSURL.fileURLWithPath(filePath)
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun presentViewController(viewController: UIActivityViewController) {
         // Get root view controller
+        // Note: keyWindow is deprecated but universally available; scene-based APIs have
+        // complex Kotlin/Native interop issues
         val rootViewController = UIApplication.sharedApplication.keyWindow?.rootViewController
         if (rootViewController == null) {
             println("⚠️ Cannot present share sheet: rootViewController is null")
             return
         }
 
-        // For iPad, we need to set popover presentation
-        viewController.popoverPresentationController?.sourceView = rootViewController.view
+        // For iPad, we need to set popover presentation with both sourceView and sourceRect
+        // to avoid crashes. Using CGRectZero centers the popover.
+        viewController.popoverPresentationController?.let { popover ->
+            popover.sourceView = rootViewController.view
+            popover.sourceRect = CGRectZero.readValue()
+        }
 
         rootViewController.presentViewController(
             viewController,

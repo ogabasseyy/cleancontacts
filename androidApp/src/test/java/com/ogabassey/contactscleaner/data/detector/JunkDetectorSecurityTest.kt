@@ -41,10 +41,10 @@ class JunkDetectorSecurityTest {
         // "a" repeat 5000 won't match SYMBOL_NAME_REGEX (punctuation/space) or NUMERICAL_NAME_REGEX (digits/space).
         // So currently it returns NULL (empty list).
 
-        // After fix, it should be SYMBOL_NAME.
+        // After fix, it should be LONG_NAME.
         // So for now, I expect this test to FAIL (result.size = 0) until I implement the fix.
         // That confirms the "vulnerability" (or behavior change).
-        assertEquals(JunkType.SYMBOL_NAME, result[0].type)
+        assertEquals(JunkType.LONG_NAME, result[0].type)
 
         println("Execution time: ${end - start}ms")
     }

@@ -61,7 +61,7 @@ class JunkDetector(
 
         // 2026 Security Fix: Prevent DoS with massive inputs
         if (number.length > MAX_INPUT_LENGTH) return JunkType.LONG_NUMBER
-        if (name.length > MAX_INPUT_LENGTH) return JunkType.SYMBOL_NAME
+        if (name.length > MAX_INPUT_LENGTH) return JunkType.LONG_NAME
 
         // 2. Number Analysis (number is guaranteed non-null here after isNullOrBlank check)
         // Optimization: Use filter for ASCII digit check instead of Regex replace

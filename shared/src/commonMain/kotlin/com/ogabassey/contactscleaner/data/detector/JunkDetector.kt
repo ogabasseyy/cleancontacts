@@ -17,6 +17,8 @@ class JunkDetector(
 ) {
 
     private companion object {
+        // 2026 Security: Prevent DoS with massive inputs before regex processing
+        private const val MAX_INPUT_LENGTH = 1000
         private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
         private val REPETITIVE_DIGITS_REGEX = Regex("(\\d)\\1{5,}")
         private val NUMERICAL_NAME_REGEX = Regex("^[\\d\\s+\\-()]+$")
@@ -58,6 +60,10 @@ class JunkDetector(
         if (name.isNullOrBlank()) return JunkType.NO_NAME
         if (number.isNullOrBlank()) return JunkType.NO_NUMBER
 
+        // 2026 Security: Prevent DoS with massive inputs before regex processing
+        if (number.length > MAX_INPUT_LENGTH) return JunkType.LONG_NUMBER
+        if (name.length > MAX_INPUT_LENGTH) return JunkType.LONG_NAME
+
         // 2. Number Analysis (number is guaranteed non-null here after isNullOrBlank check)
         // Optimization: Use filter for ASCII digit check instead of Regex replace
         val cleanedNumber = number.filter { it in '0'..'9' }
@@ -85,7 +91,8 @@ class JunkDetector(
         // 3. Name Analysis
         // 2026 Fix: name is guaranteed non-null here after line 58 check
         // A. Numerical Name (e.g. "123", "0801...")
-        if (NUMERICAL_NAME_REGEX.matches(name)) {
+        // Require at least one digit - otherwise "----" would be NUMERICAL_NAME instead of SYMBOL_NAME
+        if (name.any { it.isDigit() } && NUMERICAL_NAME_REGEX.matches(name)) {
             return JunkType.NUMERICAL_NAME
         }
 

@@ -325,6 +325,8 @@ class WhatsAppLinkViewModel(
         syncJob = null
         _pairingCodeExpiration.value = null
         _state.update { WhatsAppLinkState.NotLinked }
+        // 2026 Best Practice: Reset sync state to avoid stale UI
+        _syncState.value = SyncState.Idle
     }
 
     /**
@@ -335,6 +337,8 @@ class WhatsAppLinkViewModel(
             try {
                 whatsAppRepository.disconnect(deviceId)
                 _state.update { WhatsAppLinkState.NotLinked }
+                // 2026 Best Practice: Reset sync state to avoid stale UI
+                _syncState.value = SyncState.Idle
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

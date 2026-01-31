@@ -8,6 +8,7 @@ import com.ogabassey.contactscleaner.data.api.WhatsAppContact
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import com.russhwolf.settings.Settings
@@ -65,6 +66,9 @@ class WhatsAppContactsViewModel(
 
     private val _exportData = MutableStateFlow<String?>(null)
     val exportData: StateFlow<String?> = _exportData.asStateFlow()
+
+    // 2026 Best Practice: Track polling job to prevent multiple concurrent pollers
+    private var businessDetectionJob: Job? = null
 
     /**
      * 2026 Best Practice: Expose filtered contacts as a derived StateFlow.
@@ -146,7 +150,9 @@ class WhatsAppContactsViewModel(
      * Uses isActive for cooperative cancellation.
      */
     private fun startBusinessDetectionPolling() {
-        viewModelScope.launch {
+        // 2026 Best Practice: Cancel any existing polling job to prevent multiple concurrent pollers
+        businessDetectionJob?.cancel()
+        businessDetectionJob = viewModelScope.launch {
             // 2026 Best Practice: Use isActive for cooperative cancellation
             while (isActive) {
                 delay(5000) // Poll every 5 seconds

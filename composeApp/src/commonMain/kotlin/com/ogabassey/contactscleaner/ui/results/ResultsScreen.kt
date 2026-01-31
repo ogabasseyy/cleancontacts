@@ -32,9 +32,11 @@ import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsCard
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkCard
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkState
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkViewModel
+import com.ogabassey.contactscleaner.ui.whatsapp.SyncState
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import com.ogabassey.contactscleaner.util.isAndroid
 import com.ogabassey.contactscleaner.util.isIOS
@@ -53,7 +55,8 @@ fun ResultsScreen(
     onNavigateToDetail: (ContactType) -> Unit = {},
     onNavigateToPaywall: () -> Unit = {},
     onNavigateToHistory: () -> Unit = {},
-    onNavigateToWhatsAppLink: () -> Unit = {}
+    onNavigateToWhatsAppLink: () -> Unit = {},
+    onNavigateToWhatsAppContacts: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
@@ -63,6 +66,19 @@ fun ResultsScreen(
     // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
     val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
     val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
+    val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
+
+    // 2026 Best Practice: Track retry state for immediate UI feedback
+    var isRetryingSync by remember { mutableStateOf(false) }
+
+    // Recalculate WhatsApp counts when sync completes, and clear retry state on any state change
+    LaunchedEffect(syncState) {
+        // Clear retry flag when state changes (sync started, completed, or new error)
+        isRetryingSync = false
+        if (syncState is SyncState.Complete) {
+            viewModel.recalculateWhatsAppCounts()
+        }
+    }
 
     var showAccountDialog by remember { mutableStateOf(false) }
 
@@ -318,27 +334,84 @@ fun ResultsScreen(
                             // iOS: Show link CTA or counts based on WhatsApp connection status
                             when (whatsAppState) {
                                 is WhatsAppLinkState.Connected -> {
-                                    // Connected: Show WhatsApp counts from VPS detection
-                                    if (scanResult.whatsAppCount > 0) {
-                                        item {
-                                            StatCard(
-                                                title = "WhatsApp",
-                                                count = scanResult.whatsAppCount,
-                                                icon = Icons.Default.Email,
-                                                color = PrimaryNeon,
-                                                onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
-                                            )
-                                        }
+                                    // Connected: Show WhatsApp contacts card with business detection
+                                    item {
+                                        WhatsAppContactsCard(
+                                            onViewContacts = onNavigateToWhatsAppContacts
+                                        )
                                     }
-                                    if (scanResult.nonWhatsAppCount > 0) {
-                                        item {
-                                            StatCard(
-                                                title = "Non-WhatsApp Contacts",
-                                                count = scanResult.nonWhatsAppCount,
-                                                icon = Icons.Default.Phone,
-                                                color = TextMedium,
-                                                onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
-                                            )
+
+                                    // Show sync progress or WhatsApp breakdown based on sync state
+                                    when (val currentSyncState = syncState) {
+                                        is SyncState.Syncing -> {
+                                            // Syncing: Show progress card
+                                            item {
+                                                WhatsAppSyncProgressCard(
+                                                    synced = currentSyncState.synced,
+                                                    total = currentSyncState.total,
+                                                    percent = currentSyncState.percent
+                                                )
+                                            }
+                                        }
+                                        is SyncState.Complete -> {
+                                            // Sync complete: Show Personal/Business/Non-WhatsApp breakdown
+                                            item {
+                                                StatCard(
+                                                    title = "Personal WhatsApp",
+                                                    count = currentSyncState.personalCount,
+                                                    icon = Icons.Default.Person,
+                                                    color = PrimaryNeon,
+                                                    onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                                )
+                                            }
+                                            item {
+                                                StatCard(
+                                                    title = "Business WhatsApp",
+                                                    count = currentSyncState.businessCount,
+                                                    icon = Icons.Default.Business,
+                                                    color = SecondaryNeon,
+                                                    onClick = { onNavigateToWhatsAppContacts() }
+                                                )
+                                            }
+                                            // Non-WhatsApp: Only show after sync completes
+                                            if (scanResult.nonWhatsAppCount > 0) {
+                                                item {
+                                                    StatCard(
+                                                        title = "Non-WhatsApp Contacts",
+                                                        count = scanResult.nonWhatsAppCount,
+                                                        icon = Icons.Default.PhoneDisabled,
+                                                        color = TextMedium,
+                                                        onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        is SyncState.Error -> {
+                                            // Sync error: Show retry option
+                                            item {
+                                                WhatsAppSyncErrorCard(
+                                                    message = currentSyncState.message,
+                                                    isRetrying = isRetryingSync,
+                                                    onRetry = {
+                                                        isRetryingSync = true
+                                                        whatsAppViewModel?.startWhatsAppSync()
+                                                    }
+                                                )
+                                            }
+                                        }
+                                        is SyncState.Idle -> {
+                                            // Idle (not synced yet): Show basic WhatsApp count
+                                            if (scanResult.whatsAppCount > 0) {
+                                                item {
+                                                    StatCard(
+                                                        title = "WhatsApp",
+                                                        count = scanResult.whatsAppCount,
+                                                        icon = Icons.Default.Email,
+                                                        color = PrimaryNeon,
+                                                        onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -723,5 +796,123 @@ private data class ResultItem(
     val description: String,
     val type: ContactType
 )
+
+/**
+ * Card showing WhatsApp sync progress.
+ */
+@Composable
+private fun WhatsAppSyncProgressCard(
+    synced: Int,
+    total: Int,
+    percent: Int
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = PrimaryNeon.copy(alpha = 0.1f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CircularProgressIndicator(
+                    progress = { percent / 100f },
+                    color = PrimaryNeon,
+                    modifier = Modifier.size(40.dp),
+                    strokeWidth = 4.dp
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Syncing WhatsApp Contacts...",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "${synced.formatWithCommas()} / ${total.formatWithCommas()}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMedium
+                    )
+                }
+                Text(
+                    "$percent%",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = PrimaryNeon,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            LinearProgressIndicator(
+                progress = { percent / 100f },
+                color = PrimaryNeon,
+                trackColor = PrimaryNeon.copy(alpha = 0.2f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+            )
+        }
+    }
+}
+
+/**
+ * Card showing WhatsApp sync error with retry option.
+ * 2026 Best Practice: Shows loading state during retry for immediate feedback.
+ */
+@Composable
+private fun WhatsAppSyncErrorCard(
+    message: String,
+    isRetrying: Boolean = false,
+    onRetry: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = ErrorNeon.copy(alpha = 0.1f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                contentDescription = null,
+                tint = ErrorNeon,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Sync Failed",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMedium
+                )
+            }
+            // 2026 Best Practice: Show spinner during retry for immediate feedback
+            if (isRetrying) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = PrimaryNeon,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                TextButton(onClick = onRetry, enabled = !isRetrying) {
+                    Text("RETRY", color = PrimaryNeon, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
 
 

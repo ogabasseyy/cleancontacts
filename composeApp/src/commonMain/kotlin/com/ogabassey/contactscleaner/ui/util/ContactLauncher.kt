@@ -6,5 +6,9 @@ interface ContactLauncher {
     fun openContact(id: String)
 }
 
+/**
+ * 2026 Best Practice: ContactLauncher with optional refresh callback.
+ * Called when user returns from editing a contact in the native Contacts app.
+ */
 @Composable
-expect fun rememberContactLauncher(): ContactLauncher
+expect fun rememberContactLauncher(onReturn: () -> Unit): ContactLauncher

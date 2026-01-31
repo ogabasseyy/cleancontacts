@@ -37,8 +37,23 @@ class IosContactsSource {
             if (error != null) {
                 println("Permission request error: ${error.localizedDescription}")
             }
-            continuation.resume(granted)
+            // Check if continuation is still active before resuming (prevents crash if cancelled)
+            if (continuation.isActive) {
+                continuation.resume(granted)
+            }
         }
+    }
+
+    /**
+     * 2026 Best Practice: Check permission before write operations.
+     * Returns false if permission not granted, preventing silent failures.
+     */
+    private suspend fun ensureWritePermission(): Boolean {
+        val hasPermission = requestContactsPermission()
+        if (!hasPermission) {
+            println("Contacts write permission not granted")
+        }
+        return hasPermission
     }
 
     /**
@@ -232,6 +247,7 @@ class IosContactsSource {
             duplicateType = null,
             accountType = accountType,
             accountName = accountName,
+            platform_uid = identifier,
             isSensitive = false,
             sensitiveDescription = null,
             formatIssue = null
@@ -250,29 +266,36 @@ class IosContactsSource {
     /**
      * Delete contacts by their identifiers.
      */
-    suspend fun deleteContacts(contactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {
-        // Note: iOS contact deletion requires the full identifier string
-        // This is a simplified implementation - in production you'd need to map IDs back to identifiers
+    suspend fun deleteContacts(uids: List<String>): Boolean = withContext(Dispatchers.IO) {
+        if (uids.isEmpty()) return@withContext true
+
+        // 2026 Best Practice: Check permission before write operations
+        if (!ensureWritePermission()) return@withContext false
+
         try {
             val saveRequest = CNSaveRequest()
-
-            // We need to fetch contacts first to get their mutable copies
+            
+            // 2026 Optimization: Fetch ONLY the contacts we want to delete using a predicate
+            val predicate = CNContact.predicateForContactsWithIdentifiers(uids)
             val keysToFetch = listOf(CNContactIdentifierKey)
-            val request = CNContactFetchRequest(keysToFetch = keysToFetch)
-
+            
             memScoped {
                 val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-                contactStore.enumerateContactsWithFetchRequest(
-                    request,
+                val contactsToDelete = contactStore.unifiedContactsMatchingPredicate(
+                    predicate,
+                    keysToFetch = keysToFetch,
                     error = errorPtr.ptr
-                ) { cnContact, _ ->
-                    cnContact?.let { contact ->
-                        val contactId = contact.identifier.hashCode().toLong().let { if (it < 0) -it else it }
-                        if (contactId in contactIds) {
-                            val mutableContact = contact.mutableCopy() as? CNMutableContact
-                            mutableContact?.let { saveRequest.deleteContact(it) }
-                        }
-                    }
+                )
+                
+                if (errorPtr.value != null) {
+                    println("Error fetching contacts for deletion: ${errorPtr.value?.localizedDescription}")
+                    return@withContext false
+                }
+                
+                contactsToDelete?.forEach { obj ->
+                    val contact = obj as? CNContact
+                    val mutableContact = contact?.mutableCopy() as? CNMutableContact
+                    mutableContact?.let { saveRequest.deleteContact(it) }
                 }
 
                 val saveErrorPtr = alloc<ObjCObjectVar<NSError?>>()
@@ -318,6 +341,9 @@ class IosContactsSource {
      * Restore contacts (add new contacts).
      */
     suspend fun restoreContacts(contacts: List<Contact>): Boolean = withContext(Dispatchers.IO) {
+        // 2026 Best Practice: Check permission before write operations
+        if (!ensureWritePermission()) return@withContext false
+
         try {
             val saveRequest = CNSaveRequest()
 
@@ -333,21 +359,22 @@ class IosContactsSource {
 
                 // Set phone numbers
                 val phoneNumbers = contact.numbers.mapNotNull { number ->
-                    val phoneNumber = CNPhoneNumber.phoneNumberWithStringValue(number)
+                    val phoneNumber = CNPhoneNumber.phoneNumberWithStringValue(stringValue = number)
                     CNLabeledValue.labeledValueWithLabel(
-                        CNLabelPhoneNumberMobile,
-                        phoneNumber
+                        label = CNLabelPhoneNumberMobile,
+                        value = phoneNumber
                     )
                 }
-                newContact.setPhoneNumbers(phoneNumbers)
+                newContact.phoneNumbers = phoneNumbers
 
-                // Set emails - need to convert String to NSString for NSCopyingProtocol
+                // Set emails
                 val emailAddresses = contact.emails.mapNotNull { email ->
-                    @Suppress("CAST_NEVER_SUCCEEDS")
-                    val nsEmail = NSString.create(string = email)
-                    CNLabeledValue.labeledValueWithLabel(CNLabelHome, nsEmail)
+                    CNLabeledValue.labeledValueWithLabel(
+                        label = CNLabelHome,
+                        value = NSString.create(string = email)
+                    )
                 }
-                newContact.setEmailAddresses(emailAddresses)
+                newContact.emailAddresses = emailAddresses
 
                 saveRequest.addContact(newContact, toContainerWithIdentifier = null)
             }
@@ -371,32 +398,48 @@ class IosContactsSource {
      * Merge contacts (aggregate into one).
      * Note: iOS doesn't have the same aggregation concept as Android.
      * This implementation creates a new contact with merged data and deletes the old ones.
+     *
+     * @param platformUids List of iOS CNContact identifiers to merge
+     * @param customName Optional custom name for the merged contact
      */
-    suspend fun mergeContacts(contactIds: List<Long>, customName: String? = null): Boolean = withContext(Dispatchers.IO) {
-        if (contactIds.size < 2) return@withContext false
+    suspend fun mergeContacts(platformUids: List<String>, customName: String? = null): Boolean = withContext(Dispatchers.IO) {
+        if (platformUids.size < 2) return@withContext false
+
+        // 2026 Best Practice: Check permission before write operations
+        if (!ensureWritePermission()) return@withContext false
 
         try {
-            // Fetch all contacts to merge
+            // Fetch contacts by their platform UIDs
             val contactsToMerge = mutableListOf<Contact>()
+            // 2026 Fix: Include all keys needed by cnContactToContact to avoid runtime crashes
             val keysToFetch = listOf(
                 CNContactIdentifierKey,
                 CNContactGivenNameKey,
                 CNContactFamilyNameKey,
+                CNContactMiddleNameKey,
                 CNContactPhoneNumbersKey,
-                CNContactEmailAddressesKey
+                CNContactEmailAddressesKey,
+                CNContactSocialProfilesKey,
+                CNContactInstantMessageAddressesKey,
+                CNContactOrganizationNameKey
             )
-            val request = CNContactFetchRequest(keysToFetch = keysToFetch)
 
-            memScoped {
-                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-                contactStore.enumerateContactsWithFetchRequest(
-                    request,
-                    error = errorPtr.ptr
-                ) { cnContact, _ ->
-                    cnContact?.let { contact ->
-                        val contactId = contact.identifier.hashCode().toLong().let { if (it < 0) -it else it }
-                        if (contactId in contactIds) {
-                            contactsToMerge.add(cnContactToContact(contact, "Local", "Device"))
+            for (uid in platformUids) {
+                memScoped {
+                    val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                    val cnContact = contactStore.unifiedContactWithIdentifier(uid, keysToFetch, errorPtr.ptr)
+                    val nsError = errorPtr.value
+                    when {
+                        nsError != null -> {
+                            // 2026 Best Practice: Log errors for invalid UIDs instead of silent failure
+                            println("⚠️ Failed to fetch contact UID '$uid': ${nsError.localizedDescription}")
+                        }
+                        cnContact != null -> {
+                            contactsToMerge.add(cnContactToContact(cnContact, "Local", "Device"))
+                        }
+                        else -> {
+                            // 2026 Best Practice: Log when UID doesn't resolve to a contact
+                            println("⚠️ Contact not found for UID '$uid'")
                         }
                     }
                 }
@@ -405,23 +448,34 @@ class IosContactsSource {
             if (contactsToMerge.size < 2) return@withContext false
 
             // Create merged contact
-            val primaryContact = contactsToMerge.first()
+            // 2026 Best Practice: Use firstOrNull() for defensive coding even after size check
+            val primaryContact = contactsToMerge.firstOrNull() ?: return@withContext false
             val allNumbers = contactsToMerge.flatMap { it.numbers }.distinct()
             val allEmails = contactsToMerge.flatMap { it.emails }.distinct()
 
             val mergedContact = Contact(
-                id = 0,
+                id = 0L,
                 name = customName ?: primaryContact.name,
                 numbers = allNumbers,
                 emails = allEmails,
                 normalizedNumber = allNumbers.firstOrNull()
             )
 
-            // Delete old contacts and add merged one
-            val deleted = deleteContacts(contactIds)
-            if (!deleted) return@withContext false
+            // 2026 Fix: Atomic merge - create new contact FIRST, then delete old ones
+            // This prevents data loss if creation fails
+            val restored = restoreContacts(listOf(mergedContact))
+            if (!restored) {
+                println("Failed to create merged contact - aborting merge to prevent data loss")
+                return@withContext false
+            }
 
-            restoreContacts(listOf(mergedContact))
+            // Only delete old contacts after new one is successfully created
+            val deleted = deleteContacts(platformUids)
+            if (!deleted) {
+                println("Warning: Merged contact created but failed to delete old contacts")
+                // Still return true since the merge data is preserved
+            }
+            true
         } catch (e: Exception) {
             println("Error merging contacts: ${e.message}")
             false
@@ -430,62 +484,59 @@ class IosContactsSource {
 
     /**
      * Update a contact's phone number.
+     *
+     * @param platformUid iOS CNContact identifier
+     * @param newNumber New phone number to set
      */
-    suspend fun updateContactNumber(contactId: Long, newNumber: String): Boolean = withContext(Dispatchers.IO) {
+    suspend fun updateContactNumber(platformUid: String, newNumber: String): Boolean = withContext(Dispatchers.IO) {
+        // 2026 Best Practice: Check permission before write operations
+        if (!ensureWritePermission()) return@withContext false
+
         try {
             val keysToFetch = listOf(
                 CNContactIdentifierKey,
                 CNContactPhoneNumbersKey
             )
-            val request = CNContactFetchRequest(keysToFetch = keysToFetch)
 
-            var updated = false
-            memScoped {
+            // 2026 Fix: Extract result from memScoped to ensure proper propagation
+            val success = memScoped {
                 val errorPtr = alloc<ObjCObjectVar<NSError?>>()
-                contactStore.enumerateContactsWithFetchRequest(
-                    request,
-                    error = errorPtr.ptr
-                ) { cnContact, stop ->
-                    cnContact?.let { contact ->
-                        val id = contact.identifier.hashCode().toLong().let { if (it < 0) -it else it }
-                        if (id == contactId) {
-                            val mutableContact = contact.mutableCopy() as? CNMutableContact
-                            mutableContact?.let { mutable ->
-                                // Update the first phone number
-                                val newPhoneNumbers = mutableListOf<Any?>()
-                                val newLabeledValue = CNLabeledValue.labeledValueWithLabel(
-                                    CNLabelPhoneNumberMobile,
-                                    CNPhoneNumber.phoneNumberWithStringValue(newNumber)
-                                )
-                                newPhoneNumbers.add(newLabeledValue)
+                val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
-                                // Keep other numbers
-                                @Suppress("UNCHECKED_CAST")
-                                val existingNumbers = contact.phoneNumbers as? List<CNLabeledValue> ?: emptyList()
-                                if (existingNumbers.size > 1) {
-                                    newPhoneNumbers.addAll(existingNumbers.drop(1))
-                                }
-
-                                mutable.setPhoneNumbers(newPhoneNumbers)
-
-                                val saveRequest = CNSaveRequest()
-                                saveRequest.updateContact(mutable)
-
-                                val saveErrorPtr = alloc<ObjCObjectVar<NSError?>>()
-                                contactStore.executeSaveRequest(saveRequest, error = saveErrorPtr.ptr)
-
-                                if (saveErrorPtr.value == null) {
-                                    updated = true
-                                }
-                            }
-                            // Stop enumeration by setting the pointer value
-                            stop?.pointed?.value = true
-                        }
-                    }
+                if (cnContact == null || errorPtr.value != null) {
+                    println("Contact not found for UID: $platformUid")
+                    return@memScoped false
                 }
-            }
 
-            updated
+                val mutableContact = cnContact.mutableCopy() as? CNMutableContact
+                    ?: return@memScoped false
+
+                // Update the first phone number
+                val newPhoneNumbers = mutableListOf<Any?>()
+                val newLabeledValue = CNLabeledValue.labeledValueWithLabel(
+                    label = CNLabelPhoneNumberMobile,
+                    value = CNPhoneNumber.phoneNumberWithStringValue(stringValue = newNumber)
+                )
+                newPhoneNumbers.add(newLabeledValue)
+
+                // Keep other numbers
+                @Suppress("UNCHECKED_CAST")
+                val existingNumbers = cnContact.phoneNumbers as? List<CNLabeledValue> ?: emptyList()
+                if (existingNumbers.size > 1) {
+                    newPhoneNumbers.addAll(existingNumbers.drop(1))
+                }
+
+                mutableContact.phoneNumbers = newPhoneNumbers
+
+                val saveRequest = CNSaveRequest()
+                saveRequest.updateContact(mutableContact)
+
+                val saveErrorPtr = alloc<ObjCObjectVar<NSError?>>()
+                contactStore.executeSaveRequest(saveRequest, error = saveErrorPtr.ptr)
+
+                saveErrorPtr.value == null
+            }
+            success
         } catch (e: Exception) {
             println("Error updating contact: ${e.message}")
             false

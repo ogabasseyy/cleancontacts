@@ -9,6 +9,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Results ViewModel for Compose Multiplatform.
@@ -26,7 +29,8 @@ class ResultsViewModel(
     private val scanResultProvider: ScanResultProvider,
     private val contactRepository: com.ogabassey.contactscleaner.domain.repository.ContactRepository,
     private val cleanupContactsUseCase: com.ogabassey.contactscleaner.domain.usecase.CleanupContactsUseCase,
-    val billingRepository: BillingRepository,
+    // 2026 Fix: Make private to encapsulate implementation detail
+    private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository,
     private val undoUseCase: com.ogabassey.contactscleaner.domain.usecase.UndoUseCase // Added
 ) : ViewModel() {
@@ -68,6 +72,8 @@ class ResultsViewModel(
         viewModelScope.launch {
             try {
                 _accountGroups.value = contactRepository.getAccountGroups()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // handle error
             }
@@ -81,14 +87,17 @@ class ResultsViewModel(
         res.junkCount + res.duplicateCount + res.formatIssueCount + res.sensitiveCount + res.fancyFontCount
     } ?: 0 }
 
-    private var pendingAction: (() -> Unit)? = null
+    // 2026 Best Practice: Mutex for thread-safe access to pendingAction
+    private val actionMutex = Mutex()
+    private var pendingAction: (suspend () -> Unit)? = null
 
     /**
      * Run an action with premium/trial check.
      * Shows paywall if user has exhausted free actions and is not premium.
      */
     private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
-        val isPremium = billingRepository.isPremium.value
+        // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
+        val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
@@ -97,23 +106,44 @@ class ResultsViewModel(
                 usageRepository.incrementFreeActions()
             }
         } else {
-            pendingAction = {
-                viewModelScope.launch { runWithPremiumCheck(action) }
+            actionMutex.withLock {
+                pendingAction = action
             }
             _uiState.value = ResultsUiState.ShowPaywall
         }
     }
 
+    /**
+     * Retry pending action after paywall dismissal.
+     * 2026 Fix: Don't unconditionally set Idle - let the action determine final state
+     * 2026 Fix: Increment free-action usage on retry for non-premium users
+     */
     fun retryPendingAction() {
         viewModelScope.launch {
-            val isPremium = billingRepository.isPremium.value
+            val isPremium = billingRepository.isPremium.first()
             val canPerform = usageRepository.canPerformFreeAction()
 
             if (isPremium || canPerform) {
-                pendingAction?.invoke()
-                pendingAction = null
+                val action = actionMutex.withLock {
+                    val temp = pendingAction
+                    pendingAction = null
+                    temp
+                }
+                if (action != null) {
+                    action.invoke()
+                    // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
+                    // This way, failed actions don't consume the user's free trial
+                    if (!isPremium) {
+                        usageRepository.incrementFreeActions()
+                    }
+                } else {
+                    // No pending action - safe to set Idle
+                    _uiState.value = ResultsUiState.Idle
+                }
+            } else {
+                // Still can't perform - show paywall again
+                _uiState.value = ResultsUiState.ShowPaywall
             }
-            _uiState.value = ResultsUiState.Idle
         }
     }
 
@@ -124,6 +154,8 @@ class ResultsViewModel(
                 val result = contactRepository.getContactsSnapshotByType(type)
                 _contacts.value = result
                 _uiState.value = ResultsUiState.Idle
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = ResultsUiState.Error("Failed to load contacts: ${e.message}")
             }
@@ -134,8 +166,11 @@ class ResultsViewModel(
         viewModelScope.launch {
             try {
                 _duplicateGroups.value = contactRepository.getDuplicateGroups(type)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                 // Silent error for groups for now
+                println("Error loading duplicate groups: ${e.message}")
+                _duplicateGroups.value = emptyList()
             }
         }
     }
@@ -160,6 +195,8 @@ class ResultsViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
                 }
@@ -187,6 +224,8 @@ class ResultsViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
                 }
@@ -198,6 +237,22 @@ class ResultsViewModel(
 
     fun resetState() {
         _uiState.value = ResultsUiState.Idle
+    }
+
+    /**
+     * Recalculate WhatsApp/Non-WhatsApp counts after sync completes.
+     * Updates contact flags in DB based on cached WhatsApp numbers.
+     */
+    fun recalculateWhatsAppCounts() {
+        viewModelScope.launch {
+            try {
+                contactRepository.recalculateWhatsAppCounts()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
+            }
+        }
     }
 }
 

@@ -1,21 +1,50 @@
 package com.ogabassey.contactscleaner.data.source
 
+import android.Manifest
 import android.content.ContentResolver
+import android.content.Context
 import android.content.OperationApplicationException
+import android.content.pm.PackageManager
 import android.os.RemoteException
 import android.provider.ContactsContract
+import androidx.core.content.ContextCompat
 import com.ogabassey.contactscleaner.domain.model.Contact
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
-class ContactsProviderSource @Inject constructor(
+class ContactsProviderSource(
+    private val context: Context,
     private val contentResolver: ContentResolver
 ) {
 
+    // 2026 Best Practice: Defensive permission checks in data layer
+    // These are safety nets - UI layer should request permissions before calling these methods
+    private fun hasReadPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_CONTACTS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasWritePermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.WRITE_CONTACTS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     suspend fun getAllContacts(): List<Contact> = withContext(Dispatchers.IO) {
+        // 2026 Best Practice: Defensive permission check
+        if (!hasReadPermission()) {
+            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted")
+            return@withContext emptyList()
+        }
         val whatsAppIds = getWhatsAppContactIds()
-        val accountTypesMap = getContactAccountTypes()
+        // 2026 Best Practice: Removed unused getContactAccountTypes() call
+        // Account types are now fetched atomically in getContactsStreaming() via RawContactsEntity
 
         val contactsMap = mutableMapOf<Long, Contact>()
 
@@ -33,10 +62,14 @@ class ContactsProviderSource @Inject constructor(
             val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
             val nameIdx = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
 
+            // 2026 Best Practice: Validate column indices before use
+            if (idIdx < 0) return@use
+
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idIdx)
-                val name = cursor.getString(nameIdx)
-                
+                // 2026 Best Practice: Consistent null handling for cursor strings
+                val name = if (nameIdx >= 0) cursor.getString(nameIdx) else null
+
                 contactsMap[id] = Contact(
                     id = id,
                     name = name,
@@ -63,16 +96,22 @@ class ContactsProviderSource @Inject constructor(
             val numIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
             val normIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER)
 
+            // 2026 Best Practice: Validate required column indices
+            if (idIdx < 0) return@use
+
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idIdx)
-                val number = cursor.getString(numIdx)  // RAW number as stored by user
-                val normalized = cursor.getString(normIdx)  // Provider's normalized version
+                // 2026 Best Practice: Consistent null handling with index validation
+                val number = if (numIdx >= 0) cursor.getString(numIdx) else null
+                val normalized = if (normIdx >= 0) cursor.getString(normIdx) else null
 
                 contactsMap[id]?.let { contact ->
                     // Store RAW number in numbers list (for format detection)
-                    (contact.numbers as MutableList).add(number ?: "")
+                    if (!number.isNullOrBlank()) {
+                        (contact.numbers as MutableList).add(number)
+                    }
                     // Set normalizedNumber from Provider if available
-                    if (normalized != null && contact.normalizedNumber == null) {
+                    if (!normalized.isNullOrBlank() && contact.normalizedNumber == null) {
                         contactsMap[id] = contact.copy(normalizedNumber = normalized)
                     }
                 }
@@ -92,10 +131,14 @@ class ContactsProviderSource @Inject constructor(
         )?.use { cursor ->
             val idIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
             val addrIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS)
-            
+
+            // 2026 Best Practice: Validate required column indices
+            if (idIdx < 0) return@use
+
             while(cursor.moveToNext()) {
                 val id = cursor.getLong(idIdx)
-                val address = cursor.getString(addrIdx)
+                // 2026 Best Practice: Consistent null handling with index validation
+                val address = if (addrIdx >= 0) cursor.getString(addrIdx) else null
                 if (!address.isNullOrBlank()) {
                     contactsMap[id]?.let { contact ->
                         (contact.emails as MutableList).add(address)
@@ -233,13 +276,20 @@ class ContactsProviderSource @Inject constructor(
     }
 
     suspend fun getContactsSnapshot(
-        batchIds: List<Long>, 
-        whatsAppIds: Set<Long>, 
+        batchIds: List<Long>,
+        whatsAppIds: Set<Long>,
         telegramIds: Set<Long>
     ): List<Contact> = withContext(Dispatchers.IO) {
         if (batchIds.isEmpty()) return@withContext emptyList()
-        
-        val accountTypesMap = getContactAccountTypes() 
+
+        // 2026 Best Practice: Defensive permission check
+        if (!hasReadPermission()) {
+            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted for snapshot")
+            return@withContext emptyList()
+        }
+
+        // 2026 Best Practice: Removed unused getContactAccountTypes() call
+        // Account types are fetched atomically in getContactsStreaming() via RawContactsEntity
         val contactsMap = batchIds.associateWith { id ->
             Contact(
                 id = id,
@@ -250,13 +300,15 @@ class ContactsProviderSource @Inject constructor(
             )
         }.toMutableMap()
 
-        val idListStr = batchIds.joinToString(",")
+        // 2026 Best Practice: Use parameterized queries to prevent SQL injection
+        val placeholders = batchIds.joinToString(",") { "?" }
+        val selectionArgs = batchIds.map { it.toString() }.toTypedArray()
 
         contentResolver.query(
             ContactsContract.Contacts.CONTENT_URI,
             arrayOf(ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME),
-            "${ContactsContract.Contacts._ID} IN ($idListStr)",
-            null,
+            "${ContactsContract.Contacts._ID} IN ($placeholders)",
+            selectionArgs,
             null
         )?.use { cursor ->
             val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
@@ -275,8 +327,8 @@ class ContactsProviderSource @Inject constructor(
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                 ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER
             ),
-            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} IN ($idListStr)",
-            null,
+            "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} IN ($placeholders)",
+            selectionArgs,
             null
         )?.use { cursor ->
             val idIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
@@ -303,8 +355,8 @@ class ContactsProviderSource @Inject constructor(
                 ContactsContract.CommonDataKinds.Email.CONTACT_ID,
                 ContactsContract.CommonDataKinds.Email.ADDRESS
             ),
-            "${ContactsContract.CommonDataKinds.Email.CONTACT_ID} IN ($idListStr)",
-            null,
+            "${ContactsContract.CommonDataKinds.Email.CONTACT_ID} IN ($placeholders)",
+            selectionArgs,
             null
         )?.use { cursor ->
             val idIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
@@ -328,19 +380,33 @@ class ContactsProviderSource @Inject constructor(
     }
     
     // Optimized Single-Pass Cursor Streaming (2026 Best Practice)
+    // Fixed: Added error handling and flowOn for proper IO dispatching
+    // 2026 Best Practice: Uses RawContactsEntity for atomic contact+account reads (Bug 5.5 fix)
     fun getContactsStreaming(batchSize: Int = 1000): kotlinx.coroutines.flow.Flow<List<Contact>> = kotlinx.coroutines.flow.flow {
-        val uri = ContactsContract.Data.CONTENT_URI
+        // 2026 Best Practice: Defensive permission check
+        if (!hasReadPermission()) {
+            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted for streaming")
+            return@flow // Empty flow
+        }
+
+        try {
+        // 2026 Best Practice: Use RawContactsEntity for atomic reads of contact data + account info
+        // This eliminates the race condition where account info could become stale between queries
+        val uri = ContactsContract.RawContactsEntity.CONTENT_URI
         val projection = arrayOf(
-            ContactsContract.Data.CONTACT_ID,
-            ContactsContract.Data.DISPLAY_NAME_PRIMARY,
-            ContactsContract.Data.MIMETYPE,
+            ContactsContract.RawContactsEntity.CONTACT_ID,
+            ContactsContract.RawContactsEntity.DATA1, // Generic data column (name, phone, email based on mimetype)
+            ContactsContract.RawContactsEntity.MIMETYPE,
             ContactsContract.CommonDataKinds.Phone.NUMBER,
             ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER,
-            ContactsContract.CommonDataKinds.Email.ADDRESS
+            ContactsContract.CommonDataKinds.Email.ADDRESS,
+            // 2026 Best Practice: Account info in same query - atomic read
+            ContactsContract.RawContacts.ACCOUNT_TYPE,
+            ContactsContract.RawContacts.ACCOUNT_NAME
         )
-        // Sort by ID to group rows for the same contact together - CRITICAL for O(1) processing
-        val sortOrder = "${ContactsContract.Data.CONTACT_ID} ASC"
-        val selection = "${ContactsContract.Data.MIMETYPE} LIKE ? OR ${ContactsContract.Data.MIMETYPE} LIKE ? OR ${ContactsContract.Data.MIMETYPE} IN (?, ?, ?)"
+        // Sort by CONTACT_ID to group rows for the same contact together - CRITICAL for O(1) processing
+        val sortOrder = "${ContactsContract.RawContactsEntity.CONTACT_ID} ASC"
+        val selection = "${ContactsContract.RawContactsEntity.MIMETYPE} LIKE ? OR ${ContactsContract.RawContactsEntity.MIMETYPE} LIKE ? OR ${ContactsContract.RawContactsEntity.MIMETYPE} IN (?, ?, ?)"
         val selectionArgs = arrayOf(
             "%whatsapp%",
             "%telegram%",
@@ -352,23 +418,38 @@ class ContactsProviderSource @Inject constructor(
         val batch = ArrayList<Contact>(batchSize)
         val whatsAppIds = getWhatsAppContactIds()
         val telegramIds = getTelegramContactIds()
-        val accountMap = getContactAccountTypes()
+        // 2026 Best Practice: No separate getContactAccountTypes() call needed - extracted atomically below
 
         var currentId = -1L
         var currentName: String? = null
         val currentNumbers = mutableListOf<String>()
         val currentEmails = mutableListOf<String>()
         var currentNormalizedNumber: String? = null
+        // 2026 Best Practice: Account info extracted atomically from same cursor
+        var currentAccountType: String? = null
+        var currentAccountName: String? = null
 
         contentResolver.query(uri, projection, selection, selectionArgs, sortOrder)?.use { cursor ->
-            val idIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
-            val nameIdx = cursor.getColumnIndex(ContactsContract.Data.DISPLAY_NAME_PRIMARY)
-            val mimeIdx = cursor.getColumnIndex(ContactsContract.Data.MIMETYPE)
+            val idIdx = cursor.getColumnIndex(ContactsContract.RawContactsEntity.CONTACT_ID)
+            val data1Idx = cursor.getColumnIndex(ContactsContract.RawContactsEntity.DATA1)
+            val mimeIdx = cursor.getColumnIndex(ContactsContract.RawContactsEntity.MIMETYPE)
             val numIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
             val normIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER)
             val emailIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS)
+            // 2026 Best Practice: Account indices for atomic read
+            val accountTypeIdx = cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_TYPE)
+            val accountNameIdx = cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)
+
+            // 2026 Best Practice: Cooperative cancellation counter for large cursor iterations
+            var iterationCount = 0
 
             while (cursor.moveToNext()) {
+                // 2026 Best Practice: Check for cancellation every 100 rows
+                // This ensures the flow can be cancelled even during long cursor iterations
+                if (++iterationCount % 100 == 0) {
+                    currentCoroutineContext().ensureActive()
+                }
+
                 val id = cursor.getLong(idIdx)
 
                 if (id != currentId) {
@@ -386,8 +467,9 @@ class ContactsProviderSource @Inject constructor(
                                 isJunk = false,
                                 junkType = null,
                                 duplicateType = null,
-                                accountType = accountMap[currentId]?.first,
-                                accountName = accountMap[currentId]?.second,
+                                // 2026 Best Practice: Account info from atomic read
+                                accountType = currentAccountType,
+                                accountName = currentAccountName,
                                 isSensitive = false,
                                 sensitiveDescription = null,
                                 formatIssue = null
@@ -398,23 +480,35 @@ class ContactsProviderSource @Inject constructor(
                             batch.clear()
                         }
                     }
-                    // Reset
+                    // Reset for new contact
                     currentId = id
-                    currentName = cursor.getString(nameIdx)
+                    currentName = if (data1Idx >= 0) cursor.getString(data1Idx) else null
                     currentNumbers.clear()
                     currentEmails.clear()
                     currentNormalizedNumber = null
+                    // 2026 Best Practice: Reset account info for new contact
+                    currentAccountType = null
+                    currentAccountName = null
                 }
 
-                val mimeType = cursor.getString(mimeIdx)
+                // 2026 Best Practice: Extract account info from first row of each contact (atomic)
+                if (currentAccountType == null && accountTypeIdx >= 0) {
+                    val accType = cursor.getString(accountTypeIdx)
+                    if (!accType.isNullOrBlank()) {
+                        currentAccountType = accType
+                        currentAccountName = if (accountNameIdx >= 0) cursor.getString(accountNameIdx) else null
+                    }
+                }
+
+                val mimeType = if (mimeIdx >= 0) cursor.getString(mimeIdx) else null
                 when (mimeType) {
                     ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE -> {
-                        val name = cursor.getString(nameIdx)
+                        val name = if (data1Idx >= 0) cursor.getString(data1Idx) else null
                         if (!name.isNullOrBlank()) currentName = name
                     }
                     ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE -> {
-                        val num = cursor.getString(numIdx)  // RAW number
-                        val norm = cursor.getString(normIdx)  // Normalized (with +)
+                        val num = if (numIdx >= 0) cursor.getString(numIdx) else null  // RAW number
+                        val norm = if (normIdx >= 0) cursor.getString(normIdx) else null  // Normalized (with +)
                         // Always add RAW number for format detection
                         if (!num.isNullOrBlank()) {
                             currentNumbers.add(num)
@@ -425,7 +519,7 @@ class ContactsProviderSource @Inject constructor(
                         }
                     }
                     ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE -> {
-                        val email = cursor.getString(emailIdx)
+                        val email = if (emailIdx >= 0) cursor.getString(emailIdx) else null
                         if (!email.isNullOrBlank()) currentEmails.add(email)
                     }
                 }
@@ -445,8 +539,9 @@ class ContactsProviderSource @Inject constructor(
                         isJunk = false,
                         junkType = null,
                         duplicateType = null,
-                        accountType = accountMap[currentId]?.first,
-                        accountName = accountMap[currentId]?.second,
+                        // 2026 Best Practice: Account info from atomic read
+                        accountType = currentAccountType,
+                        accountName = currentAccountName,
                         isSensitive = false,
                         sensitiveDescription = null,
                         formatIssue = null
@@ -457,7 +552,14 @@ class ContactsProviderSource @Inject constructor(
                 emit(batch)
             }
         }
-    }
+        } catch (e: SecurityException) {
+            android.util.Log.e("ContactsProviderSource", "Permission denied: ${e.message}")
+            // Don't emit - caller should handle empty flow
+        } catch (e: Exception) {
+            android.util.Log.e("ContactsProviderSource", "Error streaming contacts: ${e.message}")
+            throw e // Re-throw for upstream handling
+        }
+    }.flowOn(Dispatchers.IO) // 2026 Best Practice: Ensure IO dispatcher for ContentProvider
 
     suspend fun getRawContactCount(): Int = withContext(Dispatchers.IO) {
         var count = 0
@@ -477,7 +579,13 @@ class ContactsProviderSource @Inject constructor(
 
     suspend fun deleteContacts(contactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {
         if (contactIds.isEmpty()) return@withContext true
-        
+
+        // 2026 Best Practice: Defensive permission check for write operation
+        if (!hasWritePermission()) {
+            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for delete")
+            return@withContext false
+        }
+
         // 2026 Android Best Practice: 
         // To delete a "Contact", we must delete all its constituent "RawContacts".
         // Using Contacts.CONTENT_URI with CONTACT_ID selection is more reliable for 
@@ -509,17 +617,25 @@ class ContactsProviderSource @Inject constructor(
     suspend fun mergeContacts(contactIds: List<Long>, customName: String? = null): Boolean = withContext(Dispatchers.IO) {
         if (contactIds.size < 2) return@withContext false
 
+        // 2026 Best Practice: Defensive permission check for write operation
+        if (!hasWritePermission()) {
+            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for merge")
+            return@withContext false
+        }
+
         // 1. Get a RawContactID for each ContactID
         val rawIds = mutableListOf<Long>()
         // Optimization: Query all at once or in batches if possible, but one-by-one is safer for mapping strictly
         // To do it in one query: SELECT _id, contact_id FROM raw_contacts WHERE contact_id IN (...)
-        
-        val idListStr = contactIds.joinToString(",")
+
+        // 2026 Best Practice: Use parameterized queries to prevent SQL injection
+        val placeholders = contactIds.joinToString(",") { "?" }
+        val selectionArgs = contactIds.map { it.toString() }.toTypedArray()
         contentResolver.query(
             ContactsContract.RawContacts.CONTENT_URI,
             arrayOf(ContactsContract.RawContacts._ID, ContactsContract.RawContacts.CONTACT_ID),
-            "${ContactsContract.RawContacts.CONTACT_ID} IN ($idListStr)",
-            null,
+            "${ContactsContract.RawContacts.CONTACT_ID} IN ($placeholders)",
+            selectionArgs,
             null
         )?.use { cursor ->
             val rawIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts._ID)
@@ -579,15 +695,22 @@ class ContactsProviderSource @Inject constructor(
 
     suspend fun updateMultipleContactNumbers(updates: Map<Long, String>): Boolean = withContext(Dispatchers.IO) {
         if (updates.isEmpty()) return@withContext true
-        
+
+        // 2026 Best Practice: Defensive permission check for write operation
+        if (!hasWritePermission()) {
+            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for update")
+            return@withContext false
+        }
+
         val contactIds = updates.keys.toList()
         val allOps = ArrayList<android.content.ContentProviderOperation>()
         
         // 1. Process in chunks of 200 (Large enough for throughput, small enough for IPC limits)
         contactIds.chunked(200).forEach { batchIds ->
-            val idListStr = batchIds.joinToString(",")
-            val selection = "${ContactsContract.Data.CONTACT_ID} IN ($idListStr) AND ${ContactsContract.Data.MIMETYPE} = ?"
-            val selectionArgs = arrayOf(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+            // 2026 Best Practice: Use parameterized queries to prevent SQL injection
+            val placeholders = batchIds.joinToString(",") { "?" }
+            val selection = "${ContactsContract.Data.CONTACT_ID} IN ($placeholders) AND ${ContactsContract.Data.MIMETYPE} = ?"
+            val selectionArgs = batchIds.map { it.toString() }.toTypedArray() + ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
             
             val ops = ArrayList<android.content.ContentProviderOperation>()
             
@@ -639,9 +762,16 @@ class ContactsProviderSource @Inject constructor(
     }
 
     suspend fun updateContactNumber(contactId: Long, newNumber: String): Boolean = updateMultipleContactNumbers(mapOf(contactId to newNumber))
+
     suspend fun restoreContacts(contacts: List<Contact>): Boolean = withContext(Dispatchers.IO) {
         if (contacts.isEmpty()) return@withContext true
-        
+
+        // 2026 Best Practice: Defensive permission check for write operation
+        if (!hasWritePermission()) {
+            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for restore")
+            return@withContext false
+        }
+
         val operations = ArrayList<android.content.ContentProviderOperation>()
         
         contacts.forEach { contact ->

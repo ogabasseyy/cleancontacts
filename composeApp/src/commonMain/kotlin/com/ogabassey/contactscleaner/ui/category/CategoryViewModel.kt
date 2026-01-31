@@ -251,88 +251,47 @@ class CategoryViewModel(
     }
 
     /**
-     * Export current contacts to CSV format.
-     * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
-     * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
-     * Cancels any previous export job to prevent race conditions.
+     * Helper function to perform export with proper job cancellation and exception handling.
+     * 2026 Best Practice: Centralized export logic to reduce duplication.
+     * - Cancels any previous export job first to prevent race conditions
+     * - Runs export on Default dispatcher to avoid UI jank with large contact lists (50k+)
+     * - Handles exceptions gracefully
      */
-    fun exportToCsv() {
-        val contactsToExport = _contacts.value
-        if (contactsToExport.isEmpty()) {
+    private fun performExport(contacts: List<Contact>, exporter: (List<Contact>) -> String) {
+        // Cancel previous job FIRST, before any other logic
+        exportJob?.cancel()
+
+        if (contacts.isEmpty()) {
             _exportData.value = null
             return
         }
-        exportJob?.cancel()
+
         exportJob = viewModelScope.launch {
-            val csv = withContext(Dispatchers.Default) {
-                ExportUtils.contactsToCsv(contactsToExport)
+            try {
+                val result = withContext(Dispatchers.Default) {
+                    exporter(contacts)
+                }
+                _exportData.value = result
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Log error but don't crash - just clear export data
+                _exportData.value = null
             }
-            _exportData.value = csv
         }
     }
 
-    /**
-     * Export current contacts to vCard format.
-     * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
-     * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
-     * Cancels any previous export job to prevent race conditions.
-     */
-    fun exportToVCard() {
-        val contactsToExport = _contacts.value
-        if (contactsToExport.isEmpty()) {
-            _exportData.value = null
-            return
-        }
-        exportJob?.cancel()
-        exportJob = viewModelScope.launch {
-            val vcard = withContext(Dispatchers.Default) {
-                ExportUtils.contactsToVCard(contactsToExport)
-            }
-            _exportData.value = vcard
-        }
-    }
+    /** Export current contacts to CSV format. */
+    fun exportToCsv() = performExport(_contacts.value, ExportUtils::contactsToCsv)
 
-    /**
-     * Export group contacts to CSV format.
-     * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
-     * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
-     * Cancels any previous export job to prevent race conditions.
-     */
-    fun exportGroupToCsv() {
-        val contactsToExport = _groupContacts.value
-        if (contactsToExport.isEmpty()) {
-            _exportData.value = null
-            return
-        }
-        exportJob?.cancel()
-        exportJob = viewModelScope.launch {
-            val csv = withContext(Dispatchers.Default) {
-                ExportUtils.contactsToCsv(contactsToExport)
-            }
-            _exportData.value = csv
-        }
-    }
+    /** Export current contacts to vCard format. */
+    fun exportToVCard() = performExport(_contacts.value, ExportUtils::contactsToVCard)
 
-    /**
-     * Export group contacts to vCard format.
-     * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
-     * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
-     * Cancels any previous export job to prevent race conditions.
-     */
-    fun exportGroupToVCard() {
-        val contactsToExport = _groupContacts.value
-        if (contactsToExport.isEmpty()) {
-            _exportData.value = null
-            return
-        }
-        exportJob?.cancel()
-        exportJob = viewModelScope.launch {
-            val vcard = withContext(Dispatchers.Default) {
-                ExportUtils.contactsToVCard(contactsToExport)
-            }
-            _exportData.value = vcard
-        }
-    }
+    /** Export group contacts to CSV format. */
+    fun exportGroupToCsv() = performExport(_groupContacts.value, ExportUtils::contactsToCsv)
+
+    /** Export group contacts to vCard format. */
+    fun exportGroupToVCard() = performExport(_groupContacts.value, ExportUtils::contactsToVCard)
 
     /**
      * Clear export data after user has copied/shared.

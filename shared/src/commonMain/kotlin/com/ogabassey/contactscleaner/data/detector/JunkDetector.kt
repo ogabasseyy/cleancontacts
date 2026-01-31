@@ -24,13 +24,12 @@ class JunkDetector(
 
     // 2026 Optimization: O(N) character checks instead of regex engine overhead
 
-    /** Valid phone number chars: digits, +, -, space, parentheses */
+    /** Valid phone number chars: digits, whitespace, +, -, parentheses */
     private fun isValidNumberChar(c: Char): Boolean =
-        c in '0'..'9' || c == '+' || c == '-' || c == ' ' || c == '(' || c == ')'
+        c in '0'..'9' || c.isWhitespace() || c == '+' || c == '-' || c == '(' || c == ')'
 
-    /** Valid numerical name chars: digits, +, -, space, parentheses */
-    private fun isNumericalNameChar(c: Char): Boolean =
-        c in '0'..'9' || c == '+' || c == '-' || c == ' ' || c == '(' || c == ')'
+    /** Valid numerical name chars - same as phone number chars */
+    private fun isNumericalNameChar(c: Char): Boolean = isValidNumberChar(c)
 
     /** Check for 6+ consecutive identical digits (e.g., "111111") */
     private fun hasRepetitiveDigits(digits: String): Boolean {

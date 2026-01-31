@@ -22,6 +22,46 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ContactDao {
 
+    // --- Consolidated Scan Stats Query (2026 Performance Optimization) ---
+    /**
+     * 2026 Best Practice: Single query to retrieve all scan statistics.
+     * Consolidates 23 separate COUNT queries into one optimized query.
+     * Uses CASE WHEN expressions for conditional counting.
+     */
+    @Query("""
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN is_whatsapp = 1 THEN 1 ELSE 0 END) as whatsAppCount,
+            SUM(CASE WHEN is_telegram = 1 THEN 1 ELSE 0 END) as telegramCount,
+            SUM(CASE WHEN is_junk = 1 THEN 1 ELSE 0 END) as junkCount,
+            SUM(CASE WHEN duplicate_type IS NOT NULL THEN 1 ELSE 0 END) as duplicateCount,
+            SUM(CASE WHEN junk_type = 'NO_NAME' THEN 1 ELSE 0 END) as noNameCount,
+            SUM(CASE WHEN junk_type = 'NO_NUMBER' THEN 1 ELSE 0 END) as noNumberCount,
+            SUM(CASE WHEN junk_type = 'INVALID_CHAR' THEN 1 ELSE 0 END) as invalidCharCount,
+            SUM(CASE WHEN junk_type = 'LONG_NUMBER' THEN 1 ELSE 0 END) as longNumberCount,
+            SUM(CASE WHEN junk_type = 'SHORT_NUMBER' THEN 1 ELSE 0 END) as shortNumberCount,
+            SUM(CASE WHEN junk_type = 'REPETITIVE_DIGITS' THEN 1 ELSE 0 END) as repetitiveNumberCount,
+            SUM(CASE WHEN junk_type = 'SYMBOL_NAME' THEN 1 ELSE 0 END) as symbolNameCount,
+            SUM(CASE WHEN junk_type = 'NUMERICAL_NAME' THEN 1 ELSE 0 END) as numericalNameCount,
+            SUM(CASE WHEN junk_type = 'EMOJI_NAME' THEN 1 ELSE 0 END) as emojiNameCount,
+            SUM(CASE WHEN junk_type = 'FANCY_FONT_NAME' THEN 1 ELSE 0 END) as fancyFontCount,
+            (SELECT COUNT(DISTINCT account_type) FROM contacts WHERE account_type IS NOT NULL AND account_type != '') as accountCount,
+            SUM(CASE WHEN duplicate_type = 'NUMBER_MATCH' THEN 1 ELSE 0 END) as duplicateNumberCount,
+            SUM(CASE WHEN duplicate_type = 'EMAIL_MATCH' THEN 1 ELSE 0 END) as duplicateEmailCount,
+            SUM(CASE WHEN duplicate_type = 'NAME_MATCH' THEN 1 ELSE 0 END) as duplicateNameCount,
+            SUM(CASE WHEN is_format_issue = 1 THEN 1 ELSE 0 END) as formatIssueCount,
+            SUM(CASE WHEN is_sensitive = 1 THEN 1 ELSE 0 END) as sensitiveCount,
+            SUM(CASE WHEN duplicate_type = 'SIMILAR_NAME_MATCH' THEN 1 ELSE 0 END) as similarNameCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE matching_key IS NOT NULL AND matching_key != ''
+                GROUP BY matching_key
+                HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
+            )) as crossAccountCount
+        FROM contacts
+    """)
+    suspend fun getScanStats(): ScanStats
+
     // --- Count Queries (All Suspend for KMP) ---
     @Query("SELECT COUNT(*) FROM contacts")
     suspend fun countTotal(): Int

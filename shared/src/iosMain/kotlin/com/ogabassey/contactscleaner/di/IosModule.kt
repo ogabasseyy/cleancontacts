@@ -11,6 +11,7 @@ import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.FileService
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.platform.IosRegionProvider
 import com.ogabassey.contactscleaner.platform.RegionProvider
 import com.russhwolf.settings.NSUserDefaultsSettings
@@ -47,6 +48,7 @@ val iosModule = module {
     single<FileService> { IosFileService() }
 
     // Real ContactRepository using iOS Contacts framework
+    // WhatsApp comparison enabled when user links WhatsApp
     single<ContactRepository> {
         IosContactRepository(
             contactDao = get(),
@@ -58,7 +60,9 @@ val iosModule = module {
             ignoredContactDao = get(),
             scanResultProvider = get(),
             usageRepository = get(),
-            backupRepository = get()
+            backupRepository = get(),
+            whatsAppRepository = get(),
+            settings = get()
         )
     }
 }

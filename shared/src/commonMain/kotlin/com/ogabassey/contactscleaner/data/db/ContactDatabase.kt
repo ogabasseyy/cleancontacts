@@ -7,9 +7,12 @@ import androidx.room.RoomDatabaseConstructor
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao
 import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao
+import com.ogabassey.contactscleaner.data.db.dao.WhatsAppCacheDao
 import com.ogabassey.contactscleaner.data.db.entity.IgnoredContact
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.data.db.entity.UndoLog
+import com.ogabassey.contactscleaner.data.db.entity.WhatsAppCacheEntry
+import com.ogabassey.contactscleaner.data.db.entity.WhatsAppCacheMeta
 
 /**
  * Room database for contact management.
@@ -21,9 +24,11 @@ import com.ogabassey.contactscleaner.data.db.entity.UndoLog
     entities = [
         LocalContact::class,
         UndoLog::class,
-        IgnoredContact::class
+        IgnoredContact::class,
+        WhatsAppCacheEntry::class,
+        WhatsAppCacheMeta::class
     ],
-    version = 5,
+    version = 7,
     exportSchema = true
 )
 @ConstructedBy(ContactDatabaseConstructor::class)
@@ -31,6 +36,7 @@ abstract class ContactDatabase : RoomDatabase() {
     abstract fun contactDao(): ContactDao
     abstract fun undoDao(): UndoDao
     abstract fun ignoredContactDao(): IgnoredContactDao
+    abstract fun whatsAppCacheDao(): WhatsAppCacheDao
 
     companion object {
         const val DATABASE_NAME = "contacts_db"

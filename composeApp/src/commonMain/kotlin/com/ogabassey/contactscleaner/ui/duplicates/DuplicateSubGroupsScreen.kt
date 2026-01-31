@@ -134,6 +134,17 @@ fun DuplicateSubGroupsScreen(
                 }
 
                 item {
+                    SubGroupCard(
+                        title = "Cross-Account",
+                        count = scanResult.crossAccountDuplicateCount,
+                        icon = Icons.Default.AccountCircle,
+                        color = SecondaryNeon,
+                        description = "Same contact in multiple accounts",
+                        onClick = { onNavigateToDetail(ContactType.DUP_CROSS_ACCOUNT) }
+                    )
+                }
+
+                item {
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }

@@ -79,6 +79,9 @@ kotlin {
 
             // DateTime for KMP
             implementation(libs.kotlinx.datetime)
+
+            // Multiplatform Settings (for WhatsApp device ID)
+            implementation(libs.multiplatform.settings)
         }
 
         commonTest.dependencies {

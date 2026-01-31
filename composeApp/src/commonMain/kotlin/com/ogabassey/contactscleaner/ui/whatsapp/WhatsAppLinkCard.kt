@@ -6,7 +6,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -163,5 +166,116 @@ fun WhatsAppLinkCardCompact(
                 fontWeight = FontWeight.Medium
             )
         }
+    }
+}
+
+/**
+ * Card to view WhatsApp contacts with business detection.
+ * Shown when WhatsApp is connected on iOS.
+ */
+@Composable
+fun WhatsAppContactsCard(
+    onViewContacts: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onViewContacts,
+        shape = RoundedCornerShape(16.dp),
+        color = PrimaryNeon.copy(alpha = 0.1f),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Contacts icon
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(PrimaryNeon.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Contacts,
+                        contentDescription = null,
+                        tint = PrimaryNeon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "WhatsApp Contacts",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "View contacts with business detection & export",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMedium
+                    )
+                }
+
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "View WhatsApp contacts",
+                    tint = PrimaryNeon,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Feature badges
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FeatureBadge(
+                    icon = Icons.Default.Business,
+                    text = "Business",
+                    color = SecondaryNeon
+                )
+                FeatureBadge(
+                    icon = Icons.Default.Person,
+                    text = "Personal",
+                    color = PrimaryNeon
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeatureBadge(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    color: Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(color.copy(alpha = 0.1f))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text,
+            style = MaterialTheme.typography.labelSmall,
+            color = color
+        )
     }
 }

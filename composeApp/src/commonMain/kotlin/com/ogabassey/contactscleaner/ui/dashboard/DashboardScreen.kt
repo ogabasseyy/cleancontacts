@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.ui.dashboard
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -242,7 +243,8 @@ fun DashboardScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp), // Height sufficient for ResultsSummaryCard
+                        .animateContentSize()
+                        .heightIn(min = 140.dp), // Height sufficient for ResultsSummaryCard
                     contentAlignment = Alignment.TopCenter
                 ) {
                     when (val state = uiState) {
@@ -375,7 +377,7 @@ private fun ResultsSummaryCard(
                 onClick = onViewDetails,
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryNeon),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.weight(1f).height(44.dp)
+                modifier = Modifier.weight(1f).height(48.dp)
             ) {
                 Text("VIEW DETAILS", color = SpaceBlack, fontWeight = FontWeight.Black)
             }
@@ -383,7 +385,7 @@ private fun ResultsSummaryCard(
             FilledTonalButton(
                 onClick = onRecentActions,
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(44.dp),
+                modifier = Modifier.height(48.dp),
                 colors = ButtonDefaults.filledTonalButtonColors(
                     containerColor = Color.White.copy(alpha = 0.1f)
                 )
@@ -449,12 +451,25 @@ fun SettingsContent(
             .padding(24.dp)
             .padding(bottom = 32.dp)
     ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = PrimaryNeon
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = PrimaryNeon
+            )
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Close Settings",
+                    tint = Color.White.copy(alpha = 0.6f)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(24.dp))
 

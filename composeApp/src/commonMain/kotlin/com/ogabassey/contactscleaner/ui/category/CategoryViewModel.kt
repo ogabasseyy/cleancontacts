@@ -9,18 +9,23 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Shared ViewModel for Category Detail Screens (Junk, Duplicates, Accounts, etc.)
  */
 class CategoryViewModel(
     private val contactRepository: ContactRepository,
-    val billingRepository: BillingRepository,
+    // 2026 Fix: Make private to encapsulate implementation detail
+    private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository
 ) : ViewModel() {
 
@@ -39,13 +44,20 @@ class CategoryViewModel(
     private val _groupContacts = MutableStateFlow<List<Contact>>(emptyList())
     val groupContacts: StateFlow<List<Contact>> = _groupContacts.asStateFlow()
 
-    private var pendingAction: (() -> Unit)? = null
+    // 2026 Best Practice: Track single contact deletion for proper dialog dismissal
+    private val _deletingContactId = MutableStateFlow<Long?>(null)
+    val deletingContactId: StateFlow<Long?> = _deletingContactId.asStateFlow()
+
+    // 2026 Best Practice: Mutex for thread-safe access to pendingAction
+    private val actionMutex = Mutex()
+    private var pendingAction: (suspend () -> Unit)? = null
 
     /**
      * Run an action with premium/trial check.
      */
     private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
-        val isPremium = billingRepository.isPremium.value
+        // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
+        val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
@@ -54,8 +66,8 @@ class CategoryViewModel(
                 usageRepository.incrementFreeActions()
             }
         } else {
-            pendingAction = {
-                viewModelScope.launch { runWithPremiumCheck(action) }
+            actionMutex.withLock {
+                pendingAction = action
             }
             _uiState.value = CategoryUiState.ShowPaywall
         }
@@ -78,6 +90,8 @@ class CategoryViewModel(
                     _contacts.value = result
                 }
                 _uiState.value = CategoryUiState.Success
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = CategoryUiState.Error("Failed to load contacts: ${e.message}")
             }
@@ -86,9 +100,13 @@ class CategoryViewModel(
 
     fun loadGroupContacts(groupKey: String, type: ContactType) {
         viewModelScope.launch {
+            // 2026 Best Practice: Clear stale state immediately when navigating to new group
+            _groupContacts.value = emptyList()
             try {
                 val contacts = contactRepository.getContactsInGroup(groupKey, type)
                 _groupContacts.value = contacts
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _groupContacts.value = emptyList()
             }
@@ -109,6 +127,8 @@ class CategoryViewModel(
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to merge contacts")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Merge failed")
                 }
@@ -156,6 +176,8 @@ class CategoryViewModel(
                     }
                     // Refresh list
                     loadCategory(type)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
                 }
@@ -165,20 +187,33 @@ class CategoryViewModel(
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {
         viewModelScope.launch {
+            // 2026 Best Practice: Track which contact is being deleted for proper dialog state
+            _deletingContactId.value = contact.id
+
             runWithPremiumCheck {
                 pendingAction = null
                 _uiState.value = CategoryUiState.Processing(0f, "Deleting contact...")
                 try {
-                    val success = contactRepository.deleteContacts(listOf(contact.id))
+                    val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
                     if (success) {
                         _uiState.value = CategoryUiState.Success
                         loadCategory(type)
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Deletion failed")
+                } finally {
+                    // Clear deletion tracking INSIDE the action to avoid clearing on paywall
+                    _deletingContactId.value = null
                 }
+            }
+
+            // If paywall was shown (action not executed), clear the tracking
+            if (_uiState.value is CategoryUiState.ShowPaywall) {
+                _deletingContactId.value = null
             }
         }
     }
@@ -193,6 +228,46 @@ class CategoryViewModel(
             }
             is CleanupStatus.Error -> {
                 _uiState.value = CategoryUiState.Error(status.message)
+            }
+        }
+    }
+
+    /**
+     * Reset UI state to Success (clears error/processing states).
+     */
+    fun resetState() {
+        _uiState.value = CategoryUiState.Success
+    }
+
+    /**
+     * Retry pending action after paywall dismissal.
+     * 2026 Fix: Don't unconditionally set Success - let the action determine final state
+     */
+    fun retryPendingAction() {
+        viewModelScope.launch {
+            val isPremium = billingRepository.isPremium.first()
+            val canPerform = usageRepository.canPerformFreeAction()
+
+            if (isPremium || canPerform) {
+                val action = actionMutex.withLock {
+                    val temp = pendingAction
+                    pendingAction = null
+                    temp
+                }
+                if (action != null) {
+                    action.invoke()
+                    // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
+                    // This way, failed actions don't consume the user's free trial
+                    if (!isPremium) {
+                        usageRepository.incrementFreeActions()
+                    }
+                } else {
+                    // No pending action - safe to set Success
+                    _uiState.value = CategoryUiState.Success
+                }
+            } else {
+                // Still can't perform - show paywall again
+                _uiState.value = CategoryUiState.ShowPaywall
             }
         }
     }

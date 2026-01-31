@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Upsert
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.domain.model.AccountGroupSummary
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
@@ -86,6 +88,46 @@ interface ContactDao {
 
     @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH'")
     suspend fun countSimilarNames(): Int
+
+    // --- Cross-Account Duplicates Queries ---
+
+    /**
+     * Count unique contacts that exist in multiple accounts.
+     * A contact is considered cross-account if it has the same matching_key
+     * but different account_type or account_name combinations.
+     */
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT matching_key FROM contacts
+            WHERE matching_key IS NOT NULL AND matching_key != ''
+            GROUP BY matching_key
+            HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
+        )
+    """)
+    suspend fun countCrossAccountContacts(): Int
+
+    /**
+     * Get all contacts that exist in multiple accounts.
+     * Returns all LocalContact instances where the matching_key appears
+     * in more than one distinct account.
+     */
+    @Query("""
+        SELECT * FROM contacts
+        WHERE matching_key IN (
+            SELECT matching_key FROM contacts
+            WHERE matching_key IS NOT NULL AND matching_key != ''
+            GROUP BY matching_key
+            HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
+        )
+        ORDER BY display_name ASC, matching_key ASC
+    """)
+    suspend fun getCrossAccountContactsSnapshot(): List<LocalContact>
+
+    /**
+     * Get all instances of a contact across accounts by matching key.
+     */
+    @Query("SELECT * FROM contacts WHERE matching_key = :matchingKey ORDER BY account_type, account_name")
+    suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<LocalContact>
 
     // --- Bulk Updates for Analysis ---
     @Query("UPDATE contacts SET duplicate_type = 'NUMBER_MATCH' WHERE normalized_number IN (SELECT normalized_number FROM contacts WHERE normalized_number IS NOT NULL AND normalized_number != '' GROUP BY normalized_number HAVING COUNT(*) > 1)")
@@ -231,6 +273,15 @@ interface ContactDao {
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")
     suspend fun getAllContacts(): List<LocalContact>
 
+    /**
+     * 2026 Best Practice: Paginated contact query to prevent OOM on large datasets.
+     * Use this for batch processing of 50k+ contacts.
+     */
+    @Query("SELECT * FROM contacts ORDER BY id ASC LIMIT :limit OFFSET :offset")
+    suspend fun getContactsBatch(limit: Int, offset: Int): List<LocalContact>
+
+    // Note: Use countTotal() for total contact count - no duplicate method needed
+
     // --- Flow Queries (KMP Compatible) ---
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")
     fun getAllContactsFlow(): Flow<List<LocalContact>>
@@ -242,7 +293,9 @@ interface ContactDao {
     fun getJunkContactsFlow(): Flow<List<LocalContact>>
 
     // --- CRUD Operations ---
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // 2026 Fix: Use @Upsert for semantically correct insert-or-update behavior
+    // @Upsert is cleaner than REPLACE (which does DELETE then INSERT)
+    @Upsert
     suspend fun insertContacts(contacts: List<LocalContact>)
 
     @Query("DELETE FROM contacts WHERE id IN (:contactIds)")
@@ -262,4 +315,27 @@ interface ContactDao {
 
     @Query("SELECT COUNT(*) FROM contacts")
     suspend fun getCount(): Int
+
+    // --- 2026 Best Practice: Transaction Methods for Atomic Operations ---
+
+    /**
+     * Atomically replace all contacts - deletes existing and inserts new in single transaction.
+     * Prevents data loss if insert fails after delete.
+     */
+    @Transaction
+    suspend fun replaceAllContacts(contacts: List<LocalContact>) {
+        deleteAll()
+        insertContacts(contacts)
+    }
+
+    /**
+     * Atomically mark duplicates after detection.
+     * Ensures all duplicate types are marked together.
+     */
+    @Transaction
+    suspend fun markAllDuplicates() {
+        markDuplicateNumbers()
+        markDuplicateEmails()
+        markDuplicateNames()
+    }
 }

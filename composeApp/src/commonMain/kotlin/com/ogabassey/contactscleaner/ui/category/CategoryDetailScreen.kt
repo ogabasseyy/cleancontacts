@@ -1,8 +1,5 @@
 package com.ogabassey.contactscleaner.ui.category
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,7 +32,14 @@ import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.isIOS
 import org.koin.compose.viewmodel.koinViewModel
+
+/**
+ * 2026 Best Practice: Extract platform-specific contact ID resolution to reduce duplication.
+ * iOS requires platform_uid for CNContactStore lookup, Android uses numeric ID.
+ */
+private fun Contact.getTargetId(): String = if (isIOS) platform_uid ?: id.toString() else id.toString()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,8 +52,12 @@ fun CategoryDetailScreen(
     val contacts by viewModel.contacts.collectAsState()
     val duplicateGroups by viewModel.duplicateGroups.collectAsState()
     val groupContacts by viewModel.groupContacts.collectAsState()
-    
-    val contactLauncher = rememberContactLauncher()
+    val deletingContactId by viewModel.deletingContactId.collectAsState()
+
+    // 2026 Best Practice: Refresh contacts when returning from native Contacts app
+    val contactLauncher = rememberContactLauncher(
+        onReturn = { viewModel.loadCategory(type) }
+    )
 
     // Bottom sheet state for group details
     var selectedGroupKey by remember { mutableStateOf<String?>(null) }
@@ -214,9 +222,9 @@ fun CategoryDetailScreen(
                                             contact = contact,
                                             accentColor = accentColor,
                                             isFormatType = type == ContactType.FORMAT_ISSUE,
-                                            onContactClick = { contactLauncher.openContact(it.id.toString()) },
+                                            onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
                                             onDeleteContact = { contactToDelete = it },
-                                            onEditContact = { contactLauncher.openContact(it.id.toString()) }
+                                            onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
                                         )
                                     }
                                 }
@@ -358,9 +366,9 @@ fun CategoryDetailScreen(
                                 contact = contact,
                                 accentColor = accentColor,
                                 isFormatType = false,
-                                onContactClick = { contactLauncher.openContact(it.id.toString()) },
+                                onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
                                 onDeleteContact = { contactToDelete = it },
-                                onEditContact = { contactLauncher.openContact(it.id.toString()) }
+                                onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
                             )
                         }
                     }
@@ -464,25 +472,105 @@ fun CategoryDetailScreen(
 
     // Single Contact Deletion Confirmation
     if (contactToDelete != null) {
+        val isDeleting = deletingContactId == contactToDelete?.id
+        val hasError = uiState is CategoryUiState.Error
+        val errorMessage = (uiState as? CategoryUiState.Error)?.message
+
+        // 2026 Best Practice: Auto-dismiss dialog when deletion completes successfully
+        LaunchedEffect(deletingContactId, uiState) {
+            if (contactToDelete != null && deletingContactId == null && uiState is CategoryUiState.Success) {
+                contactToDelete = null
+            }
+        }
+
         AlertDialog(
-            onDismissRequest = { contactToDelete = null },
+            onDismissRequest = {
+                // Only allow dismiss if not currently deleting
+                if (!isDeleting) {
+                    contactToDelete = null
+                    if (hasError) viewModel.resetState()
+                }
+            },
             containerColor = SurfaceSpaceElevated,
-            title = { Text("Delete Contact?", color = Color.White, fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete ${contactToDelete?.name ?: "this contact"}?", color = TextMedium) },
+            title = {
+                Text(
+                    if (hasError) "Delete Failed" else "Delete Contact?",
+                    color = if (hasError) ErrorNeon else Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                when {
+                    hasError -> {
+                        Column {
+                            Text(
+                                errorMessage ?: "Failed to delete contact",
+                                color = ErrorNeon.copy(alpha = 0.8f)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Please check permissions and try again.",
+                                color = TextMedium,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                    isDeleting -> {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = PrimaryNeon,
+                                strokeWidth = 2.dp
+                            )
+                            Text("Deleting contact...", color = TextMedium)
+                        }
+                    }
+                    else -> {
+                        Text(
+                            "Are you sure you want to delete ${contactToDelete?.name ?: "this contact"}?",
+                            color = TextMedium
+                        )
+                    }
+                }
+            },
             confirmButton = {
-                Button(
-                    onClick = {
-                        contactToDelete?.let { viewModel.deleteSingleContact(it, type) }
-                        contactToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorNeon, contentColor = SpaceBlack)
-                ) {
-                    Text("DELETE", fontWeight = FontWeight.Bold)
+                if (hasError) {
+                    Button(
+                        onClick = {
+                            viewModel.resetState()
+                            contactToDelete?.let { viewModel.deleteSingleContact(it, type) }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ErrorNeon, contentColor = SpaceBlack)
+                    ) {
+                        Text("RETRY", fontWeight = FontWeight.Bold)
+                    }
+                } else {
+                    Button(
+                        onClick = {
+                            contactToDelete?.let { viewModel.deleteSingleContact(it, type) }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ErrorNeon, contentColor = SpaceBlack),
+                        enabled = !isDeleting
+                    ) {
+                        Text(if (isDeleting) "DELETING..." else "DELETE", fontWeight = FontWeight.Bold)
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { contactToDelete = null }) {
-                    Text("CANCEL", color = TextMedium)
+                TextButton(
+                    onClick = {
+                        contactToDelete = null
+                        if (hasError) viewModel.resetState()
+                    },
+                    enabled = !isDeleting
+                ) {
+                    Text(
+                        if (hasError) "CLOSE" else "CANCEL",
+                        color = if (isDeleting) TextLow else TextMedium
+                    )
                 }
             }
         )
@@ -618,51 +706,48 @@ private fun DuplicateGroupItem(
     accentColor: Color,
     onGroupClick: (DuplicateGroupSummary) -> Unit
 ) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { 50 })
+    // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
+    // Animation is handled by LazyColumn's item appearance
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassy(radius = 16.dp)
+            .clickable { onGroupClick(group) }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .glassy(radius = 16.dp)
-                .clickable { onGroupClick(group) }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(40.dp)
+                .background(accentColor.copy(alpha = 0.2f), CircleShape),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(accentColor.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
+            Text(
+                group.count.toString(),
+                color = accentColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                group.groupKey,
+                color = TextHigh,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (group.previewNames.isNotEmpty()) {
                 Text(
-                    group.count.toString(),
-                    color = accentColor,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    group.groupKey,
-                    color = TextHigh,
-                    fontWeight = FontWeight.Bold,
+                    group.previewNames,
+                    color = TextMedium,
+                    fontSize = 12.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (group.previewNames.isNotEmpty()) {
-                    Text(
-                        group.previewNames,
-                        color = TextMedium,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "View", tint = TextMedium)
         }
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "View", tint = TextMedium)
     }
 }
 
@@ -675,103 +760,100 @@ private fun ContactListItem(
     onDeleteContact: (Contact) -> Unit = {},
     onEditContact: (Contact) -> Unit = {}
 ) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn() + slideInVertically(initialOffsetY = { 50 })
+    // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
+    // Animation is handled by LazyColumn's item appearance
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassy(radius = 16.dp)
+            .clickable { onContactClick(contact) }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .glassy(radius = 16.dp)
-                .clickable { onContactClick(contact) }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(accentColor.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    contact.name?.take(1)?.uppercase() ?: "?",
-                    color = accentColor,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    contact.name ?: "Unknown",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Medium
-                )
+            Text(
+                contact.name?.take(1)?.uppercase() ?: "?",
+                color = accentColor,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                contact.name ?: "Unknown",
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            )
 
-                val normalized = contact.normalizedNumber
-                if (isFormatType && normalized != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            contact.numbers.firstOrNull() ?: "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextMedium
-                        )
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(horizontal = 4.dp),
-                            tint = SecondaryNeon
-                        )
-                        Text(
-                            normalized,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SecondaryNeon,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                } else {
+            val normalized = contact.normalizedNumber
+            if (isFormatType && normalized != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number",
+                        contact.numbers.firstOrNull() ?: "",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMedium
                     )
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(horizontal = 4.dp),
+                        tint = SecondaryNeon
+                    )
+                    Text(
+                        normalized,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SecondaryNeon,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
+            } else {
+                Text(
+                    contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMedium
+                )
+            }
+        }
+
+        // Action Icons (Hold & Pencil)
+        Row(
+            modifier = Modifier.padding(start = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Edit (Pencil) Icon
+            IconButton(
+                onClick = { onEditContact(contact) },
+                modifier = Modifier.size(28.dp)
+            ) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = TextMedium.copy(alpha = 0.8f),
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
-            // Action Icons (Hold & Pencil)
-            Row(
-                modifier = Modifier.padding(start = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Delete (Trash) Icon
+            IconButton(
+                onClick = { onDeleteContact(contact) },
+                modifier = Modifier.size(28.dp)
             ) {
-                // Edit (Pencil) Icon
-                IconButton(
-                    onClick = { onEditContact(contact) },
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = TextMedium.copy(alpha = 0.8f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                // Delete (Trash) Icon
-                IconButton(
-                    onClick = { onDeleteContact(contact) },
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = ErrorNeon.copy(alpha = 0.9f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = ErrorNeon.copy(alpha = 0.9f),
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

@@ -16,6 +16,13 @@ class JunkDetector(
     private val textAnalyzer: TextAnalyzer
 ) {
 
+    private companion object {
+        private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
+        private val REPETITIVE_DIGITS_REGEX = Regex("(\\d)\\1{5,}")
+        private val NUMERICAL_NAME_REGEX = Regex("^[\\d\\s+\\-()]+$")
+        private val SYMBOL_NAME_REGEX = Regex("^[\\p{Punct}\\s]+$")
+    }
+
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
 
@@ -52,10 +59,11 @@ class JunkDetector(
         if (number.isNullOrBlank()) return JunkType.NO_NUMBER
 
         // 2. Number Analysis (number is guaranteed non-null here after isNullOrBlank check)
-        val cleanedNumber = number.replace(Regex("[^0-9]"), "")
+        // Optimization: Use filter for ASCII digit check instead of Regex replace
+        val cleanedNumber = number.filter { it in '0'..'9' }
 
         // Invalid Chars (anything not digits, +, -, space, brackets)
-        if (Regex("[^0-9+\\s()\\-]").containsMatchIn(number)) {
+        if (INVALID_CHARS_REGEX.containsMatchIn(number)) {
             return JunkType.INVALID_CHAR
         }
 
@@ -70,35 +78,32 @@ class JunkDetector(
         }
 
         // Repetitive Digits (e.g. 111111)
-        if (Regex("(\\d)\\1{5,}").containsMatchIn(cleanedNumber)) {
+        if (REPETITIVE_DIGITS_REGEX.containsMatchIn(cleanedNumber)) {
             return JunkType.REPETITIVE_DIGITS
         }
 
         // 3. Name Analysis
-        if (!name.isNullOrBlank()) {
-            // A. Numerical Name (e.g. "123", "0801...")
-            val numericalRegex = Regex("^[\\d\\s+\\-()]+$")
-            if (numericalRegex.matches(name)) {
-                return JunkType.NUMERICAL_NAME
-            }
+        // 2026 Fix: name is guaranteed non-null here after line 58 check
+        // A. Numerical Name (e.g. "123", "0801...")
+        if (NUMERICAL_NAME_REGEX.matches(name)) {
+            return JunkType.NUMERICAL_NAME
+        }
 
-            // B. Fancy Font Names
-            if (textAnalyzer.hasFancyFonts(name)) {
-                return JunkType.FANCY_FONT_NAME
-            }
+        // B. Fancy Font Names
+        if (textAnalyzer.hasFancyFonts(name)) {
+            return JunkType.FANCY_FONT_NAME
+        }
 
-            // C. Emoji Only Names
-            // 2026 KMP Best Practice: Use platform-specific TextAnalyzer for robust emoji detection.
-            if (textAnalyzer.isEmojiOnly(name)) {
-                return JunkType.EMOJI_NAME
-            }
+        // C. Emoji Only Names
+        // 2026 KMP Best Practice: Use platform-specific TextAnalyzer for robust emoji detection.
+        if (textAnalyzer.isEmojiOnly(name)) {
+            return JunkType.EMOJI_NAME
+        }
 
-            // C. Symbol Only Names (e.g. "...", "!!!")
-            // \p{Punct} = Punctuation
-            val punctuationRegex = Regex("^[\\p{Punct}\\s]+$")
-            if (punctuationRegex.matches(name)) {
-                return JunkType.SYMBOL_NAME
-            }
+        // D. Symbol Only Names (e.g. "...", "!!!")
+        // \p{Punct} = Punctuation
+        if (SYMBOL_NAME_REGEX.matches(name)) {
+            return JunkType.SYMBOL_NAME
         }
 
         return null

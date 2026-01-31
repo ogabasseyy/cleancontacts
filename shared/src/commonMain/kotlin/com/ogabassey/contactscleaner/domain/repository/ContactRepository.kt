@@ -7,6 +7,7 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.model.ScanStatus
+import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -21,9 +22,14 @@ interface ContactRepository {
     suspend fun scanContacts(): Flow<ScanStatus>
 
     /**
-     * Delete contacts by their IDs.
+     * Delete contacts by their objects.
      */
-    suspend fun deleteContacts(contactIds: List<Long>): Boolean
+    suspend fun deleteContacts(contacts: List<Contact>): Result<Unit>
+
+    /**
+     * Delete contacts by their IDs (Legacy/Android).
+     */
+    suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean
 
     /**
      * Delete all contacts of a specific type.
@@ -114,4 +120,44 @@ interface ContactRepository {
      * Update the scan result summary in the provider.
      */
     suspend fun updateScanResultSummary()
+
+    /**
+     * Recalculate WhatsApp/Non-WhatsApp counts using cached WhatsApp numbers.
+     * Called after WhatsApp sync completes to update contact flags.
+     */
+    suspend fun recalculateWhatsAppCounts()
+
+    // --- Cross-Account Duplicates ---
+
+    /**
+     * Get all contacts that exist in multiple accounts, grouped by matching key.
+     */
+    suspend fun getCrossAccountContacts(): List<CrossAccountContact>
+
+    /**
+     * Get all instances of a contact across accounts by matching key.
+     */
+    suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact>
+
+    /**
+     * Consolidate a contact to a single account by deleting it from all other accounts.
+     * @param matchingKey The matching key of the contact to consolidate
+     * @param keepAccountType The account type to keep
+     * @param keepAccountName The account name to keep
+     * @return True if successful
+     */
+    suspend fun consolidateContactToAccount(
+        matchingKey: String,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Boolean
+
+    /**
+     * Consolidate multiple contacts to a single account.
+     */
+    suspend fun consolidateContactsToAccount(
+        matchingKeys: List<String>,
+        keepAccountType: String?,
+        keepAccountName: String?
+    ): Flow<CleanupStatus>
 }

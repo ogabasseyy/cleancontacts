@@ -53,7 +53,3 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
         name = dbFilePath
     )
 }
-@Suppress("NO_ACTUAL_FOR_EXPECT")
-actual object ContactDatabaseConstructor : RoomDatabaseConstructor<ContactDatabase> {
-    override fun initialize(): ContactDatabase = throw NotImplementedError()
-}

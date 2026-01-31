@@ -772,7 +772,7 @@ fun CategoryDetailScreen(
                                 OutlinedButton(
                                     onClick = {
                                         exportData?.let {
-                                            shareLauncher.openInGoogleSheets(it, "contacts_export.csv")
+                                            shareLauncher.openInGoogleSheets(it, fileName)
                                         }
                                         viewModel.clearExportData()
                                     },
@@ -792,7 +792,7 @@ fun CategoryDetailScreen(
                                 OutlinedButton(
                                     onClick = {
                                         exportData?.let {
-                                            shareLauncher.openInExcel(it, "contacts_export.csv")
+                                            shareLauncher.openInExcel(it, fileName)
                                         }
                                         viewModel.clearExportData()
                                     },

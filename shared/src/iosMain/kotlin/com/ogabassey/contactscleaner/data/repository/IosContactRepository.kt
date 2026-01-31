@@ -288,10 +288,9 @@ class IosContactRepository(
         val stats = contactDao.getScanStats()
 
         // 8. Update scan result provider with all counts
-        // 2026 Best Practice: Use validated count for total to align with other DB-derived counts
-        val totalValidated = validatedContacts.size
+        // 2026 Best Practice: Use stats.total from DB for consistency with other DB-derived counts
         val result = ScanResult(
-            total = totalValidated,
+            total = stats.total,
             rawCount = total,  // Keep raw device count for reference
             whatsAppCount = stats.whatsAppCount,
             telegramCount = stats.telegramCount,
@@ -314,7 +313,7 @@ class IosContactRepository(
             numericalNameCount = stats.numericalNameCount,
             emojiNameCount = stats.emojiNameCount,
             fancyFontCount = stats.fancyFontCount,
-            nonWhatsAppCount = totalValidated - stats.whatsAppCount,
+            nonWhatsAppCount = stats.total - stats.whatsAppCount,
             crossAccountDuplicateCount = stats.crossAccountCount
         )
         scanResultProvider.scanResult = result

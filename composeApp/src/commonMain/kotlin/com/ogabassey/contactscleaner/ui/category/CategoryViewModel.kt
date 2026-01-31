@@ -250,7 +250,10 @@ class CategoryViewModel(
      */
     fun exportToCsv() {
         val contactsToExport = _contacts.value
-        if (contactsToExport.isEmpty()) return
+        if (contactsToExport.isEmpty()) {
+            _exportData.value = null
+            return
+        }
         _exportData.value = ExportUtils.contactsToCsv(contactsToExport)
     }
 
@@ -260,7 +263,10 @@ class CategoryViewModel(
      */
     fun exportToVCard() {
         val contactsToExport = _contacts.value
-        if (contactsToExport.isEmpty()) return
+        if (contactsToExport.isEmpty()) {
+            _exportData.value = null
+            return
+        }
         _exportData.value = ExportUtils.contactsToVCard(contactsToExport)
     }
 
@@ -270,7 +276,10 @@ class CategoryViewModel(
      */
     fun exportGroupToCsv() {
         val contactsToExport = _groupContacts.value
-        if (contactsToExport.isEmpty()) return
+        if (contactsToExport.isEmpty()) {
+            _exportData.value = null
+            return
+        }
         _exportData.value = ExportUtils.contactsToCsv(contactsToExport)
     }
 
@@ -280,7 +289,10 @@ class CategoryViewModel(
      */
     fun exportGroupToVCard() {
         val contactsToExport = _groupContacts.value
-        if (contactsToExport.isEmpty()) return
+        if (contactsToExport.isEmpty()) {
+            _exportData.value = null
+            return
+        }
         _exportData.value = ExportUtils.contactsToVCard(contactsToExport)
     }
 

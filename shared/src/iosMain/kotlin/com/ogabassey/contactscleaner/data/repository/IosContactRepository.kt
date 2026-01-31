@@ -674,6 +674,8 @@ class IosContactRepository(
     /**
      * Recalculate WhatsApp/Non-WhatsApp counts using cached WhatsApp numbers.
      * Called after WhatsApp sync completes to update contact flags in the database.
+     *
+     * 2026 Best Practice: Process contacts in batches to prevent OOM on large datasets (50k+).
      */
     override suspend fun recalculateWhatsAppCounts() {
         if (whatsAppRepository == null) {
@@ -691,33 +693,43 @@ class IosContactRepository(
 
             println("📱 Recalculating WhatsApp flags using ${cachedNumbers.size} cached numbers...")
 
-            // Get all contacts from local DB
-            val allContacts = contactDao.getAllContacts()
-            var updatedCount = 0
+            // 2026 Best Practice: Process in batches to prevent OOM on 50k+ contacts
+            val batchSize = 500
+            val totalContacts = contactDao.getTotalContactCount()
+            var offset = 0
+            var totalUpdatedCount = 0
 
-            // Update WhatsApp flag for each contact
-            val updatedContacts = allContacts.mapNotNull { contact ->
-                // Check if any of the contact's numbers match cached WhatsApp numbers
-                val numbers = contact.rawNumbers.split(",").filter { it.isNotBlank() }
-                val isOnWhatsApp = numbers.any { num ->
-                    val normalized = num.filter { it.isDigit() }
-                    cachedNumbers.contains(normalized)
+            while (offset < totalContacts) {
+                // Fetch batch
+                val batch = contactDao.getContactsBatch(batchSize, offset)
+                if (batch.isEmpty()) break
+
+                // Process batch
+                val updatedContacts = batch.mapNotNull { contact ->
+                    val numbers = contact.rawNumbers.split(",").filter { it.isNotBlank() }
+                    val isOnWhatsApp = numbers.any { num ->
+                        val normalized = num.filter { it.isDigit() }
+                        cachedNumbers.contains(normalized)
+                    }
+
+                    // Only update if flag changed
+                    if (contact.isWhatsApp != isOnWhatsApp) {
+                        contact.copy(isWhatsApp = isOnWhatsApp)
+                    } else {
+                        null
+                    }
                 }
 
-                // Only update if flag changed
-                if (contact.isWhatsApp != isOnWhatsApp) {
-                    updatedCount++
-                    contact.copy(isWhatsApp = isOnWhatsApp)
-                } else {
-                    null
+                // Update batch
+                if (updatedContacts.isNotEmpty()) {
+                    contactDao.insertContacts(updatedContacts)
+                    totalUpdatedCount += updatedContacts.size
                 }
+
+                offset += batchSize
             }
 
-            // Batch update changed contacts
-            if (updatedContacts.isNotEmpty()) {
-                contactDao.insertContacts(updatedContacts)
-                println("✅ Updated WhatsApp flag for $updatedCount contacts")
-            }
+            println("✅ Updated WhatsApp flag for $totalUpdatedCount contacts (processed in batches of $batchSize)")
 
             // Refresh scan result summary
             updateScanResultSummary()

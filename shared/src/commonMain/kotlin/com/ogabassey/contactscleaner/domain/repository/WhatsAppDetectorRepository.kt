@@ -65,9 +65,10 @@ interface WhatsAppDetectorRepository {
      *
      * @param userId Unique identifier for the user's session
      * @param numbers List of phone numbers
+     * @param batchSize Number of contacts per batch (default 50)
      * @return Flow emitting progress updates and final results
      */
-    fun checkNumbersBatch(userId: String, numbers: List<String>): Flow<WhatsAppCheckProgress>
+    fun checkNumbersBatch(userId: String, numbers: List<String>, batchSize: Int = 50): Flow<WhatsAppCheckProgress>
 
     /**
      * Connect via WebSocket for real-time pairing events.

@@ -1,7 +1,6 @@
 package com.ogabassey.contactscleaner.data.db.entity
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
@@ -12,10 +11,8 @@ import androidx.room.PrimaryKey
  *
  * Only stores normalized phone numbers (digits only) for fast lookup.
  */
-@Entity(
-    tableName = "whatsapp_cache",
-    indices = [Index(value = ["normalizedNumber"], unique = true)]
-)
+// 2026 Fix: Removed redundant unique index - primary key already ensures uniqueness
+@Entity(tableName = "whatsapp_cache")
 data class WhatsAppCacheEntry(
     @PrimaryKey
     val normalizedNumber: String,  // e.g., "2349169449282" (digits only)

@@ -9,6 +9,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,7 +29,8 @@ class ResultsViewModel(
     private val scanResultProvider: ScanResultProvider,
     private val contactRepository: com.ogabassey.contactscleaner.domain.repository.ContactRepository,
     private val cleanupContactsUseCase: com.ogabassey.contactscleaner.domain.usecase.CleanupContactsUseCase,
-    val billingRepository: BillingRepository,
+    // 2026 Fix: Make private to encapsulate implementation detail
+    private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository,
     private val undoUseCase: com.ogabassey.contactscleaner.domain.usecase.UndoUseCase // Added
 ) : ViewModel() {
@@ -70,6 +72,8 @@ class ResultsViewModel(
         viewModelScope.launch {
             try {
                 _accountGroups.value = contactRepository.getAccountGroups()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // handle error
             }
@@ -126,12 +130,12 @@ class ResultsViewModel(
                     temp
                 }
                 if (action != null) {
-                    // 2026 Fix: Increment free action usage for non-premium users
+                    action.invoke()
+                    // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
+                    // This way, failed actions don't consume the user's free trial
                     if (!isPremium) {
                         usageRepository.incrementFreeActions()
                     }
-                    action.invoke()
-                    // Note: action.invoke() will set the appropriate state (Success/Error)
                 } else {
                     // No pending action - safe to set Idle
                     _uiState.value = ResultsUiState.Idle
@@ -150,6 +154,8 @@ class ResultsViewModel(
                 val result = contactRepository.getContactsSnapshotByType(type)
                 _contacts.value = result
                 _uiState.value = ResultsUiState.Idle
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = ResultsUiState.Error("Failed to load contacts: ${e.message}")
             }
@@ -160,6 +166,8 @@ class ResultsViewModel(
         viewModelScope.launch {
             try {
                 _duplicateGroups.value = contactRepository.getDuplicateGroups(type)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 println("Error loading duplicate groups: ${e.message}")
                 _duplicateGroups.value = emptyList()
@@ -187,6 +195,8 @@ class ResultsViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
                 }
@@ -214,6 +224,8 @@ class ResultsViewModel(
                             }
                         }
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
                 }
@@ -235,6 +247,8 @@ class ResultsViewModel(
         viewModelScope.launch {
             try {
                 contactRepository.recalculateWhatsAppCounts()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
             }

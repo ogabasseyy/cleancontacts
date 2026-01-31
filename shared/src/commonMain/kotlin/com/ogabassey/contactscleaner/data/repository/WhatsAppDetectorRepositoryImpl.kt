@@ -30,7 +30,9 @@ class WhatsAppDetectorRepositoryImpl(
 
     companion object {
         private const val CACHE_VALIDITY_HOURS = 24
-        private const val PAGE_SIZE = 500
+        // 2026 Optimization: Increased from 500 to 2000 for faster 51k+ contact sync
+        // Server returns contacts instantly from memory cache
+        private const val PAGE_SIZE = 2000
     }
 
     override suspend fun isServiceAvailable(): Boolean {
@@ -69,18 +71,19 @@ class WhatsAppDetectorRepositoryImpl(
         return response.results.associate { it.number to it.hasWhatsApp }
     }
 
-    override fun checkNumbersBatch(userId: String, numbers: List<String>): Flow<WhatsAppCheckProgress> = flow {
+    override fun checkNumbersBatch(userId: String, numbers: List<String>, batchSize: Int): Flow<WhatsAppCheckProgress> = flow {
         if (numbers.isEmpty()) {
             emit(WhatsAppCheckProgress.Complete(emptyMap(), 0))
             return@flow
         }
 
-        val batchSize = 50
+        // 2026 Fix: Use provided batchSize parameter instead of hardcoded value
+        val effectiveBatchSize = batchSize.coerceIn(10, 100) // Clamp to safe range
         val delayMs = 2000L // Increased delay for rate limiting
         val allResults = mutableMapOf<String, Boolean>()
         var whatsappCount = 0
 
-        val batches = numbers.chunked(batchSize)
+        val batches = numbers.chunked(effectiveBatchSize)
         var checkedCount = 0
 
         for (batch in batches) {
@@ -252,11 +255,14 @@ class WhatsAppDetectorRepositoryImpl(
 
     /**
      * 2026 Best Practice: Atomic cache snapshot retrieval.
-     * Gets validity and data in single operation to prevent race conditions.
+     * Gets validity and data in single transaction to prevent race conditions.
      */
     override suspend fun getValidCacheSnapshot(): com.ogabassey.contactscleaner.domain.repository.CacheSnapshot {
         val dao = cacheDao ?: return com.ogabassey.contactscleaner.domain.repository.CacheSnapshot.Invalid
-        val meta = dao.getMeta() ?: return com.ogabassey.contactscleaner.domain.repository.CacheSnapshot.Invalid
+
+        // 2026 Fix: Use transactional method to prevent race condition
+        val (meta, numbers) = dao.getMetaAndNumbersAtomic()
+            ?: return com.ogabassey.contactscleaner.domain.repository.CacheSnapshot.Invalid
 
         // Check if sync is in progress
         if (meta.syncInProgress) {
@@ -270,16 +276,16 @@ class WhatsAppDetectorRepositoryImpl(
             return com.ogabassey.contactscleaner.domain.repository.CacheSnapshot.Invalid
         }
 
-        // Cache is valid - get numbers atomically with the check
-        val numbers = dao.getAllNumbers().toSet()
+        // Cache is valid and data was fetched atomically
         return com.ogabassey.contactscleaner.domain.repository.CacheSnapshot.Valid(
-            numbers = numbers,
+            numbers = numbers.toSet(),
             businessCount = meta.businessCount,
             personalCount = meta.personalCount
         )
     }
 
     override suspend fun clearCache() {
-        cacheDao?.deleteAll()
+        // 2026 Fix: Clear both cache entries AND metadata for complete reset
+        cacheDao?.clearAllWithMeta()
     }
 }

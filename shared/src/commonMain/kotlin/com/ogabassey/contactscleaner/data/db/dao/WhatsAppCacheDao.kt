@@ -48,6 +48,9 @@ interface WhatsAppCacheDao {
     @Query("DELETE FROM whatsapp_cache")
     suspend fun deleteAll()
 
+    @Query("DELETE FROM whatsapp_cache_meta")
+    suspend fun deleteAllMeta()
+
     // ============================================
     // Sync Metadata
     // ============================================
@@ -78,5 +81,27 @@ interface WhatsAppCacheDao {
         deleteAll()
         insertAll(entries)
         updateMeta(meta)
+    }
+
+    /**
+     * 2026 Fix: Atomically get meta and numbers in single transaction.
+     * Prevents race condition where sync completes between meta check and data fetch.
+     * Returns Pair(meta, numbers) or null if no meta exists.
+     */
+    @Transaction
+    suspend fun getMetaAndNumbersAtomic(): Pair<WhatsAppCacheMeta, List<String>>? {
+        val meta = getMeta() ?: return null
+        val numbers = getAllNumbers()
+        return Pair(meta, numbers)
+    }
+
+    /**
+     * 2026 Fix: Clear both cache entries AND metadata atomically.
+     * Ensures complete cache reset without orphaned data.
+     */
+    @Transaction
+    suspend fun clearAllWithMeta() {
+        deleteAll()
+        deleteAllMeta()
     }
 }

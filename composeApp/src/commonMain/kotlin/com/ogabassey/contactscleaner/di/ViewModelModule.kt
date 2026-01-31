@@ -38,8 +38,8 @@ val viewModelModule = module {
     // WhatsAppLinkViewModel with WhatsAppDetectorRepository and Settings for device ID
     viewModel<WhatsAppLinkViewModel> { WhatsAppLinkViewModel(get(), get()) }
 
-    // WhatsAppContactsViewModel with WhatsAppDetectorRepository and Settings for device ID
-    viewModel<com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel> { com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel(get(), get()) }
+    // WhatsAppContactsViewModel with WhatsAppDetectorRepository, Settings, and ContactDao for non-WhatsApp count
+    viewModel<com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel> { com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel(get(), get(), get()) }
 
     // CrossAccountViewModel for cross-account duplicates with ContactRepository, BillingRepository, UsageRepository
     viewModel { com.ogabassey.contactscleaner.ui.duplicates.CrossAccountViewModel(get(), get(), get()) }

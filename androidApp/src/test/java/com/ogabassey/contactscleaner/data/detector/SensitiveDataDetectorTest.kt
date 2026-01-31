@@ -69,8 +69,10 @@ class SensitiveDataDetectorTest {
 
     @Test
     fun `processes input at exactly max length`() {
-        // 100 characters: 89 padding + 11 char SSN pattern
-        val paddedSSN = "A".repeat(89) + "123-45-6789"
+        // 100 characters: 88 chars + 1 space (word boundary) + 11 char SSN pattern
+        // Use "X" padding with a space before SSN to ensure \b word boundary matches correctly
+        // trim() won't affect this since padding is on the left, SSN on the right
+        val paddedSSN = "X".repeat(88) + " 123-45-6789"
         val match = detector.analyze(paddedSSN)
 
         assertNotNull("Should process input at exactly max length", match)

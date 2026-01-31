@@ -68,8 +68,13 @@ fun ResultsScreen(
     val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
     val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
 
-    // Recalculate WhatsApp counts when sync completes
+    // 2026 Best Practice: Track retry state for immediate UI feedback
+    var isRetryingSync by remember { mutableStateOf(false) }
+
+    // Recalculate WhatsApp counts when sync completes, and clear retry state on any state change
     LaunchedEffect(syncState) {
+        // Clear retry flag when state changes (sync started, completed, or new error)
+        isRetryingSync = false
         if (syncState is SyncState.Complete) {
             viewModel.recalculateWhatsAppCounts()
         }
@@ -386,7 +391,11 @@ fun ResultsScreen(
                                             item {
                                                 WhatsAppSyncErrorCard(
                                                     message = currentSyncState.message,
-                                                    onRetry = { whatsAppViewModel?.startWhatsAppSync() }
+                                                    isRetrying = isRetryingSync,
+                                                    onRetry = {
+                                                        isRetryingSync = true
+                                                        whatsAppViewModel?.startWhatsAppSync()
+                                                    }
                                                 )
                                             }
                                         }
@@ -853,10 +862,12 @@ private fun WhatsAppSyncProgressCard(
 
 /**
  * Card showing WhatsApp sync error with retry option.
+ * 2026 Best Practice: Shows loading state during retry for immediate feedback.
  */
 @Composable
 private fun WhatsAppSyncErrorCard(
     message: String,
+    isRetrying: Boolean = false,
     onRetry: () -> Unit
 ) {
     Surface(
@@ -888,8 +899,17 @@ private fun WhatsAppSyncErrorCard(
                     color = TextMedium
                 )
             }
-            TextButton(onClick = onRetry) {
-                Text("RETRY", color = PrimaryNeon, fontWeight = FontWeight.Bold)
+            // 2026 Best Practice: Show spinner during retry for immediate feedback
+            if (isRetrying) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = PrimaryNeon,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                TextButton(onClick = onRetry, enabled = !isRetrying) {
+                    Text("RETRY", color = PrimaryNeon, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -35,6 +36,8 @@ class ReviewViewModel(
             try {
                 _contacts.value = contactRepository.getContactsSnapshotByType(type)
                 _uiState.value = ReviewUiState.Success
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = ReviewUiState.Error(e.message ?: "Failed to load contacts")
             }
@@ -43,6 +46,10 @@ class ReviewViewModel(
 
     fun ignoreContact(contact: Contact) {
         viewModelScope.launch {
+            // 2026 Fix: Clear any previous error state before starting new operation
+            if (_uiState.value is ReviewUiState.Error) {
+                _uiState.value = ReviewUiState.Success
+            }
             // 2026 Best Practice: Show loading state for individual operations
             _processingContactId.value = contact.id
             try {
@@ -59,6 +66,8 @@ class ReviewViewModel(
                 } else {
                     _uiState.value = ReviewUiState.Error("Failed to add contact to safe list")
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = ReviewUiState.Error(e.message ?: "Failed to add to safe list")
             } finally {

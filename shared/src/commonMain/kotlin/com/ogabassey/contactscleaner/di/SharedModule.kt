@@ -85,7 +85,13 @@ val sharedModule = module {
     // WhatsApp Detector (VPS-hosted Baileys service)
     // 2026 Best Practice: Local caching for 51k+ WhatsApp contacts
     single { WhatsAppDetectorApi() }
-    single<WhatsAppDetectorRepository> { WhatsAppDetectorRepositoryImpl(get(), get()) }
+    // 2026 Fix: Explicit type parameters for improved readability
+    single<WhatsAppDetectorRepository> {
+        WhatsAppDetectorRepositoryImpl(
+            api = get<WhatsAppDetectorApi>(),
+            cacheDao = get<WhatsAppCacheDao>()
+        )
+    }
 }
 
 /**

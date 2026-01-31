@@ -3,8 +3,11 @@ package com.ogabassey.contactscleaner.ui.whatsapp
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ogabassey.contactscleaner.data.api.BusinessDetectionProgress
 import com.ogabassey.contactscleaner.data.api.WhatsAppContact
+import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import kotlinx.coroutines.delay
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +28,9 @@ sealed interface WhatsAppContactsState {
         val businessCount: Int,
         val personalCount: Int,
         val totalCount: Int,
-        val hasMore: Boolean
+        val nonWhatsAppCount: Int = 0,
+        val hasMore: Boolean,
+        val businessDetectionProgress: BusinessDetectionProgress? = null
     ) : WhatsAppContactsState
     @Immutable data class Error(val message: String) : WhatsAppContactsState
 }
@@ -43,7 +48,8 @@ enum class ContactsTab {
  */
 class WhatsAppContactsViewModel(
     private val whatsAppRepository: WhatsAppDetectorRepository,
-    private val settings: Settings
+    private val settings: Settings,
+    private val contactDao: ContactDao
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<WhatsAppContactsState>(WhatsAppContactsState.Loading)
@@ -79,20 +85,68 @@ class WhatsAppContactsViewModel(
 
                 val response = whatsAppRepository.getContacts(deviceId)
                 if (response.success) {
+                    // 2026 Best Practice: Calculate non-WhatsApp count from phone contacts
+                    // This shows phone contacts that don't have WhatsApp accounts
+                    val totalPhoneContacts = contactDao.countTotal()
+                    val phoneWhatsAppCount = contactDao.countWhatsApp()
+                    val nonWhatsAppCount = totalPhoneContacts - phoneWhatsAppCount
+
                     _state.update {
                         WhatsAppContactsState.Loaded(
                             contacts = response.contacts,
                             businessCount = response.businessCount,
                             personalCount = response.personalCount,
                             totalCount = response.total,
-                            hasMore = response.contacts.size < response.total
+                            nonWhatsAppCount = nonWhatsAppCount.coerceAtLeast(0),
+                            hasMore = response.contacts.size < response.total,
+                            businessDetectionProgress = status.businessDetectionProgress
                         )
+                    }
+
+                    // 2026 Best Practice: Poll for business detection progress if still in progress
+                    if (status.businessDetectionProgress?.inProgress == true) {
+                        startBusinessDetectionPolling()
                     }
                 } else {
                     _state.update { WhatsAppContactsState.Error(response.error ?: "Failed to load contacts") }
                 }
             } catch (e: Exception) {
                 _state.update { WhatsAppContactsState.Error(e.message ?: "Unknown error") }
+            }
+        }
+    }
+
+    /**
+     * 2026 Best Practice: Poll for business detection progress updates.
+     * Refreshes every 5 seconds while detection is in progress.
+     */
+    private fun startBusinessDetectionPolling() {
+        viewModelScope.launch {
+            while (true) {
+                delay(5000) // Poll every 5 seconds
+
+                try {
+                    val status = whatsAppRepository.getSessionStatus(deviceId)
+                    val progress = status.businessDetectionProgress
+
+                    // Update progress in current state
+                    _state.update { currentState ->
+                        if (currentState is WhatsAppContactsState.Loaded) {
+                            currentState.copy(businessDetectionProgress = progress)
+                        } else {
+                            currentState
+                        }
+                    }
+
+                    // Stop polling when detection is complete
+                    if (progress?.done == true || progress?.inProgress != true) {
+                        // Reload contacts to get final business flags
+                        loadContacts()
+                        break
+                    }
+                } catch (e: Exception) {
+                    // Ignore polling errors, continue polling
+                }
             }
         }
     }
@@ -122,6 +176,8 @@ class WhatsAppContactsViewModel(
         sb.appendLine("Phone Number,Name,Push Name,Is Business,Category,Email,Website,Address")
 
         for (contact in contacts) {
+            // 2026 Fix: Also escape phoneNumber - it may contain special characters
+            val phoneNumber = escapeCsvValue(contact.phoneNumber)
             val name = escapeCsvValue(contact.name ?: "")
             val pushName = escapeCsvValue(contact.pushName ?: "")
             val category = escapeCsvValue(contact.businessProfile?.category ?: "")
@@ -129,7 +185,7 @@ class WhatsAppContactsViewModel(
             val website = escapeCsvValue(contact.businessProfile?.website?.joinToString(";") ?: "")
             val address = escapeCsvValue(contact.businessProfile?.address ?: "")
 
-            sb.appendLine("${contact.phoneNumber},$name,$pushName,${contact.isBusiness},$category,$email,$website,$address")
+            sb.appendLine("$phoneNumber,$name,$pushName,${contact.isBusiness},$category,$email,$website,$address")
         }
 
         val csv = sb.toString()
@@ -150,7 +206,22 @@ class WhatsAppContactsViewModel(
     }
 
     /**
+     * 2026 Best Practice: Proper RFC 6350 vCard escaping.
+     * Escapes backslash, semicolon, comma, and newlines per vCard 3.0/4.0 spec.
+     */
+    private fun escapeVCardValue(value: String): String {
+        return value
+            .replace("\\", "\\\\")  // Escape backslash first
+            .replace(";", "\\;")
+            .replace(",", "\\,")
+            .replace("\r\n", "\\n")
+            .replace("\n", "\\n")
+            .replace("\r", "\\n")
+    }
+
+    /**
      * Export contacts to vCard format.
+     * 2026 Fix: Properly escape vCard values per RFC 6350.
      */
     fun exportToVCard(): String {
         val contacts = getFilteredContacts()
@@ -161,10 +232,12 @@ class WhatsAppContactsViewModel(
             sb.appendLine("VERSION:3.0")
 
             val displayName = contact.name ?: contact.pushName ?: contact.phoneNumber
-            sb.appendLine("FN:$displayName")
+            sb.appendLine("FN:${escapeVCardValue(displayName)}")
 
-            if (contact.name != null) {
-                sb.appendLine("N:;${contact.name};;;")
+            // 2026 Fix: Use local variable for smart cast across module boundaries
+            val contactName = contact.name
+            if (contactName != null) {
+                sb.appendLine("N:;${escapeVCardValue(contactName)};;;")
             }
 
             sb.appendLine("TEL;TYPE=CELL:${contact.phoneNumber}")
@@ -172,11 +245,11 @@ class WhatsAppContactsViewModel(
             if (contact.isBusiness) {
                 sb.appendLine("X-WHATSAPP-BUSINESS:TRUE")
                 contact.businessProfile?.let { profile ->
-                    profile.category?.let { sb.appendLine("ORG:$it") }
+                    profile.category?.let { sb.appendLine("ORG:${escapeVCardValue(it)}") }
                     profile.email?.let { sb.appendLine("EMAIL:$it") }
                     profile.website?.forEach { sb.appendLine("URL:$it") }
-                    profile.address?.let { sb.appendLine("ADR:;;${it.replace("\n", ";")};;;;") }
-                    profile.description?.let { sb.appendLine("NOTE:$it") }
+                    profile.address?.let { sb.appendLine("ADR:;;${escapeVCardValue(it)};;;;") }
+                    profile.description?.let { sb.appendLine("NOTE:${escapeVCardValue(it)}") }
                 }
             }
 

@@ -359,21 +359,22 @@ class IosContactsSource {
 
                 // Set phone numbers
                 val phoneNumbers = contact.numbers.mapNotNull { number ->
-                    val phoneNumber = CNPhoneNumber.phoneNumberWithStringValue(number)
+                    val phoneNumber = CNPhoneNumber.phoneNumberWithStringValue(stringValue = number)
                     CNLabeledValue.labeledValueWithLabel(
-                        CNLabelPhoneNumberMobile,
-                        phoneNumber
+                        label = CNLabelPhoneNumberMobile,
+                        value = phoneNumber
                     )
                 }
-                newContact.setPhoneNumbers(phoneNumbers)
+                newContact.phoneNumbers = phoneNumbers
 
-                // Set emails - need to convert String to NSString for NSCopyingProtocol
+                // Set emails
                 val emailAddresses = contact.emails.mapNotNull { email ->
-                    @Suppress("CAST_NEVER_SUCCEEDS")
-                    val nsEmail = NSString.create(string = email)
-                    CNLabeledValue.labeledValueWithLabel(CNLabelHome, nsEmail)
+                    CNLabeledValue.labeledValueWithLabel(
+                        label = CNLabelHome,
+                        value = NSString.create(string = email)
+                    )
                 }
-                newContact.setEmailAddresses(emailAddresses)
+                newContact.emailAddresses = emailAddresses
 
                 saveRequest.addContact(newContact, toContainerWithIdentifier = null)
             }
@@ -410,12 +411,17 @@ class IosContactsSource {
         try {
             // Fetch contacts by their platform UIDs
             val contactsToMerge = mutableListOf<Contact>()
+            // 2026 Fix: Include all keys needed by cnContactToContact to avoid runtime crashes
             val keysToFetch = listOf(
                 CNContactIdentifierKey,
                 CNContactGivenNameKey,
                 CNContactFamilyNameKey,
+                CNContactMiddleNameKey,
                 CNContactPhoneNumbersKey,
-                CNContactEmailAddressesKey
+                CNContactEmailAddressesKey,
+                CNContactSocialProfilesKey,
+                CNContactInstantMessageAddressesKey,
+                CNContactOrganizationNameKey
             )
 
             for (uid in platformUids) {
@@ -448,7 +454,7 @@ class IosContactsSource {
             val allEmails = contactsToMerge.flatMap { it.emails }.distinct()
 
             val mergedContact = Contact(
-                id = 0,
+                id = 0L,
                 name = customName ?: primaryContact.name,
                 numbers = allNumbers,
                 emails = allEmails,
@@ -508,8 +514,8 @@ class IosContactsSource {
                 // Update the first phone number
                 val newPhoneNumbers = mutableListOf<Any?>()
                 val newLabeledValue = CNLabeledValue.labeledValueWithLabel(
-                    CNLabelPhoneNumberMobile,
-                    CNPhoneNumber.phoneNumberWithStringValue(newNumber)
+                    label = CNLabelPhoneNumberMobile,
+                    value = CNPhoneNumber.phoneNumberWithStringValue(stringValue = newNumber)
                 )
                 newPhoneNumbers.add(newLabeledValue)
 
@@ -520,7 +526,7 @@ class IosContactsSource {
                     newPhoneNumbers.addAll(existingNumbers.drop(1))
                 }
 
-                mutableContact.setPhoneNumbers(newPhoneNumbers)
+                mutableContact.phoneNumbers = newPhoneNumbers
 
                 val saveRequest = CNSaveRequest()
                 saveRequest.updateContact(mutableContact)

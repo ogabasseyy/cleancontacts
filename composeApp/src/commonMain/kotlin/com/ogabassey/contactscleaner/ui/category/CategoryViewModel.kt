@@ -9,6 +9,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import com.ogabassey.contactscleaner.util.ExportUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,10 @@ class CategoryViewModel(
     // 2026 Best Practice: Track single contact deletion for proper dialog dismissal
     private val _deletingContactId = MutableStateFlow<Long?>(null)
     val deletingContactId: StateFlow<Long?> = _deletingContactId.asStateFlow()
+
+    // 2026 Best Practice: Export data for sharing contacts as CSV/vCard
+    private val _exportData = MutableStateFlow<String?>(null)
+    val exportData: StateFlow<String?> = _exportData.asStateFlow()
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
@@ -237,6 +242,53 @@ class CategoryViewModel(
      */
     fun resetState() {
         _uiState.value = CategoryUiState.Success
+    }
+
+    /**
+     * Export current contacts to CSV format.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
+     */
+    fun exportToCsv() {
+        val contactsToExport = _contacts.value
+        if (contactsToExport.isEmpty()) return
+        _exportData.value = ExportUtils.contactsToCsv(contactsToExport)
+    }
+
+    /**
+     * Export current contacts to vCard format.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
+     */
+    fun exportToVCard() {
+        val contactsToExport = _contacts.value
+        if (contactsToExport.isEmpty()) return
+        _exportData.value = ExportUtils.contactsToVCard(contactsToExport)
+    }
+
+    /**
+     * Export group contacts to CSV format.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
+     */
+    fun exportGroupToCsv() {
+        val contactsToExport = _groupContacts.value
+        if (contactsToExport.isEmpty()) return
+        _exportData.value = ExportUtils.contactsToCsv(contactsToExport)
+    }
+
+    /**
+     * Export group contacts to vCard format.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
+     */
+    fun exportGroupToVCard() {
+        val contactsToExport = _groupContacts.value
+        if (contactsToExport.isEmpty()) return
+        _exportData.value = ExportUtils.contactsToVCard(contactsToExport)
+    }
+
+    /**
+     * Clear export data after user has copied/shared.
+     */
+    fun clearExportData() {
+        _exportData.value = null
     }
 
     /**

@@ -30,6 +30,8 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import com.ogabassey.contactscleaner.util.isIOS
@@ -48,11 +50,13 @@ fun CategoryDetailScreen(
     viewModel: CategoryViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
+    val clipboardManager = LocalClipboardManager.current
     val uiState by viewModel.uiState.collectAsState()
     val contacts by viewModel.contacts.collectAsState()
     val duplicateGroups by viewModel.duplicateGroups.collectAsState()
     val groupContacts by viewModel.groupContacts.collectAsState()
     val deletingContactId by viewModel.deletingContactId.collectAsState()
+    val exportData by viewModel.exportData.collectAsState()
 
     // 2026 Best Practice: Refresh contacts when returning from native Contacts app
     val contactLauncher = rememberContactLauncher(
@@ -64,6 +68,8 @@ fun CategoryDetailScreen(
     var customMergeName by remember { mutableStateOf("") }
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var contactToDelete by remember { mutableStateOf<Contact?>(null) }
+    var showExportFormatDialog by remember { mutableStateOf(false) }
+    var isGroupExport by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(type) {
@@ -164,7 +170,10 @@ fun CategoryDetailScreen(
                     contactType = type,
                     onDeleteAll = { showConfirmationDialog = true },
                     onMergeAll = { showConfirmationDialog = true },
-                    onExportAll = { /* TODO: Export */ }
+                    onExportAll = {
+                        isGroupExport = false
+                        showExportFormatDialog = true
+                    }
                 )
 
                 // List Content
@@ -295,12 +304,15 @@ fun CategoryDetailScreen(
                     )
 
                     TextButton(
-                        onClick = { /* TODO: Export group */ },
+                        onClick = {
+                            isGroupExport = true
+                            showExportFormatDialog = true
+                        },
                         colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon)
                     ) {
                         Icon(Icons.Default.Share, null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("EXPORT CSV", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("EXPORT", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -571,6 +583,148 @@ fun CategoryDetailScreen(
                         if (hasError) "CLOSE" else "CANCEL",
                         color = if (isDeleting) TextLow else TextMedium
                     )
+                }
+            }
+        )
+    }
+
+    // Export Format Selection Dialog
+    if (showExportFormatDialog) {
+        AlertDialog(
+            onDismissRequest = { showExportFormatDialog = false },
+            containerColor = SurfaceSpaceElevated,
+            title = {
+                Text(
+                    "Export Format",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Choose the export format:",
+                        color = TextMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            showExportFormatDialog = false
+                            if (isGroupExport) {
+                                viewModel.exportGroupToCsv()
+                            } else {
+                                viewModel.exportToCsv()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("CSV (Spreadsheet)", fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = {
+                            showExportFormatDialog = false
+                            if (isGroupExport) {
+                                viewModel.exportGroupToVCard()
+                            } else {
+                                viewModel.exportToVCard()
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SecondaryNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("vCard (Contact File)", fontWeight = FontWeight.Bold)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showExportFormatDialog = false }) {
+                    Text("CANCEL", color = TextMedium)
+                }
+            }
+        )
+    }
+
+    // Export Data Dialog (copy to clipboard)
+    if (exportData != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearExportData() },
+            containerColor = SurfaceSpaceElevated,
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.CheckCircle,
+                        contentDescription = null,
+                        tint = SuccessNeon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        "Export Ready",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        "Your contacts have been exported. Copy to clipboard to share or save.",
+                        color = TextMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                            .background(SurfaceSpace, RoundedCornerShape(8.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            exportData?.take(500)?.let {
+                                if ((exportData?.length ?: 0) > 500) "$it..." else it
+                            } ?: "",
+                            color = TextMedium,
+                            fontSize = 11.sp,
+                            lineHeight = 14.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        exportData?.let { clipboardManager.setText(AnnotatedString(it)) }
+                        viewModel.clearExportData()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryNeon,
+                        contentColor = SpaceBlack
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("COPY", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.clearExportData() }) {
+                    Text("CLOSE", color = TextMedium)
                 }
             }
         )

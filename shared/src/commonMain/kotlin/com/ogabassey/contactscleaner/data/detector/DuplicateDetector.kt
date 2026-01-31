@@ -96,6 +96,10 @@ class DuplicateDetector(
         val processedIds = mutableSetOf<Long>()
         val sortedContacts = contacts.filter { !it.name.isNullOrEmpty() }.sortedBy { it.name }
 
+        // Reuse buffers for Levenshtein distance to avoid frequent allocations
+        val buffer1 = IntArray(MAX_NAME_LENGTH + 1)
+        val buffer2 = IntArray(MAX_NAME_LENGTH + 1)
+
         // Limit comparison scope for performance
         for (i in sortedContacts.indices) {
             val contactA = sortedContacts[i]
@@ -122,7 +126,7 @@ class DuplicateDetector(
                 // Length filter
                 if (abs(nameA.length - nameB.length) > 3) continue
 
-                if (isSimilar(nameA, nameB)) {
+                if (isSimilar(nameA, nameB, buffer1, buffer2)) {
                     currentGroup.add(contactB)
                     processedIds.add(contactB.id)
                 }
@@ -142,24 +146,51 @@ class DuplicateDetector(
         return groups
     }
 
-    private fun isSimilar(s1: String, s2: String): Boolean {
+    private fun isSimilar(s1: String, s2: String, buffer1: IntArray? = null, buffer2: IntArray? = null): Boolean {
         val d1 = s1.trim().lowercase()
         val d2 = s2.trim().lowercase()
         if (d1 == d2) return false // Exact match is not "Similar"
 
-        val dist = levenshteinDistance(d1, d2)
+        val dist = levenshteinDistance(d1, d2, buffer1, buffer2)
         val maxLength = maxOf(d1.length, d2.length)
         val similarity = if (maxLength == 0) 0.0 else (1.0 - dist.toDouble() / maxLength)
         return similarity > 0.82 // 82% threshold
     }
 
-    private fun levenshteinDistance(s1: String, s2: String): Int {
+    /**
+     * Checks if the provided buffer pair is valid for reuse.
+     * Buffers must be non-null and large enough to hold s2.length + 1 elements.
+     */
+    private fun canReuseBuffers(buffer1: IntArray?, buffer2: IntArray?, requiredLength: Int): Boolean {
+        return buffer1 != null && buffer2 != null &&
+            buffer1.size > requiredLength && buffer2.size > requiredLength
+    }
+
+    private fun levenshteinDistance(
+        s1: String,
+        s2: String,
+        buffer1: IntArray? = null,
+        buffer2: IntArray? = null
+    ): Int {
         if (s1 == s2) return 0
         if (s1.isEmpty()) return s2.length
         if (s2.isEmpty()) return s1.length
 
-        var prev = IntArray(s2.length + 1) { it }
-        var curr = IntArray(s2.length + 1)
+        var prev: IntArray
+        var curr: IntArray
+
+        // Use buffers if provided and large enough
+        if (canReuseBuffers(buffer1, buffer2, s2.length)) {
+            prev = buffer1!!
+            curr = buffer2!!
+            // Initialize prev row
+            for (k in 0..s2.length) {
+                prev[k] = k
+            }
+        } else {
+            prev = IntArray(s2.length + 1) { it }
+            curr = IntArray(s2.length + 1)
+        }
 
         for (i in 1..s1.length) {
             curr[0] = i
@@ -176,6 +207,10 @@ class DuplicateDetector(
             curr = temp
         }
         return prev[s2.length]
+    }
+
+    companion object {
+        private const val MAX_NAME_LENGTH = 1000
     }
 
     fun normalizePhoneNumber(number: String, defaultRegion: String? = null): String {

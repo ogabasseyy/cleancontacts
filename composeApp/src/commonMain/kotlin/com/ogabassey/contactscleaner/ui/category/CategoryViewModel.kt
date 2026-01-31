@@ -12,6 +12,7 @@ import com.ogabassey.contactscleaner.domain.repository.UsageRepository
 import com.ogabassey.contactscleaner.util.ExportUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,6 +55,9 @@ class CategoryViewModel(
     // 2026 Best Practice: Export data for sharing contacts as CSV/vCard
     private val _exportData = MutableStateFlow<String?>(null)
     val exportData: StateFlow<String?> = _exportData.asStateFlow()
+
+    // 2026 Best Practice: Track export job to cancel previous exports and prevent race conditions
+    private var exportJob: Job? = null
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
@@ -250,6 +254,7 @@ class CategoryViewModel(
      * Export current contacts to CSV format.
      * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
      * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
+     * Cancels any previous export job to prevent race conditions.
      */
     fun exportToCsv() {
         val contactsToExport = _contacts.value
@@ -257,7 +262,8 @@ class CategoryViewModel(
             _exportData.value = null
             return
         }
-        viewModelScope.launch {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
             val csv = withContext(Dispatchers.Default) {
                 ExportUtils.contactsToCsv(contactsToExport)
             }
@@ -269,6 +275,7 @@ class CategoryViewModel(
      * Export current contacts to vCard format.
      * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
      * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
+     * Cancels any previous export job to prevent race conditions.
      */
     fun exportToVCard() {
         val contactsToExport = _contacts.value
@@ -276,7 +283,8 @@ class CategoryViewModel(
             _exportData.value = null
             return
         }
-        viewModelScope.launch {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
             val vcard = withContext(Dispatchers.Default) {
                 ExportUtils.contactsToVCard(contactsToExport)
             }
@@ -288,6 +296,7 @@ class CategoryViewModel(
      * Export group contacts to CSV format.
      * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
      * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
+     * Cancels any previous export job to prevent race conditions.
      */
     fun exportGroupToCsv() {
         val contactsToExport = _groupContacts.value
@@ -295,7 +304,8 @@ class CategoryViewModel(
             _exportData.value = null
             return
         }
-        viewModelScope.launch {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
             val csv = withContext(Dispatchers.Default) {
                 ExportUtils.contactsToCsv(contactsToExport)
             }
@@ -307,6 +317,7 @@ class CategoryViewModel(
      * Export group contacts to vCard format.
      * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
      * Runs on Default dispatcher to avoid UI jank with large contact lists (50k+).
+     * Cancels any previous export job to prevent race conditions.
      */
     fun exportGroupToVCard() {
         val contactsToExport = _groupContacts.value
@@ -314,7 +325,8 @@ class CategoryViewModel(
             _exportData.value = null
             return
         }
-        viewModelScope.launch {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
             val vcard = withContext(Dispatchers.Default) {
                 ExportUtils.contactsToVCard(contactsToExport)
             }

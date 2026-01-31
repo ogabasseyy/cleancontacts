@@ -33,7 +33,9 @@ class SensitiveDataDetector(
     // Nigeria NIN/BVN (11 Digits)
     private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}$")
 
-    private val MAX_INPUT_LENGTH = 100
+    companion object {
+        private const val MAX_INPUT_LENGTH = 100
+    }
 
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {
         val cleanValue = value.trim()

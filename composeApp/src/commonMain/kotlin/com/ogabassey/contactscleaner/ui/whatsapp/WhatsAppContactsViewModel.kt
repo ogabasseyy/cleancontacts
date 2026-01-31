@@ -7,6 +7,7 @@ import com.ogabassey.contactscleaner.data.api.BusinessDetectionProgress
 import com.ogabassey.contactscleaner.data.api.WhatsAppContact
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import com.ogabassey.contactscleaner.util.ExportUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -203,7 +204,7 @@ class WhatsAppContactsViewModel(
 
     /**
      * Export contacts to CSV format.
-     * 2026 Fix: Properly escape CSV values to handle quotes, commas, and newlines.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 4180 compliant escaping.
      */
     fun exportToCsv(): String {
         val contacts = getFilteredContacts()
@@ -211,14 +212,13 @@ class WhatsAppContactsViewModel(
         sb.appendLine("Phone Number,Name,Push Name,Is Business,Category,Email,Website,Address")
 
         for (contact in contacts) {
-            // 2026 Fix: Also escape phoneNumber - it may contain special characters
-            val phoneNumber = escapeCsvValue(contact.phoneNumber)
-            val name = escapeCsvValue(contact.name ?: "")
-            val pushName = escapeCsvValue(contact.pushName ?: "")
-            val category = escapeCsvValue(contact.businessProfile?.category ?: "")
-            val email = escapeCsvValue(contact.businessProfile?.email ?: "")
-            val website = escapeCsvValue(contact.businessProfile?.website?.joinToString(";") ?: "")
-            val address = escapeCsvValue(contact.businessProfile?.address ?: "")
+            val phoneNumber = ExportUtils.escapeCsvValue(contact.phoneNumber)
+            val name = ExportUtils.escapeCsvValue(contact.name ?: "")
+            val pushName = ExportUtils.escapeCsvValue(contact.pushName ?: "")
+            val category = ExportUtils.escapeCsvValue(contact.businessProfile?.category ?: "")
+            val email = ExportUtils.escapeCsvValue(contact.businessProfile?.email ?: "")
+            val website = ExportUtils.escapeCsvValue(contact.businessProfile?.website?.joinToString(";") ?: "")
+            val address = ExportUtils.escapeCsvValue(contact.businessProfile?.address ?: "")
 
             sb.appendLine("$phoneNumber,$name,$pushName,${contact.isBusiness},$category,$email,$website,$address")
         }
@@ -229,34 +229,8 @@ class WhatsAppContactsViewModel(
     }
 
     /**
-     * 2026 Best Practice: Proper RFC 4180 CSV escaping.
-     * Wraps field in quotes if it contains special characters, and escapes internal quotes.
-     */
-    private fun escapeCsvValue(value: String): String {
-        return if (value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r')) {
-            "\"${value.replace("\"", "\"\"")}\""
-        } else {
-            value
-        }
-    }
-
-    /**
-     * 2026 Best Practice: Proper RFC 6350 vCard escaping.
-     * Escapes backslash, semicolon, comma, and newlines per vCard 3.0/4.0 spec.
-     */
-    private fun escapeVCardValue(value: String): String {
-        return value
-            .replace("\\", "\\\\")  // Escape backslash first
-            .replace(";", "\\;")
-            .replace(",", "\\,")
-            .replace("\r\n", "\\n")
-            .replace("\n", "\\n")
-            .replace("\r", "\\n")
-    }
-
-    /**
      * Export contacts to vCard format.
-     * 2026 Fix: Properly escape vCard values per RFC 6350.
+     * 2026 Best Practice: Uses shared ExportUtils for RFC 6350 compliant escaping.
      */
     fun exportToVCard(): String {
         val contacts = getFilteredContacts()
@@ -267,12 +241,12 @@ class WhatsAppContactsViewModel(
             sb.appendLine("VERSION:3.0")
 
             val displayName = contact.name ?: contact.pushName ?: contact.phoneNumber
-            sb.appendLine("FN:${escapeVCardValue(displayName)}")
+            sb.appendLine("FN:${ExportUtils.escapeVCardValue(displayName)}")
 
             // 2026 Fix: Use local variable for smart cast across module boundaries
             val contactName = contact.name
             if (contactName != null) {
-                sb.appendLine("N:;${escapeVCardValue(contactName)};;;")
+                sb.appendLine("N:;${ExportUtils.escapeVCardValue(contactName)};;;")
             }
 
             sb.appendLine("TEL;TYPE=CELL:${contact.phoneNumber}")
@@ -280,11 +254,11 @@ class WhatsAppContactsViewModel(
             if (contact.isBusiness) {
                 sb.appendLine("X-WHATSAPP-BUSINESS:TRUE")
                 contact.businessProfile?.let { profile ->
-                    profile.category?.let { sb.appendLine("ORG:${escapeVCardValue(it)}") }
+                    profile.category?.let { sb.appendLine("ORG:${ExportUtils.escapeVCardValue(it)}") }
                     profile.email?.let { sb.appendLine("EMAIL:$it") }
                     profile.website?.forEach { sb.appendLine("URL:$it") }
-                    profile.address?.let { sb.appendLine("ADR:;;${escapeVCardValue(it)};;;;") }
-                    profile.description?.let { sb.appendLine("NOTE:${escapeVCardValue(it)}") }
+                    profile.address?.let { sb.appendLine("ADR:;;${ExportUtils.escapeVCardValue(it)};;;;") }
+                    profile.description?.let { sb.appendLine("NOTE:${ExportUtils.escapeVCardValue(it)}") }
                 }
             }
 

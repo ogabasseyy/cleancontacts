@@ -37,3 +37,34 @@ fun process(input: String) {
     val clean = DIGIT_REGEX.replace(input, "")
 }
 ```
+
+# 2026-02-04 - Regex to Character Loop Optimization
+
+**Learning:** Even compiled regex patterns have overhead from the regex engine, NFA/DFA state machines, and object allocation for match results. For simple character validation, O(N) character loops are faster.
+
+**Action:** Replace regex patterns with inline character checks when the pattern is simple enough to express as character conditions.
+
+```kotlin
+// ❌ Avoid: Regex engine overhead
+private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
+if (INVALID_CHARS_REGEX.containsMatchIn(number)) { ... }
+
+// ✅ Prefer: O(N) character loop
+private fun isValidNumberChar(c: Char): Boolean =
+    c in '0'..'9' || c == '+' || c == '-' || c == ' ' || c == '(' || c == ')'
+if (number.any { !isValidNumberChar(it) }) { ... }
+
+// ❌ Avoid: Regex backreference for repetition detection
+private val REPETITIVE_REGEX = Regex("(\\d)\\1{5,}")
+
+// ✅ Prefer: Simple counting loop
+private fun hasRepetitiveDigits(digits: String): Boolean {
+    var count = 1
+    for (i in 1 until digits.length) {
+        if (digits[i] == digits[i - 1]) {
+            if (++count >= 6) return true
+        } else count = 1
+    }
+    return false
+}
+```

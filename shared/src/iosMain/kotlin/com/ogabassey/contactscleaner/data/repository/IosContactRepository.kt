@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.data.repository
 
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao
+import com.ogabassey.contactscleaner.data.db.dao.ScanStats
 import com.ogabassey.contactscleaner.data.db.entity.IgnoredContact
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
@@ -282,28 +283,9 @@ class IosContactRepository(
         }
 
         emit(ScanStatus.Progress(0.90f, "Calculating result statistics..."))
-        
-        // 7. Fetch all counts from database for complete ScanResult
-        val whatsAppCount = contactDao.countWhatsApp()
-        val telegramCount = contactDao.countTelegram()
-        val duplicateCount = contactDao.countDuplicates()
-        val numberDuplicateCount = contactDao.countDuplicateNumbers()
-        val emailDuplicateCount = contactDao.countDuplicateEmails()
-        val nameDuplicateCount = contactDao.countDuplicateNames()
-        val similarNameCount = contactDao.countSimilarNames()
-        val noNameCount = contactDao.countNoName()
-        val noNumberCount = contactDao.countNoNumber()
-        val invalidCharCount = contactDao.countInvalidChar()
-        val longNumberCount = contactDao.countLongNumber()
-        val shortNumberCount = contactDao.countShortNumber()
-        val repetitiveNumberCount = contactDao.countRepetitiveNumber()
-        val symbolNameCount = contactDao.countSymbolName()
-        val numericalNameCount = contactDao.countNumericalName()
-        val emojiNameCount = contactDao.countEmojiName()
-        val accountCount = contactDao.countAccounts()
-        val actualJunkCount = contactDao.countJunk()
-        val actualFormatIssueCount = contactDao.countFormatIssues()
-        val actualSensitiveCount = contactDao.countSensitive()
+
+        // 7. Fetch all counts from database using consolidated query (2026 Performance Optimization)
+        val stats = contactDao.getScanStats()
 
         // 8. Update scan result provider with all counts
         // 2026 Best Practice: Use validated count for total to align with other DB-derived counts
@@ -311,28 +293,29 @@ class IosContactRepository(
         val result = ScanResult(
             total = totalValidated,
             rawCount = total,  // Keep raw device count for reference
-            whatsAppCount = whatsAppCount,
-            telegramCount = telegramCount,
-            junkCount = actualJunkCount,
-            duplicateCount = duplicateCount,
-            formatIssueCount = actualFormatIssueCount,
-            sensitiveCount = actualSensitiveCount,
-            noNameCount = noNameCount,
-            noNumberCount = noNumberCount,
-            emailDuplicateCount = emailDuplicateCount,
-            numberDuplicateCount = numberDuplicateCount,
-            nameDuplicateCount = nameDuplicateCount,
-            accountCount = accountCount,
-            similarNameCount = similarNameCount,
-            invalidCharCount = invalidCharCount,
-            longNumberCount = longNumberCount,
-            shortNumberCount = shortNumberCount,
-            repetitiveNumberCount = repetitiveNumberCount,
-            symbolNameCount = symbolNameCount,
-            numericalNameCount = numericalNameCount,
-            emojiNameCount = emojiNameCount,
-            fancyFontCount = contactDao.countFancyFontName(),
-            nonWhatsAppCount = totalValidated - whatsAppCount
+            whatsAppCount = stats.whatsAppCount,
+            telegramCount = stats.telegramCount,
+            junkCount = stats.junkCount,
+            duplicateCount = stats.duplicateCount,
+            formatIssueCount = stats.formatIssueCount,
+            sensitiveCount = stats.sensitiveCount,
+            noNameCount = stats.noNameCount,
+            noNumberCount = stats.noNumberCount,
+            emailDuplicateCount = stats.duplicateEmailCount,
+            numberDuplicateCount = stats.duplicateNumberCount,
+            nameDuplicateCount = stats.duplicateNameCount,
+            accountCount = stats.accountCount,
+            similarNameCount = stats.similarNameCount,
+            invalidCharCount = stats.invalidCharCount,
+            longNumberCount = stats.longNumberCount,
+            shortNumberCount = stats.shortNumberCount,
+            repetitiveNumberCount = stats.repetitiveNumberCount,
+            symbolNameCount = stats.symbolNameCount,
+            numericalNameCount = stats.numericalNameCount,
+            emojiNameCount = stats.emojiNameCount,
+            fancyFontCount = stats.fancyFontCount,
+            nonWhatsAppCount = totalValidated - stats.whatsAppCount,
+            crossAccountDuplicateCount = stats.crossAccountCount
         )
         scanResultProvider.scanResult = result
 
@@ -657,40 +640,41 @@ class IosContactRepository(
     }
 
     override suspend fun updateScanResultSummary() {
-        val junkCount = contactDao.countJunk()
-        val duplicateCount = contactDao.countDuplicates()
-        val formatIssueCount = contactDao.countFormatIssues()
-        val sensitiveCount = contactDao.countSensitive()
-        val total = contactDao.countTotal()
+        // 2026 Best Practice: Use consolidated getScanStats() query instead of 23+ separate queries
+        val stats = contactDao.getScanStats()
         val rawCount = usageRepository.rawScannedCount.first()
-        val whatsAppCount = contactDao.countWhatsApp()
+
+        if (stats.total == 0) {
+            scanResultProvider.scanResult = null
+            return
+        }
 
         scanResultProvider.scanResult = ScanResult(
-            total = total,
+            total = stats.total,
             rawCount = rawCount,
-            whatsAppCount = whatsAppCount,
-            telegramCount = contactDao.countTelegram(),
-            junkCount = contactDao.countJunk(),
-            duplicateCount = contactDao.countDuplicates(),
-            noNameCount = contactDao.countNoName(),
-            noNumberCount = contactDao.countNoNumber(),
-            emailDuplicateCount = contactDao.countDuplicateEmails(),
-            numberDuplicateCount = contactDao.countDuplicateNumbers(),
-            nameDuplicateCount = contactDao.countDuplicateNames(),
-            accountCount = contactDao.countAccounts(),
-            similarNameCount = contactDao.countSimilarNames(),
-            invalidCharCount = contactDao.countInvalidChar(),
-            longNumberCount = contactDao.countLongNumber(),
-            shortNumberCount = contactDao.countShortNumber(),
-            repetitiveNumberCount = contactDao.countRepetitiveNumber(),
-            symbolNameCount = contactDao.countSymbolName(),
-            numericalNameCount = contactDao.countNumericalName(),
-            emojiNameCount = contactDao.countEmojiName(),
-            fancyFontCount = contactDao.countFancyFontName(),
-            formatIssueCount = contactDao.countFormatIssues(),
-            sensitiveCount = contactDao.countSensitive(),
-            crossAccountDuplicateCount = contactDao.countCrossAccountContacts(),
-            nonWhatsAppCount = total - whatsAppCount
+            whatsAppCount = stats.whatsAppCount,
+            telegramCount = stats.telegramCount,
+            junkCount = stats.junkCount,
+            duplicateCount = stats.duplicateCount,
+            noNameCount = stats.noNameCount,
+            noNumberCount = stats.noNumberCount,
+            emailDuplicateCount = stats.duplicateEmailCount,
+            numberDuplicateCount = stats.duplicateNumberCount,
+            nameDuplicateCount = stats.duplicateNameCount,
+            accountCount = stats.accountCount,
+            similarNameCount = stats.similarNameCount,
+            invalidCharCount = stats.invalidCharCount,
+            longNumberCount = stats.longNumberCount,
+            shortNumberCount = stats.shortNumberCount,
+            repetitiveNumberCount = stats.repetitiveNumberCount,
+            symbolNameCount = stats.symbolNameCount,
+            numericalNameCount = stats.numericalNameCount,
+            emojiNameCount = stats.emojiNameCount,
+            fancyFontCount = stats.fancyFontCount,
+            formatIssueCount = stats.formatIssueCount,
+            sensitiveCount = stats.sensitiveCount,
+            crossAccountDuplicateCount = stats.crossAccountCount,
+            nonWhatsAppCount = stats.total - stats.whatsAppCount
         )
     }
 

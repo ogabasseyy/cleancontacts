@@ -15,7 +15,7 @@ import com.ogabassey.contactscleaner.platform.TextAnalyzer
 class JunkDetector(
     private val textAnalyzer: TextAnalyzer
 ) {
-    // ⚡ Bolt Optimization: Regex removed in favor of O(N) char loops
+    // ⚡ Bolt Optimization: Regex replaced with O(N) character loops for performance and correctness.
 
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
@@ -57,6 +57,7 @@ class JunkDetector(
         val cleanedNumber = number.filter { it in '0'..'9' }
 
         // Invalid Chars (anything not digits, +, -, space, brackets)
+        // Optimization: Manual loop instead of Regex
         if (number.any { !isValidChar(it) }) {
             return JunkType.INVALID_CHAR
         }
@@ -79,7 +80,8 @@ class JunkDetector(
         // 3. Name Analysis
         // 2026 Fix: name is guaranteed non-null here after line 58 check
         // A. Numerical Name (e.g. "123", "0801...")
-        if (name.all { isValidChar(it) }) {
+        // Bolt Fix: Ensure it contains at least one digit to distinguish from symbol-only names (e.g. "----")
+        if (name.any { it.isDigit() } && name.all { isValidChar(it) }) {
             return JunkType.NUMERICAL_NAME
         }
 

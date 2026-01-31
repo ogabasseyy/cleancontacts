@@ -89,4 +89,30 @@ class JunkDetectorTest {
 
         assertEquals(0, result.size)
     }
+
+    @Test
+    fun `detect numerical names correctly`() {
+        // "123456" -> Numerical
+        // "+123" -> Numerical
+        // "----" -> Symbol (NOT Numerical)
+        val contacts = listOf(
+            Contact(id = 1, name = "123456", numbers = listOf("+1234567890"), normalizedNumber = null),
+            Contact(id = 2, name = "+123", numbers = listOf("+1234567890"), normalizedNumber = null),
+            Contact(id = 3, name = "----", numbers = listOf("+1234567890"), normalizedNumber = null)
+        )
+
+        val result = junkDetector.detectJunk(contacts)
+
+        assertEquals(3, result.size)
+
+        val numerical = result.filter { it.type == JunkType.NUMERICAL_NAME }
+        val symbol = result.filter { it.type == JunkType.SYMBOL_NAME }
+
+        assertEquals(2, numerical.size)
+        assertTrue(numerical.any { it.name == "123456" })
+        assertTrue(numerical.any { it.name == "+123" })
+
+        assertEquals(1, symbol.size)
+        assertTrue(symbol.any { it.name == "----" })
+    }
 }

@@ -37,18 +37,3 @@ fun process(input: String) {
     val clean = DIGIT_REGEX.replace(input, "")
 }
 ```
-
-# 2026-01-20 - Regex vs Character Loops in Hot Paths
-
-**Learning:** Replacing `Regex` validation with manual character loops in high-frequency methods (like `JunkDetector.detectJunk`) significantly reduces CPU overhead and object allocation, especially when checking thousands of items.
-
-**Action:** Prefer `string.all { isValid(it) }` or `string.any { !isValid(it) }` with simple char checks over `Regex.matches()` or `Regex.containsMatchIn()`.
-
-```kotlin
-// ❌ Avoid: Regex engine overhead per call
-val regex = Regex("[^0-9]")
-if (regex.containsMatchIn(input)) ...
-
-// ✅ Prefer: O(N) primitive check
-if (input.any { !it.isDigit() }) ...
-```

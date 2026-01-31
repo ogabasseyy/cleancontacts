@@ -17,6 +17,7 @@ class JunkDetector(
 ) {
 
     private companion object {
+        private const val MAX_INPUT_LENGTH = 1000
         private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
         private val REPETITIVE_DIGITS_REGEX = Regex("(\\d)\\1{5,}")
         private val NUMERICAL_NAME_REGEX = Regex("^[\\d\\s+\\-()]+$")
@@ -57,6 +58,10 @@ class JunkDetector(
         // 1. Missing Info
         if (name.isNullOrBlank()) return JunkType.NO_NAME
         if (number.isNullOrBlank()) return JunkType.NO_NUMBER
+
+        // 2026 Security Fix: Prevent DoS with massive inputs
+        if (number.length > MAX_INPUT_LENGTH) return JunkType.LONG_NUMBER
+        if (name.length > MAX_INPUT_LENGTH) return JunkType.SYMBOL_NAME
 
         // 2. Number Analysis (number is guaranteed non-null here after isNullOrBlank check)
         // Optimization: Use filter for ASCII digit check instead of Regex replace

@@ -9,13 +9,18 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import com.ogabassey.contactscleaner.platform.Logger
+import com.ogabassey.contactscleaner.util.ExportUtils
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -28,6 +33,10 @@ class CategoryViewModel(
     private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "CategoryViewModel"
+    }
 
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
@@ -47,6 +56,13 @@ class CategoryViewModel(
     // 2026 Best Practice: Track single contact deletion for proper dialog dismissal
     private val _deletingContactId = MutableStateFlow<Long?>(null)
     val deletingContactId: StateFlow<Long?> = _deletingContactId.asStateFlow()
+
+    // 2026 Best Practice: Export data for sharing contacts as CSV/vCard
+    private val _exportData = MutableStateFlow<String?>(null)
+    val exportData: StateFlow<String?> = _exportData.asStateFlow()
+
+    // 2026 Best Practice: Track export job to cancel previous exports and prevent race conditions
+    private var exportJob: Job? = null
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
@@ -237,6 +253,56 @@ class CategoryViewModel(
      */
     fun resetState() {
         _uiState.value = CategoryUiState.Success
+    }
+
+    /**
+     * Helper function to perform export with proper job cancellation and exception handling.
+     * 2026 Best Practice: Centralized export logic to reduce duplication.
+     * - Cancels any previous export job first to prevent race conditions
+     * - Runs export on Default dispatcher to avoid UI jank with large contact lists (50k+)
+     * - Handles exceptions gracefully
+     */
+    private fun performExport(contacts: List<Contact>, exporter: (List<Contact>) -> String) {
+        // Cancel previous job FIRST, before any other logic
+        exportJob?.cancel()
+
+        if (contacts.isEmpty()) {
+            _exportData.value = null
+            return
+        }
+
+        exportJob = viewModelScope.launch {
+            try {
+                val result = withContext(Dispatchers.Default) {
+                    exporter(contacts)
+                }
+                _exportData.value = result
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Logger.e(TAG, "Export failed: ${e.message}", e)
+                _exportData.value = null
+            }
+        }
+    }
+
+    /** Export current contacts to CSV format. */
+    fun exportToCsv() = performExport(_contacts.value, ExportUtils::contactsToCsv)
+
+    /** Export current contacts to vCard format. */
+    fun exportToVCard() = performExport(_contacts.value, ExportUtils::contactsToVCard)
+
+    /** Export group contacts to CSV format. */
+    fun exportGroupToCsv() = performExport(_groupContacts.value, ExportUtils::contactsToCsv)
+
+    /** Export group contacts to vCard format. */
+    fun exportGroupToVCard() = performExport(_groupContacts.value, ExportUtils::contactsToVCard)
+
+    /**
+     * Clear export data after user has copied/shared.
+     */
+    fun clearExportData() {
+        _exportData.value = null
     }
 
     /**

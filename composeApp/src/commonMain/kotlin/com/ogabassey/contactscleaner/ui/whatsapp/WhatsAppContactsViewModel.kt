@@ -7,11 +7,16 @@ import com.ogabassey.contactscleaner.data.api.BusinessDetectionProgress
 import com.ogabassey.contactscleaner.data.api.WhatsAppContact
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -60,6 +65,25 @@ class WhatsAppContactsViewModel(
 
     private val _exportData = MutableStateFlow<String?>(null)
     val exportData: StateFlow<String?> = _exportData.asStateFlow()
+
+    /**
+     * 2026 Best Practice: Expose filtered contacts as a derived StateFlow.
+     * Computed once per state change, not on every recomposition.
+     */
+    val filteredContacts: StateFlow<List<WhatsAppContact>> = combine(
+        _state,
+        _selectedTab
+    ) { state, tab ->
+        if (state !is WhatsAppContactsState.Loaded) {
+            emptyList()
+        } else {
+            when (tab) {
+                ContactsTab.ALL -> state.contacts
+                ContactsTab.BUSINESS -> state.contacts.filter { it.isBusiness }
+                ContactsTab.PERSONAL -> state.contacts.filter { !it.isBusiness }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val deviceId: String
         get() = settings.getStringOrNull(KEY_DEVICE_ID) ?: ""
@@ -119,10 +143,12 @@ class WhatsAppContactsViewModel(
     /**
      * 2026 Best Practice: Poll for business detection progress updates.
      * Refreshes every 5 seconds while detection is in progress.
+     * Uses isActive for cooperative cancellation.
      */
     private fun startBusinessDetectionPolling() {
         viewModelScope.launch {
-            while (true) {
+            // 2026 Best Practice: Use isActive for cooperative cancellation
+            while (isActive) {
                 delay(5000) // Poll every 5 seconds
 
                 try {
@@ -144,6 +170,9 @@ class WhatsAppContactsViewModel(
                         loadContacts()
                         break
                     }
+                } catch (e: CancellationException) {
+                    // 2026 Best Practice: Always rethrow CancellationException
+                    throw e
                 } catch (e: Exception) {
                     // Ignore polling errors, continue polling
                 }

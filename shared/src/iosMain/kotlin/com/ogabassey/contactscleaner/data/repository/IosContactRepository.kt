@@ -17,6 +17,7 @@ import com.ogabassey.contactscleaner.domain.repository.UsageRepository
 import com.ogabassey.contactscleaner.domain.repository.CacheSnapshot
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -92,6 +93,9 @@ class IosContactRepository(
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                // 2026 Best Practice: Always rethrow CancellationException for proper flow cancellation
+                throw e
             } catch (e: Exception) {
                 println("⚠️ Could not load WhatsApp cache: ${e.message}")
             }
@@ -350,7 +354,11 @@ class IosContactRepository(
             // Delete from device (only contacts with platform_uid)
             val uids = withUid.mapNotNull { it.platform_uid }
             if (uids.isNotEmpty()) {
-                contactsSource.deleteContacts(uids)
+                // 2026 Best Practice: Check device deletion result to ensure consistency
+                val deviceDeleted = contactsSource.deleteContacts(uids)
+                if (!deviceDeleted) {
+                    return Result.failure(IllegalStateException("Failed to delete contacts from device"))
+                }
             }
 
             // Delete from DB - all contacts (those without uid are DB-only entries)
@@ -378,7 +386,11 @@ class IosContactRepository(
         try {
             val uids = contacts.mapNotNull { it.platform_uid }
             if (uids.isNotEmpty()) {
-                contactsSource.deleteContacts(uids)
+                // 2026 Best Practice: Check device deletion result
+                deviceDeleteSuccess = contactsSource.deleteContacts(uids)
+                if (!deviceDeleteSuccess) {
+                    println("Warning: Device delete returned false")
+                }
             }
         } catch (e: Exception) {
             println("Warning: Device delete failed: ${e.message}")
@@ -695,7 +707,7 @@ class IosContactRepository(
 
             // 2026 Best Practice: Process in batches to prevent OOM on 50k+ contacts
             val batchSize = 500
-            val totalContacts = contactDao.getTotalContactCount()
+            val totalContacts = contactDao.countTotal()
             var offset = 0
             var totalUpdatedCount = 0
 

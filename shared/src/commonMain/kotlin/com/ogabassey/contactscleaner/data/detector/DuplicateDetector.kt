@@ -157,6 +157,15 @@ class DuplicateDetector(
         return similarity > 0.82 // 82% threshold
     }
 
+    /**
+     * Checks if the provided buffer pair is valid for reuse.
+     * Buffers must be non-null and large enough to hold s2.length + 1 elements.
+     */
+    private fun canReuseBuffers(buffer1: IntArray?, buffer2: IntArray?, requiredLength: Int): Boolean {
+        return buffer1 != null && buffer2 != null &&
+            buffer1.size > requiredLength && buffer2.size > requiredLength
+    }
+
     private fun levenshteinDistance(
         s1: String,
         s2: String,
@@ -171,10 +180,9 @@ class DuplicateDetector(
         var curr: IntArray
 
         // Use buffers if provided and large enough
-        if (buffer1 != null && buffer2 != null &&
-            buffer1.size > s2.length && buffer2.size > s2.length) {
-            prev = buffer1
-            curr = buffer2
+        if (canReuseBuffers(buffer1, buffer2, s2.length)) {
+            prev = buffer1!!
+            curr = buffer2!!
             // Initialize prev row
             for (k in 0..s2.length) {
                 prev[k] = k

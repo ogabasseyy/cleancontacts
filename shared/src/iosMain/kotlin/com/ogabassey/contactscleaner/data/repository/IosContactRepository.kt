@@ -800,6 +800,20 @@ class IosContactRepository(
         keepAccountType: String?,
         keepAccountName: String?
     ): Boolean {
+        // Public API: always refresh summary after consolidation
+        return consolidateContactToAccountInternal(matchingKey, keepAccountType, keepAccountName, refreshSummary = true)
+    }
+
+    /**
+     * Internal implementation with optional summary refresh.
+     * 2026 Best Practice: Avoid redundant summary refreshes in batch operations.
+     */
+    private suspend fun consolidateContactToAccountInternal(
+        matchingKey: String,
+        keepAccountType: String?,
+        keepAccountName: String?,
+        refreshSummary: Boolean
+    ): Boolean {
         val instances = contactDao.getContactInstancesByMatchingKey(matchingKey)
         if (instances.size < 2) return false
 
@@ -821,8 +835,11 @@ class IosContactRepository(
         )
 
         val success = deleteContactsByIds(idsToDelete)
-        // 2026 Best Practice: Always refresh summary - deleteContactsByIds may delete DB rows even when returning false
-        updateScanResultSummary()
+
+        // Only refresh summary if requested (skip in batch operations)
+        if (refreshSummary) {
+            updateScanResultSummary()
+        }
         return success
     }
 
@@ -838,13 +855,15 @@ class IosContactRepository(
 
         var successCount = 0
         matchingKeys.forEachIndexed { index, key ->
-            if (consolidateContactToAccount(key, keepAccountType, keepAccountName)) {
+            // 2026 Best Practice: Skip per-item refresh, do once at end
+            if (consolidateContactToAccountInternal(key, keepAccountType, keepAccountName, refreshSummary = false)) {
                 successCount++
             }
             val progress = (index + 1).toFloat() / matchingKeys.size.toFloat()
             emit(CleanupStatus.Progress(progress, "Consolidating ${index + 1} of ${matchingKeys.size}"))
         }
 
+        // Single summary refresh after all consolidations
         updateScanResultSummary()
 
         emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))

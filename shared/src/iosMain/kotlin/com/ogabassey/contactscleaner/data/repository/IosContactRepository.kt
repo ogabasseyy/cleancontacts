@@ -392,6 +392,9 @@ class IosContactRepository(
                     println("Warning: Device delete returned false")
                 }
             }
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
+            throw e
         } catch (e: Exception) {
             println("Warning: Device delete failed: ${e.message}")
             deviceDeleteSuccess = false
@@ -401,6 +404,9 @@ class IosContactRepository(
         // Even if device delete fails, clean local cache to avoid stale data
         try {
             contactDao.deleteContacts(contactIds)
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
+            throw e
         } catch (e: Exception) {
             println("Error: Failed to cascade delete to local cache: ${e.message}")
             return false
@@ -745,6 +751,9 @@ class IosContactRepository(
 
             // Refresh scan result summary
             updateScanResultSummary()
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
+            throw e
         } catch (e: Exception) {
             println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
         }
@@ -807,9 +816,8 @@ class IosContactRepository(
         )
 
         val success = deleteContactsByIds(idsToDelete)
-        if (success) {
-            updateScanResultSummary()
-        }
+        // 2026 Best Practice: Always refresh summary - deleteContactsByIds may delete DB rows even when returning false
+        updateScanResultSummary()
         return success
     }
 

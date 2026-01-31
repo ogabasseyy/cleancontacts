@@ -9,6 +9,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import com.ogabassey.contactscleaner.platform.Logger
 import com.ogabassey.contactscleaner.util.ExportUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,10 @@ class CategoryViewModel(
     private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "CategoryViewModel"
+    }
 
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
@@ -275,7 +280,7 @@ class CategoryViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // Log error but don't crash - just clear export data
+                Logger.e(TAG, "Export failed: ${e.message}", e)
                 _exportData.value = null
             }
         }

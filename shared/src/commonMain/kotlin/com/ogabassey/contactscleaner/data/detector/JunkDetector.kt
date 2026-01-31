@@ -19,10 +19,32 @@ class JunkDetector(
     private companion object {
         // 2026 Security: Prevent DoS with massive inputs before regex processing
         private const val MAX_INPUT_LENGTH = 1000
-        private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
-        private val REPETITIVE_DIGITS_REGEX = Regex("(\\d)\\1{5,}")
-        private val NUMERICAL_NAME_REGEX = Regex("^[\\d\\s+\\-()]+$")
-        private val SYMBOL_NAME_REGEX = Regex("^[\\p{Punct}\\s]+$")
+        private const val REPETITIVE_THRESHOLD = 6 // 6+ consecutive same digits = repetitive
+    }
+
+    // 2026 Optimization: O(N) character checks instead of regex engine overhead
+
+    /** Valid phone number chars: digits, +, -, space, parentheses */
+    private fun isValidNumberChar(c: Char): Boolean =
+        c in '0'..'9' || c == '+' || c == '-' || c == ' ' || c == '(' || c == ')'
+
+    /** Valid numerical name chars: digits, +, -, space, parentheses */
+    private fun isNumericalNameChar(c: Char): Boolean =
+        c in '0'..'9' || c == '+' || c == '-' || c == ' ' || c == '(' || c == ')'
+
+    /** Check for 6+ consecutive identical digits (e.g., "111111") */
+    private fun hasRepetitiveDigits(digits: String): Boolean {
+        if (digits.length < REPETITIVE_THRESHOLD) return false
+        var count = 1
+        for (i in 1 until digits.length) {
+            if (digits[i] == digits[i - 1]) {
+                count++
+                if (count >= REPETITIVE_THRESHOLD) return true
+            } else {
+                count = 1
+            }
+        }
+        return false
     }
 
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
@@ -69,7 +91,8 @@ class JunkDetector(
         val cleanedNumber = number.filter { it in '0'..'9' }
 
         // Invalid Chars (anything not digits, +, -, space, brackets)
-        if (INVALID_CHARS_REGEX.containsMatchIn(number)) {
+        // 2026 Optimization: O(N) char check instead of regex
+        if (number.any { !isValidNumberChar(it) }) {
             return JunkType.INVALID_CHAR
         }
 
@@ -84,7 +107,8 @@ class JunkDetector(
         }
 
         // Repetitive Digits (e.g. 111111)
-        if (REPETITIVE_DIGITS_REGEX.containsMatchIn(cleanedNumber)) {
+        // 2026 Optimization: O(N) loop instead of regex backreference
+        if (hasRepetitiveDigits(cleanedNumber)) {
             return JunkType.REPETITIVE_DIGITS
         }
 
@@ -92,7 +116,8 @@ class JunkDetector(
         // 2026 Fix: name is guaranteed non-null here after line 58 check
         // A. Numerical Name (e.g. "123", "0801...")
         // Require at least one digit - otherwise "----" would be NUMERICAL_NAME instead of SYMBOL_NAME
-        if (name.any { it.isDigit() } && NUMERICAL_NAME_REGEX.matches(name)) {
+        // 2026 Optimization: O(N) char check instead of regex
+        if (name.any { it.isDigit() } && name.all { isNumericalNameChar(it) }) {
             return JunkType.NUMERICAL_NAME
         }
 
@@ -108,8 +133,8 @@ class JunkDetector(
         }
 
         // D. Symbol Only Names (e.g. "...", "!!!")
-        // \p{Punct} = Punctuation
-        if (SYMBOL_NAME_REGEX.matches(name)) {
+        // 2026 Optimization: O(N) char check instead of \p{Punct} regex
+        if (name.none { it.isLetterOrDigit() }) {
             return JunkType.SYMBOL_NAME
         }
 

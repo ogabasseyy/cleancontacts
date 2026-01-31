@@ -15,13 +15,7 @@ import com.ogabassey.contactscleaner.platform.TextAnalyzer
 class JunkDetector(
     private val textAnalyzer: TextAnalyzer
 ) {
-
-    private companion object {
-        private val INVALID_CHARS_REGEX = Regex("[^0-9+\\s()\\-]")
-        private val REPETITIVE_DIGITS_REGEX = Regex("(\\d)\\1{5,}")
-        private val NUMERICAL_NAME_REGEX = Regex("^[\\d\\s+\\-()]+$")
-        private val SYMBOL_NAME_REGEX = Regex("^[\\p{Punct}\\s]+$")
-    }
+    // ⚡ Bolt Optimization: Regex removed in favor of O(N) char loops
 
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
@@ -63,7 +57,7 @@ class JunkDetector(
         val cleanedNumber = number.filter { it in '0'..'9' }
 
         // Invalid Chars (anything not digits, +, -, space, brackets)
-        if (INVALID_CHARS_REGEX.containsMatchIn(number)) {
+        if (number.any { !isValidChar(it) }) {
             return JunkType.INVALID_CHAR
         }
 
@@ -78,14 +72,14 @@ class JunkDetector(
         }
 
         // Repetitive Digits (e.g. 111111)
-        if (REPETITIVE_DIGITS_REGEX.containsMatchIn(cleanedNumber)) {
+        if (hasRepetitiveDigits(cleanedNumber)) {
             return JunkType.REPETITIVE_DIGITS
         }
 
         // 3. Name Analysis
         // 2026 Fix: name is guaranteed non-null here after line 58 check
         // A. Numerical Name (e.g. "123", "0801...")
-        if (NUMERICAL_NAME_REGEX.matches(name)) {
+        if (name.all { isValidChar(it) }) {
             return JunkType.NUMERICAL_NAME
         }
 
@@ -102,7 +96,7 @@ class JunkDetector(
 
         // D. Symbol Only Names (e.g. "...", "!!!")
         // \p{Punct} = Punctuation
-        if (SYMBOL_NAME_REGEX.matches(name)) {
+        if (name.none { it.isLetterOrDigit() }) {
             return JunkType.SYMBOL_NAME
         }
 
@@ -116,5 +110,30 @@ class JunkDetector(
 
     private fun getJunkType(contact: Contact): JunkType? {
         return getJunkType(contact.name, contact.numbers.firstOrNull())
+    }
+
+    /**
+     * Checks if char is a valid phone number character or separator.
+     * Matches regex set [\d\s+\-()]
+     */
+    private fun isValidChar(c: Char): Boolean {
+        return c.isDigit() || c.isWhitespace() || c == '+' || c == '(' || c == ')' || c == '-'
+    }
+
+    /**
+     * Checks if string contains 6 or more consecutive identical digits.
+     */
+    private fun hasRepetitiveDigits(s: String): Boolean {
+        if (s.length < 6) return false
+        var currentRun = 1
+        for (i in 1 until s.length) {
+            if (s[i] == s[i - 1]) {
+                currentRun++
+                if (currentRun >= 6) return true
+            } else {
+                currentRun = 1
+            }
+        }
+        return false
     }
 }

@@ -282,6 +282,8 @@ class WhatsAppLinkViewModel(
 
             whatsAppRepository.syncAllContactsToCache(deviceId)
                 .catch { e ->
+                    // 2026 Best Practice: Rethrow CancellationException for structured concurrency
+                    if (e is CancellationException) throw e
                     _syncState.value = SyncState.Error(e.message ?: "Sync failed")
                 }
                 .collect { progress ->

@@ -306,9 +306,11 @@ class IosContactRepository(
         val actualSensitiveCount = contactDao.countSensitive()
 
         // 8. Update scan result provider with all counts
+        // 2026 Best Practice: Use validated count for total to align with other DB-derived counts
+        val totalValidated = validatedContacts.size
         val result = ScanResult(
-            total = total,
-            rawCount = total,
+            total = totalValidated,
+            rawCount = total,  // Keep raw device count for reference
             whatsAppCount = whatsAppCount,
             telegramCount = telegramCount,
             junkCount = actualJunkCount,
@@ -330,7 +332,7 @@ class IosContactRepository(
             numericalNameCount = numericalNameCount,
             emojiNameCount = emojiNameCount,
             fancyFontCount = contactDao.countFancyFontName(),
-            nonWhatsAppCount = total - whatsAppCount
+            nonWhatsAppCount = totalValidated - whatsAppCount
         )
         scanResultProvider.scanResult = result
 
@@ -373,6 +375,9 @@ class IosContactRepository(
             updateScanResultSummary()
 
             Result.success(Unit)
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }

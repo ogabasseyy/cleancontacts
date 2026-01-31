@@ -922,7 +922,7 @@ class IosContactRepository(
             junkType = junkType?.name,
             duplicateType = duplicateType?.name,
             isFormatIssue = formatIssue != null,
-            detectedRegion = null,
+            detectedRegion = formatIssue?.regionCode,
             isSensitive = isSensitive,
             sensitiveDescription = sensitiveDescription,
             matchingKey = matchingKey,

@@ -18,6 +18,9 @@ actual object RevenueCatConfig {
     // Must match entitlement ID in RevenueCat dashboard
     actual val premiumEntitlementId: String = "Contacts Cleaner Pro"
 
+    // Defensive validation: Currently unreachable due to hardcoded fallback,
+    // but kept as a safety check in case the fallback is removed or changed
+    // to null/empty in the future. Ensures apiKey is never a placeholder.
     init {
         if (apiKey.contains("YOUR_REVENUECAT") || apiKey.isEmpty()) {
             throw IllegalStateException(

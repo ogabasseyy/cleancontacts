@@ -1,8 +1,8 @@
-# Privacy Policy for CleanContacts AI
+# Privacy Policy for Contacts Cleaner
 
 **Last updated: January 22, 2026**
 
-This Privacy Policy describes how CleanContacts AI ("we", "us", or "our") handles your data when you use our mobile application (the "App").
+This Privacy Policy describes how Contacts Cleaner ("we", "us", or "our") handles your data when you use our mobile application (the "App").
 
 ## 1. Data Processing
 **We prioritize your privacy. All contact processing happens locally on your device.**

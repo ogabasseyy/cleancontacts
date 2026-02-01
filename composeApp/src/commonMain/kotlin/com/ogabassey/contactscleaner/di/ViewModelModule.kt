@@ -12,35 +12,80 @@ import org.koin.dsl.module
  * Koin module for ViewModels.
  *
  * 2026 KMP Best Practice: Use Koin's viewModel DSL for cross-platform ViewModel injection.
+ * All ViewModels use named parameters to prevent silent dependency swaps if constructor order changes.
  */
 val viewModelModule = module {
-    // DashboardViewModel with ScanResultProvider, ScanContactsUseCase, ContactRepository
-    viewModel { DashboardViewModel(get(), get(), get()) }
+    // DashboardViewModel
+    viewModel {
+        DashboardViewModel(
+            scanResultProvider = get(),
+            scanContactsUseCase = get(),
+            contactRepository = get()
+        )
+    }
 
-    // ResultsViewModel with ScanResultProvider, ContactRepository, CleanupContactsUseCase, BillingRepository, UsageRepository, UndoUseCase
-    viewModel { ResultsViewModel(get(), get(), get(), get(), get(), get()) }
+    // ResultsViewModel
+    viewModel {
+        ResultsViewModel(
+            scanResultProvider = get(),
+            contactRepository = get(),
+            cleanupContactsUseCase = get(),
+            billingRepository = get(),
+            usageRepository = get(),
+            undoUseCase = get(),
+            scanContactsUseCase = get()
+        )
+    }
 
-    // PaywallViewModel with BillingRepository
-    viewModel { PaywallViewModel(get()) }
+    // PaywallViewModel
+    viewModel { PaywallViewModel(billingRepository = get()) }
 
-    // RecentActionsViewModel with BackupRepository and ContactRepository
-    viewModel { RecentActionsViewModel(get(), get()) }
+    // RecentActionsViewModel
+    viewModel {
+        RecentActionsViewModel(
+            backupRepository = get(),
+            contactRepository = get()
+        )
+    }
 
-    // SafeListViewModel with ContactRepository
-    viewModel { com.ogabassey.contactscleaner.ui.settings.SafeListViewModel(get()) }
+    // SafeListViewModel
+    viewModel { com.ogabassey.contactscleaner.ui.settings.SafeListViewModel(contactRepository = get()) }
 
     // ReviewViewModel for Sensitive Data
-    viewModel { com.ogabassey.contactscleaner.ui.tools.ReviewViewModel(get()) }
+    viewModel { com.ogabassey.contactscleaner.ui.tools.ReviewViewModel(contactRepository = get()) }
 
-    // CategoryViewModel for Lists (Junk, Duplicates, etc.) with ContactRepository, BillingRepository, UsageRepository
-    viewModel { com.ogabassey.contactscleaner.ui.category.CategoryViewModel(get(), get(), get()) }
+    // CategoryViewModel for Lists (Junk, Duplicates, etc.)
+    viewModel {
+        com.ogabassey.contactscleaner.ui.category.CategoryViewModel(
+            contactRepository = get(),
+            billingRepository = get(),
+            usageRepository = get()
+        )
+    }
 
-    // WhatsAppLinkViewModel with WhatsAppDetectorRepository and Settings for device ID
-    viewModel<WhatsAppLinkViewModel> { WhatsAppLinkViewModel(get(), get()) }
+    // WhatsAppLinkViewModel
+    viewModel<WhatsAppLinkViewModel> {
+        WhatsAppLinkViewModel(
+            whatsAppRepository = get(),
+            settings = get()
+        )
+    }
 
-    // WhatsAppContactsViewModel with WhatsAppDetectorRepository, Settings, and ContactDao for non-WhatsApp count
-    viewModel<com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel> { com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel(get(), get(), get()) }
+    // WhatsAppContactsViewModel
+    viewModel<com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel> {
+        com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsViewModel(
+            whatsAppRepository = get(),
+            settings = get(),
+            contactDao = get()
+        )
+    }
 
-    // CrossAccountViewModel for cross-account duplicates with ContactRepository, BillingRepository, UsageRepository
-    viewModel { com.ogabassey.contactscleaner.ui.duplicates.CrossAccountViewModel(get(), get(), get()) }
+    // CrossAccountViewModel for cross-account duplicates
+    viewModel {
+        com.ogabassey.contactscleaner.ui.duplicates.CrossAccountViewModel(
+            contactRepository = get(),
+            billingRepository = get(),
+            usageRepository = get()
+        )
+    }
 }

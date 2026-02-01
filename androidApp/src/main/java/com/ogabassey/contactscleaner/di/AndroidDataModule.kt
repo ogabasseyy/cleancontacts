@@ -1,8 +1,10 @@
 package com.ogabassey.contactscleaner.di
 
 import com.ogabassey.contactscleaner.data.repository.ContactRepositoryImpl
+import com.ogabassey.contactscleaner.data.repository.RevenueCatKmpBillingRepository
 import com.ogabassey.contactscleaner.data.repository.ScanSettingsRepository
 import com.ogabassey.contactscleaner.data.source.ContactsProviderSource
+import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
@@ -30,10 +32,8 @@ val androidDataModule = module {
         )
     }
 
-    // Billing Repository
-    single<com.ogabassey.contactscleaner.domain.repository.BillingRepository> {
-        com.ogabassey.contactscleaner.data.repository.RevenueCatBillingRepository()
-    }
+    // Billing Repository (uses KMP SDK - consistent with iOS)
+    single<BillingRepository> { RevenueCatKmpBillingRepository() }
 
     // File Service
     single<com.ogabassey.contactscleaner.domain.repository.FileService> {

@@ -20,7 +20,8 @@ class AndroidContactLauncher(
 ) : ContactLauncher {
     override fun openContact(id: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW)
+            // 2026 Fix: Use ACTION_EDIT to open contact in edit mode
+            val intent = Intent(Intent.ACTION_EDIT)
             val uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id)
             intent.data = uri
             launcher.launch(intent)
@@ -28,7 +29,7 @@ class AndroidContactLauncher(
             e.printStackTrace()
             // Fallback: just start activity without result tracking
             try {
-                val fallbackIntent = Intent(Intent.ACTION_VIEW)
+                val fallbackIntent = Intent(Intent.ACTION_EDIT)
                 val uri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, id)
                 fallbackIntent.data = uri
                 fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

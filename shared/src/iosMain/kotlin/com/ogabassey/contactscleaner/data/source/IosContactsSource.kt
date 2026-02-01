@@ -553,4 +553,63 @@ class IosContactsSource {
     private fun String.normalizePhoneNumber(): String {
         return this.filter { it.isDigit() || it == '+' }
     }
+
+    /**
+     * Get specific contacts by their identifiers.
+     * Efficient O(1) fetch for refresh operations.
+     */
+    suspend fun getContactsByUids(uids: List<String>): List<Contact> = withContext(Dispatchers.IO) {
+        if (uids.isEmpty()) return@withContext emptyList()
+
+        // 2026 Best Practice: Check permission before read operations
+        val hasPermission = requestContactsPermission()
+        if (!hasPermission) {
+            println("Contacts permission not granted for fetching by UIDs")
+            return@withContext emptyList()
+        }
+
+        val contacts = mutableListOf<Contact>()
+        try {
+            val predicate = CNContact.predicateForContactsWithIdentifiers(uids)
+            // Include all keys needed by cnContactToContact to avoid runtime crashes
+            val keysToFetch = listOf(
+                CNContactIdentifierKey,
+                CNContactGivenNameKey,
+                CNContactFamilyNameKey,
+                CNContactMiddleNameKey,
+                CNContactPhoneNumbersKey,
+                CNContactEmailAddressesKey,
+                CNContactSocialProfilesKey,
+                CNContactInstantMessageAddressesKey,
+                CNContactOrganizationNameKey
+            )
+
+            memScoped {
+                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                val fetchedContacts = contactStore.unifiedContactsMatchingPredicate(
+                    predicate,
+                    keysToFetch = keysToFetch,
+                    error = errorPtr.ptr
+                )
+
+                if (errorPtr.value != null) {
+                    println("Error fetching contacts by UIDs: ${errorPtr.value?.localizedDescription}")
+                    return@memScoped
+                }
+
+                fetchedContacts?.forEach { obj ->
+                    val cnContact = obj as? CNContact ?: return@forEach
+                    // For refresh, we assume Local/Device context since we lost the original container info
+                    // But usually, these IDs persist. If we really need account info, we'd need to re-fetch containers 
+                    // check container of this contact. For now, "Local" is a safe fallback for display logic.
+                    // To be perfect, we could re-query container for each contact, but that's expensive (N queries).
+                    val contact = cnContactToContact(cnContact, "Local", "Device")
+                    contacts.add(contact)
+                }
+            }
+        } catch (e: Exception) {
+            println("Error fetching contacts by UIDs: ${e.message}")
+        }
+        contacts
+    }
 }

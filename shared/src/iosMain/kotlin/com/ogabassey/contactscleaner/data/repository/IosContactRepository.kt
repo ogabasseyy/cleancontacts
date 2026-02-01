@@ -543,7 +543,11 @@ class IosContactRepository(
             return@flow
         }
 
-        emit(CleanupStatus.Progress(0.2f, "Standardizing ${formatIssues.size} contacts..."))
+        val total = formatIssues.size
+        var successCount = 0
+
+        // Pre-fetch contact names for streaming display
+        val contactNames = formatIssues.associate { it.id to (it.displayName ?: "Unknown") }
 
         // Record for history
         val contactsSnapshot = formatIssues.map { it.toContact() }
@@ -552,17 +556,64 @@ class IosContactRepository(
             actionType = "FORMAT",
             description = "Standardized ${formatIssues.size} numbers"
         )
-        
-        val ids = formatIssues.map { it.id }
-        val success = standardizeFormat(ids)
+
+        // Track recent items for streaming log
+        val recentItems = mutableListOf<String>()
+
+        // 2026 Optimization: Process in batches of 25 for streaming progress
+        // iOS CNContactStore is slower per-contact, so smaller batches give better feedback
+        formatIssues.chunked(25).forEachIndexed { batchIndex, batch ->
+            val batchIds = batch.map { it.id }
+
+            // Process this batch
+            val batchSuccessful = mutableListOf<Long>()
+            for (entity in batch) {
+                val normalizedNumber = entity.normalizedNumber ?: continue
+                val platformUid = entity.platformUid ?: continue
+
+                val updated = contactsSource.updateContactNumber(platformUid, normalizedNumber)
+                if (updated) {
+                    batchSuccessful.add(entity.id)
+                    successCount++
+
+                    // Add to recent items for streaming display
+                    val name = contactNames[entity.id]
+                    if (name != null) {
+                        recentItems.add(0, "Updated: $name")
+                        if (recentItems.size > 10) recentItems.removeLast()
+                    }
+                }
+            }
+
+            // Clear format issue flags for successfully updated contacts
+            if (batchSuccessful.isNotEmpty()) {
+                contactDao.clearFormatIssueFlags(batchSuccessful)
+            }
+
+            val progress = successCount.toFloat() / total.toFloat()
+            val currentItem = batch.lastOrNull()?.let { contactNames[it.id] }
+
+            emit(CleanupStatus.Progress(
+                progress = progress.coerceAtMost(1f),
+                message = "Standardizing: ${currentItem ?: "..."} [$successCount of $total]",
+                details = CleanupDetails(
+                    processed = successCount,
+                    total = total,
+                    currentItem = currentItem,
+                    recentItems = recentItems.toList()
+                )
+            ))
+        }
 
         // Refresh the scan result summary to update counts
         updateScanResultSummary()
 
-        if (success) {
-            emit(CleanupStatus.Success("Standardized ${formatIssues.size} phone numbers"))
+        if (successCount == total) {
+            emit(CleanupStatus.Success("Standardized $successCount phone numbers"))
+        } else if (successCount > 0) {
+            emit(CleanupStatus.Success("Standardized $successCount of $total phone numbers"))
         } else {
-            emit(CleanupStatus.Error("Some contacts could not be updated"))
+            emit(CleanupStatus.Error("Could not update contacts"))
         }
     }
 
@@ -597,6 +648,156 @@ class IosContactRepository(
             ContactType.NON_WHATSAPP -> contactDao.getNonWhatsAppContactsSnapshot().map { it.toContact() }
             ContactType.ACCOUNT -> contactDao.getAllContacts().map { it.toContact() }
             ContactType.JUNK_SUSPICIOUS -> contactDao.getJunkContactsSnapshot().map { it.toContact() }
+        }
+    }
+
+    override suspend fun refreshContacts(contacts: List<Contact>): Boolean {
+        if (contacts.isEmpty()) return true
+
+        return try {
+            val uids = contacts.mapNotNull { it.platform_uid }
+            val ids = contacts.map { it.id } // DB IDs
+            if (uids.isEmpty()) return false
+
+            // 1. Fetch fresh data from source
+            val freshContacts = contactsSource.getContactsByUids(uids)
+
+            // 2. Load cached WhatsApp numbers if available
+            var whatsAppPhoneNumbers = emptySet<String>()
+            if (whatsAppRepository != null && settings != null) {
+                try {
+                    val snapshot = whatsAppRepository.getValidCacheSnapshot()
+                    if (snapshot is CacheSnapshot.Valid) {
+                        whatsAppPhoneNumbers = snapshot.numbers
+                    }
+                } catch (e: Exception) {
+                    println("Note: Could not load WhatsApp cache for refresh: ${e.message}")
+                }
+            }
+
+            // 3. Process contacts
+            val ignoredIds = ignoredContactDao.getAllIds().toSet()
+            
+            val localContacts = withContext(Dispatchers.Default) {
+                freshContacts.map { contact ->
+                    val primaryNumber = contact.numbers.firstOrNull() ?: ""
+                    val isIgnored = ignoredIds.contains(contact.id.toString()) // contact.id from source is likely new hash, we need to match appropriately. 
+                    // Wait, contact.id from source is hash of UID. So it should match if UID is same.
+                    // But input `contacts` has the valid DB ID. `freshContacts` will have ID generated from UID.
+                    // Ideally we should use the UID for ignore check if possible, or ensure ID generation is deterministic (it is).
+                    
+                    var isSensitive = false
+                    var sensitiveDesc: String? = null
+
+                    if (!isIgnored) {
+                        // Scan Name
+                        contact.name?.let { name ->
+                            sensitiveDetector.analyze(name)?.let {
+                                isSensitive = true
+                                sensitiveDesc = it.description
+                            }
+                        }
+
+                        // Scan All Numbers
+                        if (!isSensitive) {
+                            contact.numbers.forEach { num ->
+                                if (!isSensitive) {
+                                    sensitiveDetector.analyze(num)?.let {
+                                        isSensitive = true
+                                        sensitiveDesc = it.description
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Junk detection
+                    val junkType = if (!isIgnored && !isSensitive) {
+                        junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
+                    } else null
+
+                    // Format issue detection
+                    var isFormatIssue = false
+                    var detectedNormalized = contact.normalizedNumber
+
+                    if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+                         if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
+                             formatDetector.analyze(primaryNumber)?.let { issue ->
+                                 isFormatIssue = true
+                                 detectedNormalized = issue.normalizedNumber
+                             }
+                         }
+                    }
+
+                    // Check WhatsApp
+                    val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
+                        contact.numbers.any { num ->
+                            val normalized = num.filter { it.isDigit() }
+                            whatsAppPhoneNumbers.contains(normalized)
+                        }
+                    } else {
+                        contact.isWhatsApp
+                    }
+
+                    LocalContact(
+                        id = contact.id, // This ID is deterministic from UID in iOS source
+                        displayName = contact.name,
+                        normalizedNumber = detectedNormalized,
+                        rawNumbers = contact.numbers.joinToString(","),
+                        rawEmails = contact.emails.joinToString(","),
+                        isWhatsApp = isOnWhatsApp,
+                        isTelegram = contact.isTelegram,
+                        accountType = contact.accountType,
+                        accountName = contact.accountName,
+                        isJunk = junkType != null && !isSensitive,
+                        junkType = junkType?.name,
+                        duplicateType = null,
+                        isFormatIssue = isFormatIssue,
+                        detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
+                        isSensitive = isSensitive,
+                        sensitiveDescription = sensitiveDesc,
+                        matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
+                        platformUid = contact.platform_uid,
+                        lastSynced = Clock.System.now().toEpochMilliseconds()
+                    )
+                }
+            }
+
+            // 4. Update DB
+             // IDs that were requested but returned might be missing (deleted externally)
+            // Since we use UIDs to fetch, if one is missing from `freshContacts`, it implies it's gone from device.
+            // But `freshContacts` returns new objects.
+            
+            // Map fetched UIDs
+            val fetchedUids = freshContacts.mapNotNull { it.platform_uid }.toSet()
+            // Identify which of certain UIDs were NOT found
+            val missedUids = uids.filter { it !in fetchedUids }
+            
+            if (missedUids.isNotEmpty()) {
+                // Find DB IDs for these UIDs.
+                // We have `contacts` input list which has ID and UID.
+                val missingDbIds = contacts.filter { it.platform_uid in missedUids }.map { it.id }
+                if (missingDbIds.isNotEmpty()) {
+                     contactDao.deleteContacts(missingDbIds)
+                }
+            }
+
+            if (localContacts.isNotEmpty()) {
+                val validatedContacts = localContacts.filter { contact ->
+                    contact.id > 0 && 
+                    (contact.displayName?.length ?: 0) <= 1000 && 
+                    contact.rawNumbers.length <= 10000 &&
+                    contact.rawEmails.length <= 10000
+                }
+                contactDao.insertContacts(validatedContacts)
+            }
+
+            // 5. Update Summary
+            updateScanResultSummary()
+            true
+        } catch (e: Exception) {
+            println("Error refreshing contacts: ${e.message}")
+            false
         }
     }
 
@@ -764,7 +965,7 @@ class IosContactRepository(
                             contactId = instance.id,
                             accountType = instance.accountType,
                             accountName = instance.accountName,
-                            displayLabel = getAccountDisplayLabel(instance.accountType)
+                            displayLabel = getAccountDisplayLabel(instance.accountType, instance.accountName)
                         )
                     }
                 )
@@ -850,13 +1051,14 @@ class IosContactRepository(
         emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
     }
 
-    private fun getAccountDisplayLabel(accountType: String?): String {
+    private fun getAccountDisplayLabel(accountType: String?, accountName: String? = null): String {
         return when {
-            accountType == null -> "Local"
-            accountType.contains("google", ignoreCase = true) -> "Google"
+            accountType == null || accountType.isEmpty() -> "iOS"
+            accountType.contains("google", ignoreCase = true) -> {
+                // Show actual email address for Gmail accounts to distinguish between multiple accounts
+                accountName?.takeIf { it.contains("@") } ?: "Gmail"
+            }
             accountType.contains("icloud", ignoreCase = true) -> "iCloud"
-            accountType.contains("whatsapp", ignoreCase = true) -> "WhatsApp"
-            accountType.contains("telegram", ignoreCase = true) -> "Telegram"
             accountType.contains("exchange", ignoreCase = true) -> "Exchange"
             accountType.contains("yahoo", ignoreCase = true) -> "Yahoo"
             accountType.contains("outlook", ignoreCase = true) -> "Outlook"

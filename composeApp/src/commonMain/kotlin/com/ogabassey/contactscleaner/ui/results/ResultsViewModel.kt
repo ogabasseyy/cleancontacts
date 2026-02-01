@@ -63,9 +63,12 @@ class ResultsViewModel(
     // Trial actions tracking (limit is 1)
     val freeActionsRemaining: Flow<Int> = usageRepository.freeActionsRemaining
 
-    // 2026 Best Practice: Pull-to-refresh state for rescan
+    // 2026 Best Practice: Pull-to-refresh state for rescan with progress
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    private val _refreshProgress = MutableStateFlow(RefreshProgress())
+    val refreshProgress: StateFlow<RefreshProgress> = _refreshProgress.asStateFlow()
 
     /**
      * Trigger a full rescan of contacts from device.
@@ -77,18 +80,21 @@ class ResultsViewModel(
     fun rescan() {
         viewModelScope.launch {
             _isRefreshing.value = true
+            _refreshProgress.value = RefreshProgress(0f, "Starting scan...")
             try {
                 scanContactsUseCase().collect { status ->
                     when (status) {
                         is ScanStatus.Success -> {
+                            _refreshProgress.value = RefreshProgress(1f, "Scan complete!")
                             _isRefreshing.value = false
                         }
                         is ScanStatus.Error -> {
                             _isRefreshing.value = false
+                            _refreshProgress.value = RefreshProgress()
                             _uiState.value = ResultsUiState.Error(status.message)
                         }
                         is ScanStatus.Progress -> {
-                            // Progress is handled by pull-to-refresh indicator
+                            _refreshProgress.value = RefreshProgress(status.progress, status.message)
                         }
                     }
                 }
@@ -96,6 +102,7 @@ class ResultsViewModel(
                 throw e
             } catch (e: Exception) {
                 _isRefreshing.value = false
+                _refreshProgress.value = RefreshProgress()
                 _uiState.value = ResultsUiState.Error(e.message ?: "Rescan failed")
             }
         }
@@ -314,4 +321,13 @@ sealed class ResultsUiState {
 data class FormatGroup(
     val region: String,
     val contacts: List<Contact>
+)
+
+/**
+ * Progress state for pull-to-refresh rescan.
+ * Shows scan progress and status message during refresh.
+ */
+data class RefreshProgress(
+    val progress: Float = 0f,
+    val message: String? = null
 )

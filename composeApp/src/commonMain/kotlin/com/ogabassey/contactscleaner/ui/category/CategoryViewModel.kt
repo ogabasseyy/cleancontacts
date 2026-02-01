@@ -10,7 +10,9 @@ import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
 import com.ogabassey.contactscleaner.platform.Logger
+import com.ogabassey.contactscleaner.util.BackgroundOperationManager
 import com.ogabassey.contactscleaner.util.ExportUtils
+import com.ogabassey.contactscleaner.util.OperationType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -137,6 +139,36 @@ class CategoryViewModel(
         loadCategory(type)
     }
 
+    /**
+     * Refresh a specific contact after editing in native app.
+     * This calls the repository to fetch fresh data from the provider and update the DB.
+     * Then it silently updates the UI state.
+     */
+    fun refreshSpecificContact(contact: Contact, type: ContactType) {
+        viewModelScope.launch {
+            try {
+                // 1. Refresh data in DB
+                contactRepository.refreshContacts(listOf(contact))
+                
+                // 2. Silently reload list (no Loading state)
+                // For duplicate types, load groups instead of flat list
+                if (type.name.startsWith("DUP_") || type == ContactType.DUPLICATE) {
+                    val groups = contactRepository.getDuplicateGroups(type)
+                    _duplicateGroups.value = groups
+                    // Also load flat list for count purposes
+                    val result = contactRepository.getContactsSnapshotByType(type)
+                    _contacts.value = result
+                } else {
+                    // Fetch actual contacts from repository
+                    val result = contactRepository.getContactsSnapshotByType(type)
+                    _contacts.value = result
+                }
+            } catch (e: Exception) {
+                Logger.e(TAG, "Failed to refresh specific contact", e)
+            }
+        }
+    }
+
     fun loadGroupContacts(groupKey: String, type: ContactType) {
         viewModelScope.launch {
             // 2026 Best Practice: Clear stale state immediately when navigating to new group
@@ -182,7 +214,30 @@ class CategoryViewModel(
         viewModelScope.launch {
             runWithPremiumCheck {
                 pendingAction = null
-                _uiState.value = CategoryUiState.Processing(0f, "Starting...")
+
+                // Determine operation type and get item count for BackgroundOperationManager
+                val operationType = when (type) {
+                    ContactType.FORMAT_ISSUE -> OperationType.STANDARDIZE_FORMAT
+                    ContactType.DUPLICATE, ContactType.DUP_NUMBER, ContactType.DUP_EMAIL,
+                    ContactType.DUP_NAME, ContactType.DUP_SIMILAR_NAME -> OperationType.MERGE_DUPLICATES
+                    else -> OperationType.DELETE_CONTACTS
+                }
+
+                // Get count for progress tracking
+                val itemCount = when {
+                    type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> _duplicateGroups.value.size
+                    else -> _contacts.value.size
+                }
+
+                // Start background operation with streaming progress UI
+                BackgroundOperationManager.startOperation(
+                    type = operationType,
+                    totalItems = itemCount,
+                    title = operationType.displayName
+                )
+
+                // Hide the old processing overlay - BackgroundOperationManager handles UI now
+                _uiState.value = CategoryUiState.Success()
 
                 try {
                     when (type) {
@@ -212,11 +267,17 @@ class CategoryViewModel(
                             }
                         }
                     }
+
+                    // Mark operation as complete
+                    BackgroundOperationManager.complete(true, "Operation completed successfully")
+
                     // 2026 Best Practice: Refresh list with hint to pull-to-refresh on Results page
                     loadCategory(type, "Pull down on Results to refresh counts")
                 } catch (e: CancellationException) {
+                    BackgroundOperationManager.cancel()
                     throw e
                 } catch (e: Exception) {
+                    BackgroundOperationManager.complete(false, e.message ?: "Unknown error")
                     _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
                 }
             }
@@ -233,14 +294,35 @@ class CategoryViewModel(
             runWithPremiumCheck {
                 Logger.d(TAG, "runWithPremiumCheck passed, executing delete...")
                 pendingAction = null
-                _uiState.value = CategoryUiState.Processing(0f, "Deleting contact...")
+                // 2026 Fix: Don't show Processing overlay for single delete - causes layout shift
+                // The dialog already shows "Deleting..." state via deletingContactId tracking
                 try {
                     Logger.d(TAG, "Calling contactRepository.deleteContacts...")
                     val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
                     Logger.d(TAG, "deleteContacts result: $success")
                     if (success) {
-                        // Single delete - just reload without hint (less disruptive)
-                        loadCategory(type)
+                        // 2026 Fix: Use optimistic update - remove from local list directly
+                        // instead of calling loadCategory() which triggers Loading state
+                        // This prevents the visible layout shift on Android
+                        _contacts.value = _contacts.value.filter { it.id != contact.id }
+                        _groupContacts.value = _groupContacts.value.filter { it.id != contact.id }
+
+                        // Update duplicate groups if applicable
+                        if (type.name.startsWith("DUP_") || type == ContactType.DUPLICATE) {
+                            // Reload groups in background without changing UI state
+                            try {
+                                val groups = contactRepository.getDuplicateGroups(type)
+                                _duplicateGroups.value = groups
+                            } catch (e: Exception) {
+                                Logger.e(TAG, "Failed to refresh duplicate groups: ${e.message}", e)
+                            }
+                        }
+
+                        // Update scan result summaries in background
+                        contactRepository.updateScanResultSummary()
+
+                        // Stay in Success state - no Loading transition
+                        _uiState.value = CategoryUiState.Success()
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
                     }
@@ -264,6 +346,24 @@ class CategoryViewModel(
     private fun updateStatus(status: CleanupStatus) {
         when (status) {
             is CleanupStatus.Progress -> {
+                // Update BackgroundOperationManager for streaming UI
+                val details = status.details
+                if (details != null) {
+                    BackgroundOperationManager.updateProgress(
+                        processed = details.processed,
+                        currentItem = details.currentItem
+                    )
+                    // Add recent items to log for streaming display
+                    details.recentItems.firstOrNull()?.let { recentItem ->
+                        BackgroundOperationManager.addLogEntry(recentItem, isSuccess = true)
+                    }
+                } else {
+                    // Fallback for old-style progress without details
+                    val processed = (status.progress * 100).toInt()
+                    BackgroundOperationManager.updateProgress(processed, status.message)
+                }
+
+                // Still update local state for screens not using BackgroundOperationManager
                 _uiState.value = CategoryUiState.Processing(status.progress, status.message)
             }
             is CleanupStatus.Success -> {
@@ -271,6 +371,7 @@ class CategoryViewModel(
                 _uiState.value = CategoryUiState.Success()
             }
             is CleanupStatus.Error -> {
+                BackgroundOperationManager.complete(false, status.message)
                 _uiState.value = CategoryUiState.Error(status.message)
             }
         }

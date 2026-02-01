@@ -536,7 +536,11 @@ fun SettingsItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = onClick != null) { onClick?.invoke() }
+            // 2026 Accessibility: Add semantic role for screen readers
+            .clickable(
+                enabled = onClick != null,
+                role = if (onClick != null) Role.Button else null
+            ) { onClick?.invoke() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -547,9 +551,18 @@ fun SettingsItem(
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        // 2026 UX: weight(1f) ensures text column doesn't push chevron off-screen
+        Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color.White)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
+        }
+        // 2026 UX: Visual affordance - chevron indicates item is clickable
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.5f)
+            )
         }
     }
 }
@@ -584,7 +597,8 @@ fun OrbitalFeatures(radius: Dp) {
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "orbit")
-    val rotation by infiniteTransition.animateFloat(
+    // ⚡ 2026 Optimization: Defer state read to graphicsLayer to prevent recomposition every frame
+    val rotationState = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
@@ -599,12 +613,13 @@ fun OrbitalFeatures(radius: Dp) {
     val radiusPx = with(density) { radius.toPx() }
 
     features.forEachIndexed { index, item ->
-        val angleDeg = (index * 90f) + rotation
-        val angleRad = angleDeg.toDouble() * PI / 180.0
-
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.graphicsLayer {
+                // ⚡ Read state inside graphicsLayer - updates layer without recomposition
+                val rotation = rotationState.value
+                val angleDeg = (index * 90f) + rotation
+                val angleRad = angleDeg.toDouble() * PI / 180.0
                 translationX = (radiusPx * cos(angleRad)).toFloat()
                 translationY = (radiusPx * sin(angleRad)).toFloat()
             }
@@ -631,7 +646,8 @@ fun OrbitalFeatures(radius: Dp) {
 @Composable
 fun PulseAnimation(color: Color = PrimaryNeon) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
+    // ⚡ 2026 Optimization: Defer state read to graphicsLayer to prevent recomposition every frame
+    val scaleState = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.6f,
         animationSpec = infiniteRepeatable(
@@ -640,7 +656,7 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
         ),
         label = "scale"
     )
-    val alpha by infiniteTransition.animateFloat(
+    val alphaState = infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(
@@ -653,8 +669,13 @@ fun PulseAnimation(color: Color = PrimaryNeon) {
     Box(
         modifier = Modifier
             .size(160.dp)
-            .graphicsLayer(scaleX = scale, scaleY = scale)
-            .background(color.copy(alpha = alpha), CircleShape)
+            .graphicsLayer {
+                // ⚡ Read state inside graphicsLayer - updates layer without recomposition
+                scaleX = scaleState.value
+                scaleY = scaleState.value
+                alpha = alphaState.value
+            }
+            .background(color, CircleShape)
     )
 }
 

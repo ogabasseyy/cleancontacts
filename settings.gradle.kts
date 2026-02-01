@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CleanContactsAI"
+rootProject.name = "ContactsCleaner"
 
 // KMP Modules (2026 Best Practice)
 include(":shared")

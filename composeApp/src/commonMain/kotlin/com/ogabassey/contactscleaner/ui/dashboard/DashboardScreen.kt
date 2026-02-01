@@ -207,10 +207,15 @@ fun DashboardScreen(
                     ) {
                         when (val state = uiState) {
                             is DashboardUiState.Scanning -> {
-                                val pct = (state.progress * 100).toInt()
+                                val animatedProgress by animateFloatAsState(
+                                    targetValue = state.progress,
+                                    label = "progressAnimation",
+                                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                )
+                                val pct = (animatedProgress * 100).toInt()
                                 Box(contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator(
-                                        progress = { state.progress },
+                                        progress = { animatedProgress },
                                         color = SpaceBlack,
                                         modifier = Modifier.size(64.dp),
                                         strokeWidth = 6.dp,

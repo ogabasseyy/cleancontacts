@@ -100,7 +100,7 @@ class RevenueCatKmpBillingRepository : BillingRepository {
                     id = pkg.storeProduct.id,
                     title = pkg.storeProduct.title,
                     price = pkg.storeProduct.price.formatted,
-                    description = pkg.storeProduct.description,
+                    description = pkg.storeProduct.title,
                     identifier = getPackageIdentifier(pkg.identifier)
                 )
             }

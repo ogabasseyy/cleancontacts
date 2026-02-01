@@ -1,6 +1,6 @@
-# CleanContacts AI
+# Contacts Cleaner
 
-**CleanContacts AI** is a modern, minimalistic Android utility that analyzes, classifies, cleans, and syncs contacts. Built with Kotlin, Jetpack Compose, and following Clean Architecture principles.
+**Contacts Cleaner** is a modern, minimalistic Android utility that analyzes, classifies, cleans, and syncs contacts. Built with Kotlin, Jetpack Compose, and following Clean Architecture principles.
 
 ## Features
 

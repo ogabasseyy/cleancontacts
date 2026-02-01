@@ -125,7 +125,7 @@ fun PaywallScreen(
                 when (val state = packagesResource) {
                     is Resource.Loading -> {
                         // Skeleton Loading UI
-                        repeat(3) {
+                        repeat(2) {
                             PricingOptionSkeleton()
                             Spacer(modifier = Modifier.height(12.dp))
                         }
@@ -195,7 +195,6 @@ fun PaywallScreen(
                                 PricingOption(
                                     title = when (pkg.identifier) {
                                         "monthly" -> "Monthly"
-                                        "annual" -> "Annual"
                                         "lifetime" -> "Lifetime"
                                         else -> pkg.title
                                     },
@@ -203,12 +202,10 @@ fun PaywallScreen(
                                     // Apple Guideline 3.1.2: Show subscription length clearly
                                     billingPeriod = when (pkg.identifier) {
                                         "monthly" -> "per month, auto-renews"
-                                        "annual" -> "per year, auto-renews"
                                         "lifetime" -> "one-time purchase"
-                                        "weekly" -> "per week, auto-renews"
                                         else -> null
                                     },
-                                    badge = if (pkg.identifier == "annual") "Best Value" else null,
+                                    badge = if (pkg.identifier == "lifetime") "Best Value" else null,
                                     isSelected = selectedPackageId == pkg.id,
                                     onClick = { selectedPackageId = pkg.id }
                                 )

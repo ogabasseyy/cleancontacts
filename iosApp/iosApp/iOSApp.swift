@@ -1,7 +1,7 @@
 import SwiftUI
 
 /**
- * iOS Application entry point for CleanContactsAI.
+ * iOS Application entry point for Contacts Cleaner.
  *
  * 2026 KMP Best Practice: SwiftUI wrapper for Compose Multiplatform.
  */

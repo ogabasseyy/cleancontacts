@@ -1,6 +1,7 @@
 package com.ogabassey.contactscleaner.ui.results
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -758,6 +759,12 @@ fun AccountDialogItem(
 
 @Composable
 private fun ProcessingOverlay(progress: Float, message: String?) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        label = "progressAnimation",
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -766,14 +773,14 @@ private fun ProcessingOverlay(progress: Float, message: String?) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator(
-                progress = { progress },
+                progress = { animatedProgress },
                 color = PrimaryNeon,
                 modifier = Modifier.size(64.dp),
                 strokeWidth = 6.dp
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "${(progress * 100).toInt()}%",
+                "${(animatedProgress * 100).toInt()}%",
                 style = MaterialTheme.typography.headlineMedium,
                 color = PrimaryNeon,
                 fontWeight = FontWeight.Bold

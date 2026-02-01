@@ -30,17 +30,10 @@ class MockBillingRepository : BillingRepository {
                     identifier = "monthly"
                 ),
                 PaywallPackage(
-                    id = "annual_001",
-                    title = "Annual",
-                    price = "$29.99/year",
-                    description = "Save 50%",
-                    identifier = "annual"
-                ),
-                PaywallPackage(
                     id = "lifetime_001",
                     title = "Lifetime",
-                    price = "$79.99",
-                    description = "One-time purchase",
+                    price = "$49.99",
+                    description = "One-time purchase, best value",
                     identifier = "lifetime"
                 )
             )

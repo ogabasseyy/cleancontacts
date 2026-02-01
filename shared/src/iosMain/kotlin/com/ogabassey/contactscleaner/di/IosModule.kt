@@ -4,7 +4,7 @@ import com.ogabassey.contactscleaner.data.db.ContactDatabase
 import com.ogabassey.contactscleaner.data.db.getDatabaseBuilder
 import com.ogabassey.contactscleaner.data.repository.IosContactRepository
 import com.ogabassey.contactscleaner.data.repository.IosFileService
-import com.ogabassey.contactscleaner.data.repository.MockBillingRepository
+import com.ogabassey.contactscleaner.data.repository.RevenueCatKmpBillingRepository
 import com.ogabassey.contactscleaner.data.source.IosContactsSource
 import com.ogabassey.contactscleaner.domain.repository.BackupRepository
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
@@ -41,8 +41,8 @@ val iosModule = module {
     // iOS Contacts Source (CNContactStore)
     single { IosContactsSource() }
 
-    // Billing Repository (Mock for iOS - replace with StoreKit implementation later)
-    single<BillingRepository> { MockBillingRepository() }
+    // Billing Repository (RevenueCat KMP - real StoreKit integration)
+    single<BillingRepository> { RevenueCatKmpBillingRepository() }
 
     // File Service (iOS file system)
     single<FileService> { IosFileService() }

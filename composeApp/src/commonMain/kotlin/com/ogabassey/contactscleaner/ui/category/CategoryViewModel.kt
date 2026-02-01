@@ -75,13 +75,16 @@ class CategoryViewModel(
         // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
         val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
+        Logger.d(TAG, "runWithPremiumCheck: isPremium=$isPremium, canPerform=$canPerform")
 
         if (isPremium || canPerform) {
+            Logger.d(TAG, "Premium check passed, executing action...")
             action()
             if (!isPremium) {
                 usageRepository.incrementFreeActions()
             }
         } else {
+            Logger.d(TAG, "Premium check FAILED - showing paywall")
             actionMutex.withLock {
                 pendingAction = action
             }
@@ -202,15 +205,20 @@ class CategoryViewModel(
     }
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {
+        Logger.d(TAG, "deleteSingleContact called: id=${contact.id}")
         viewModelScope.launch {
             // 2026 Best Practice: Track which contact is being deleted for proper dialog state
             _deletingContactId.value = contact.id
+            Logger.d(TAG, "Set deletingContactId to ${contact.id}")
 
             runWithPremiumCheck {
+                Logger.d(TAG, "runWithPremiumCheck passed, executing delete...")
                 pendingAction = null
                 _uiState.value = CategoryUiState.Processing(0f, "Deleting contact...")
                 try {
+                    Logger.d(TAG, "Calling contactRepository.deleteContacts...")
                     val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
+                    Logger.d(TAG, "deleteContacts result: $success")
                     if (success) {
                         _uiState.value = CategoryUiState.Success
                         loadCategory(type)

@@ -5,8 +5,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -21,8 +24,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.domain.model.Resource
+import com.ogabassey.contactscleaner.platform.LegalUrls
+import com.ogabassey.contactscleaner.platform.UrlOpener
 import com.ogabassey.contactscleaner.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -69,6 +79,7 @@ fun PaywallScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -117,7 +128,7 @@ fun PaywallScreen(
                 when (val state = packagesResource) {
                     is Resource.Loading -> {
                         // Skeleton Loading UI
-                        repeat(3) {
+                        repeat(2) {
                             PricingOptionSkeleton()
                             Spacer(modifier = Modifier.height(12.dp))
                         }
@@ -187,12 +198,17 @@ fun PaywallScreen(
                                 PricingOption(
                                     title = when (pkg.identifier) {
                                         "monthly" -> "Monthly"
-                                        "annual" -> "Annual"
-                                        "lifetime" -> "One-Time Purchase"
+                                        "lifetime" -> "Lifetime"
                                         else -> pkg.title
                                     },
                                     price = pkg.price,
-                                    badge = if (pkg.identifier == "annual") "Save 44%" else null,
+                                    // Apple Guideline 3.1.2: Show subscription length clearly
+                                    billingPeriod = when (pkg.identifier) {
+                                        "monthly" -> "per month, auto-renews"
+                                        "lifetime" -> "one-time purchase"
+                                        else -> null
+                                    },
+                                    badge = if (pkg.identifier == "lifetime") "Best Value" else null,
                                     isSelected = selectedPackageId == pkg.id,
                                     onClick = { selectedPackageId = pkg.id }
                                 )
@@ -250,12 +266,10 @@ fun PaywallScreen(
                     )
                 }
 
-                Text(
-                    text = "Cancel anytime. Terms apply.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextLow,
-                    textAlign = TextAlign.Center
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Apple Guideline 3.1.2: Subscription info and legal links
+                SubscriptionLegalText()
             }
         }
 
@@ -300,10 +314,15 @@ private fun FeatureRow(text: String) {
     }
 }
 
+/**
+ * Apple Guideline 3.1.2: Display subscription details clearly.
+ * Shows title, price, billing period, and optional badge.
+ */
 @Composable
 private fun PricingOption(
     title: String,
     price: String,
+    billingPeriod: String? = null,
     badge: String? = null,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -330,26 +349,102 @@ private fun PricingOption(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
-                if (badge != null) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = badge,
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                    if (badge != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = PrimaryNeon.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = badge,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = PrimaryNeon,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+                // Apple Guideline 3.1.2: Show billing period clearly
+                if (billingPeriod != null) {
+                    Text(
+                        text = billingPeriod,
                         style = MaterialTheme.typography.bodySmall,
-                        color = PrimaryNeon
+                        color = TextLow
                     )
                 }
             }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = price,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) PrimaryNeon else TextMedium
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Apple Guideline 3.1.2: Required subscription legal text with functional links.
+ * - Subscription auto-renews unless cancelled
+ * - Lifetime is a one-time purchase (not a subscription)
+ * - Links to Terms of Use and Privacy Policy
+ */
+@Composable
+private fun SubscriptionLegalText() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Monthly subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings. Lifetime is a one-time purchase with no recurring charges.",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextLow,
+            textAlign = TextAlign.Center,
+            lineHeight = 14.sp
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Clickable legal links - Apple Guideline 3.1.2 requirement
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
-                text = price,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) PrimaryNeon else TextMedium
+                text = "Terms of Use",
+                style = MaterialTheme.typography.labelSmall,
+                color = PrimaryNeon,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .semantics { role = Role.Button }
+                    .clickable { UrlOpener.openUrl(LegalUrls.TERMS_OF_USE) }
+            )
+
+            Text(
+                text = "  •  ",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextLow
+            )
+
+            Text(
+                text = "Privacy Policy",
+                style = MaterialTheme.typography.labelSmall,
+                color = PrimaryNeon,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .semantics { role = Role.Button }
+                    .clickable { UrlOpener.openUrl(LegalUrls.PRIVACY_POLICY) }
             )
         }
     }

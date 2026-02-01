@@ -323,8 +323,11 @@ class IosContactRepository(
 
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
+            println("Deleting ${contacts.size} contacts")
+
             // Separate contacts with and without platform_uid
             val (withUid, withoutUid) = contacts.partition { it.platform_uid != null }
+            println("With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
 
             // Record for history/undo before deletion
             if (contacts.isNotEmpty()) {
@@ -337,10 +340,13 @@ class IosContactRepository(
 
             // Delete from device (only contacts with platform_uid)
             val uids = withUid.mapNotNull { it.platform_uid }
+            println("🗑️ [DELETE] UIDs to delete from device: $uids")
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result to ensure consistency
                 val deviceDeleted = contactsSource.deleteContacts(uids)
+                println("🗑️ [DELETE] Device deletion result: $deviceDeleted")
                 if (!deviceDeleted) {
+                    println("🗑️ [DELETE] Device deletion FAILED!")
                     return Result.failure(IllegalStateException("Failed to delete contacts from device"))
                 }
             }

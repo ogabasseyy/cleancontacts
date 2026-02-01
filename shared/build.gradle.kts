@@ -72,6 +72,7 @@ kotlin {
 
             // RevenueCat KMP (in-app purchases)
             implementation(libs.purchases.kmp.core)
+            implementation(libs.purchases.kmp.result)
         }
 
         commonTest.dependencies {

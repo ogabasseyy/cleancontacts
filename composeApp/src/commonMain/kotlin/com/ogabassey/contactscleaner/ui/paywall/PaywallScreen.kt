@@ -393,6 +393,7 @@ private fun PricingOption(
 /**
  * Apple Guideline 3.1.2: Required subscription legal text with functional links.
  * - Subscription auto-renews unless cancelled
+ * - Lifetime is a one-time purchase (not a subscription)
  * - Links to Terms of Use and Privacy Policy
  */
 @Composable
@@ -402,7 +403,7 @@ private fun SubscriptionLegalText() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.",
+            text = "Monthly subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings. Lifetime is a one-time purchase with no recurring charges.",
             style = MaterialTheme.typography.labelSmall,
             color = TextLow,
             textAlign = TextAlign.Center,

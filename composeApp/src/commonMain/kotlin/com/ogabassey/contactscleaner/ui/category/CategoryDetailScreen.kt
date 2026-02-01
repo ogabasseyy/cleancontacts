@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.ui.category
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,7 +72,8 @@ fun CategoryDetailScreen(
     val groupContacts by viewModel.groupContacts.collectAsState()
     val deletingContactId by viewModel.deletingContactId.collectAsState()
     val exportData by viewModel.exportData.collectAsState()
-    val freeActionsRemaining by viewModel.freeActionsRemaining.collectAsState(initial = 1)
+    val freeActionsRemaining by viewModel.freeActionsRemaining.collectAsState(initial = 2)
+    val isPremium by viewModel.isPremium.collectAsState()
 
     // Track export format for proper file extension
     var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
@@ -170,6 +173,35 @@ fun CategoryDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    // Show free actions remaining pill for non-premium users
+                    if (!isPremium && freeActionsRemaining > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = PrimaryNeon.copy(alpha = 0.15f),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = PrimaryNeon,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    "$freeActionsRemaining Free",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = PrimaryNeon,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
@@ -182,8 +214,8 @@ fun CategoryDetailScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                // Free Actions Exhausted Banner
-                if (freeActionsRemaining <= 0) {
+                // Free Actions Exhausted Banner (only for non-premium users)
+                if (!isPremium && freeActionsRemaining <= 0) {
                     FreeActionsExhaustedBanner(
                         onUpgradeClick = onNavigateToPaywall
                     )
@@ -278,6 +310,17 @@ fun CategoryDetailScreen(
             // Processing Overlay
             if (uiState is CategoryUiState.Processing) {
                 val state = uiState as CategoryUiState.Processing
+                // Continuous rotation for flowing effect
+                val infiniteTransition = rememberInfiniteTransition(label = "categoryFlow")
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1500, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "flowRotation"
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -285,7 +328,10 @@ fun CategoryDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = PrimaryNeon)
+                        CircularProgressIndicator(
+                            color = PrimaryNeon,
+                            modifier = Modifier.graphicsLayer { rotationZ = rotation }
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             state.message ?: "Processing...",

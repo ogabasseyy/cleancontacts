@@ -1,22 +1,32 @@
 package com.ogabassey.contactscleaner.platform
 
+import platform.Foundation.NSBundle
+
 /**
  * iOS RevenueCat configuration.
  *
- * 2026 Best Practice: Store API keys securely.
- * TODO: Replace with your actual RevenueCat App Store API key from:
- * RevenueCat Dashboard -> Project Settings -> API Keys -> App Store
+ * The API key can be configured via Info.plist (REVENUECAT_API_KEY) or falls back
+ * to the default value. For different environments, override via Info.plist.
  */
 actual object RevenueCatConfig {
-    // TODO: Replace with your RevenueCat App Store public API key
-    actual val apiKey: String = "appl_YOUR_REVENUECAT_APPLE_API_KEY"
+    actual val apiKey: String = run {
+        // Try to read from Info.plist first, fall back to default
+        val plistKey = NSBundle.mainBundle.objectForInfoDictionaryKey("REVENUECAT_API_KEY") as? String
+        plistKey?.takeIf { it.isNotEmpty() } ?: "appl_vmizWISapAnNocTguqHShpbggNq"
+    }
 
     // Must match entitlement ID in RevenueCat dashboard
-    actual val premiumEntitlementId: String = "premium"
+    actual val premiumEntitlementId: String = "Contacts Cleaner Pro"
 
+    // Defensive validation: Currently unreachable due to hardcoded fallback,
+    // but kept as a safety check in case the fallback is removed or changed
+    // to null/empty in the future. Ensures apiKey is never a placeholder.
     init {
-        if (apiKey.contains("YOUR_REVENUECAT")) {
-            throw IllegalStateException("RevenueCat API key not configured. Replace placeholder in RevenueCatConfig.ios.kt")
+        if (apiKey.contains("YOUR_REVENUECAT") || apiKey.isEmpty()) {
+            throw IllegalStateException(
+                "RevenueCat API key not configured. " +
+                "Set REVENUECAT_API_KEY in Info.plist or update the default value."
+            )
         }
     }
 }

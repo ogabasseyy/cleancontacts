@@ -19,9 +19,11 @@ import com.ogabassey.contactscleaner.domain.repository.CacheSnapshot
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import com.ogabassey.contactscleaner.util.formatWithCommas
 
@@ -106,109 +108,95 @@ class IosContactRepository(
         // 4. Get ignored contacts
         val ignoredIds = ignoredContactDao.getAllIds().toSet()
 
-        // 5. Process each contact
-        var junkCount = 0
-        var formatIssueCount = 0
-        var sensitiveCount = 0
+        // 5. Process each contact - 2026 Best Practice: Run CPU-intensive work on background thread
+        val localContacts = withContext(Dispatchers.Default) {
+            contacts.mapIndexed { index, contact ->
+                val primaryNumber = contact.numbers.firstOrNull() ?: ""
+                val isIgnored = ignoredIds.contains(contact.id.toString())
 
-        val localContacts = contacts.mapIndexed { index, contact ->
-            val progress = 0.20f + (index.toFloat() / total.toFloat()) * 0.50f
-            if (index % 50 == 0) {
-                emit(ScanStatus.Progress(progress, "Processing contacts (${(index + 1).formatWithCommas()}/${total.formatWithCommas()})..."))
-            }
+                // Sensitive detection (iOS Parity Fix: Strip + prefix before analysis)
+                // iOS contact sync often adds + prefix to numbers. We strip it for detection
+                // so that 11-digit NINs like "+12345678901" become "12345678901" and match the pattern.
+                var isSensitive = false
+                var sensitiveDesc: String? = null
 
-            val primaryNumber = contact.numbers.firstOrNull() ?: ""
-            val isIgnored = ignoredIds.contains(contact.id.toString())
-
-            // Sensitive detection (iOS Parity Fix: Strip + prefix before analysis)
-            // iOS contact sync often adds + prefix to numbers. We strip it for detection
-            // so that 11-digit NINs like "+12345678901" become "12345678901" and match the pattern.
-            var isSensitive = false
-            var sensitiveDesc: String? = null
-            
-            if (!isIgnored) {
-                // 1. Scan Name
-                contact.name?.let { name ->
-                    sensitiveDetector.analyze(name)?.let {
-                        isSensitive = true
-                        sensitiveDesc = it.description
+                if (!isIgnored) {
+                    // 1. Scan Name
+                    contact.name?.let { name ->
+                        sensitiveDetector.analyze(name)?.let {
+                            isSensitive = true
+                            sensitiveDesc = it.description
+                        }
                     }
-                }
-                
-                    // 2. Scan All Numbers (if not already found sensitive in name)
-                if (!isSensitive) {
-                    contact.numbers.forEach { num ->
-                        if (!isSensitive) {
-                            // Pass RAW number to detector. 
-                            // The detector needs to know if it starts with '+' to distinguish 
-                            // real international numbers from IDs that happen to start with 1, 44, etc.
-                            sensitiveDetector.analyze(num)?.let {
-                                isSensitive = true
-                                sensitiveDesc = it.description
+
+                        // 2. Scan All Numbers (if not already found sensitive in name)
+                    if (!isSensitive) {
+                        contact.numbers.forEach { num ->
+                            if (!isSensitive) {
+                                // Pass RAW number to detector.
+                                // The detector needs to know if it starts with '+' to distinguish
+                                // real international numbers from IDs that happen to start with 1, 44, etc.
+                                sensitiveDetector.analyze(num)?.let {
+                                    isSensitive = true
+                                    sensitiveDesc = it.description
+                                }
                             }
                         }
                     }
                 }
-                
-                if (isSensitive) {
-                    sensitiveCount++
-                }
-            }
 
-            // Junk detection
-            val junkType = if (!isIgnored && !isSensitive) {
-                junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)?.also {
-                    junkCount++
-                }
-            } else null
+                // Junk detection
+                val junkType = if (!isIgnored && !isSensitive) {
+                    junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
+                } else null
 
-            // Format issue detection
-            var isFormatIssue = false
-            var detectedNormalized = contact.normalizedNumber
+                // Format issue detection
+                var isFormatIssue = false
+                var detectedNormalized = contact.normalizedNumber
 
-            if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
-                    formatDetector.analyze(primaryNumber)?.let { issue ->
-                        isFormatIssue = true
-                        detectedNormalized = issue.normalizedNumber
-                        formatIssueCount++
+                if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+                    if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
+                        formatDetector.analyze(primaryNumber)?.let { issue ->
+                            isFormatIssue = true
+                            detectedNormalized = issue.normalizedNumber
+                        }
                     }
                 }
-            }
 
-            // Check if contact is on WhatsApp by comparing normalized numbers
-            val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
-                // Check if any of the contact's numbers match WhatsApp numbers
-                contact.numbers.any { num ->
-                    val normalized = num.filter { it.isDigit() }
-                    whatsAppPhoneNumbers.contains(normalized)
+                // Check if contact is on WhatsApp by comparing normalized numbers
+                val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
+                    // Check if any of the contact's numbers match WhatsApp numbers
+                    contact.numbers.any { num ->
+                        val normalized = num.filter { it.isDigit() }
+                        whatsAppPhoneNumbers.contains(normalized)
+                    }
+                } else {
+                    // Fallback to iOS sync detection if WhatsApp not linked
+                    contact.isWhatsApp
                 }
-            } else {
-                // Fallback to iOS sync detection if WhatsApp not linked
-                contact.isWhatsApp
-            }
 
-            LocalContact(
-                id = contact.id,
-                displayName = contact.name,
-                normalizedNumber = detectedNormalized,
-                rawNumbers = contact.numbers.joinToString(","),
-                rawEmails = contact.emails.joinToString(","),
-                isWhatsApp = isOnWhatsApp,
-                isTelegram = contact.isTelegram,
-                accountType = contact.accountType,
-                accountName = contact.accountName,
-                isJunk = junkType != null && !isSensitive,
-                junkType = junkType?.name,
-                duplicateType = null,
-                isFormatIssue = isFormatIssue,
-                detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                isSensitive = isSensitive,
-                sensitiveDescription = sensitiveDesc,
-                matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
-                platformUid = contact.platform_uid,
-                lastSynced = Clock.System.now().toEpochMilliseconds()
-            )
+                LocalContact(
+                    id = contact.id,
+                    displayName = contact.name,
+                    normalizedNumber = detectedNormalized,
+                    rawNumbers = contact.numbers.joinToString(","),
+                    rawEmails = contact.emails.joinToString(","),
+                    isWhatsApp = isOnWhatsApp,
+                    isTelegram = contact.isTelegram,
+                    accountType = contact.accountType,
+                    accountName = contact.accountName,
+                    isJunk = junkType != null && !isSensitive,
+                    junkType = junkType?.name,
+                    duplicateType = null,
+                    isFormatIssue = isFormatIssue,
+                    detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
+                    isSensitive = isSensitive,
+                    sensitiveDescription = sensitiveDesc,
+                    matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
+                    platformUid = contact.platform_uid,
+                    lastSynced = Clock.System.now().toEpochMilliseconds()
+                )
+            }
         }
 
         // 5. Atomic replace: Delete old + Insert new in single transaction
@@ -231,12 +219,17 @@ class IosContactRepository(
         emit(ScanStatus.Progress(0.75f, "Contacts saved."))
 
         // 6. Detect duplicates using Advanced Detector (Parity with Android)
+        // 2026 Best Practice: Run CPU-intensive duplicate detection on background thread
         emit(ScanStatus.Progress(0.80f, "Identifying duplicate numbers..."))
         val allContactsDomain = validatedContacts.map { it.toContact() }
-        val duplicates = duplicateDetector.detectDuplicates(allContactsDomain)
-        
+        val duplicates = withContext(Dispatchers.Default) {
+            duplicateDetector.detectDuplicates(allContactsDomain)
+        }
+
         emit(ScanStatus.Progress(0.85f, "Identifying similar names..."))
-        val similarNames = duplicateDetector.detectSimilarNameDuplicates(allContactsDomain)
+        val similarNames = withContext(Dispatchers.Default) {
+            duplicateDetector.detectSimilarNameDuplicates(allContactsDomain)
+        }
         
         // Map to updates
         val duplicateMap = mutableMapOf<Long, Pair<com.ogabassey.contactscleaner.domain.model.DuplicateType, String>>()

@@ -761,7 +761,7 @@ fun AccountDialogItem(
 private fun ProcessingOverlay(progress: Float, message: String?) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        label = "propertiesAnimation",
+        label = "progressAnimation",
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
     )
 

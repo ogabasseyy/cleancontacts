@@ -255,11 +255,18 @@ class IosContactsSource {
     }
 
     private fun buildDisplayName(givenName: String, familyName: String): String {
-        return when {
+        val rawName = when {
             givenName.isNotBlank() && familyName.isNotBlank() -> "$givenName $familyName"
             givenName.isNotBlank() -> givenName
             familyName.isNotBlank() -> familyName
             else -> ""
+        }.trim()
+
+        // 2026 Fix: Sanitize names starting with slashes (e.g., from certain sync sources or SIM imports)
+        return if (rawName.startsWith("/")) {
+            rawName.removePrefix("/").trim()
+        } else {
+            rawName
         }
     }
 
@@ -365,7 +372,7 @@ class IosContactsSource {
                         value = phoneNumber
                     )
                 }
-                newContact.phoneNumbers = phoneNumbers
+                newContact.setPhoneNumbers(phoneNumbers)
 
                 // Set emails
                 val emailAddresses = contact.emails.mapNotNull { email ->
@@ -374,7 +381,7 @@ class IosContactsSource {
                         value = NSString.create(string = email)
                     )
                 }
-                newContact.emailAddresses = emailAddresses
+                newContact.setEmailAddresses(emailAddresses)
 
                 saveRequest.addContact(newContact, toContainerWithIdentifier = null)
             }
@@ -526,7 +533,7 @@ class IosContactsSource {
                     newPhoneNumbers.addAll(existingNumbers.drop(1))
                 }
 
-                mutableContact.phoneNumbers = newPhoneNumbers
+                mutableContact.setPhoneNumbers(newPhoneNumbers)
 
                 val saveRequest = CNSaveRequest()
                 saveRequest.updateContact(mutableContact)

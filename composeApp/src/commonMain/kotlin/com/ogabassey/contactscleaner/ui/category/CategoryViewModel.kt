@@ -371,7 +371,9 @@ class CategoryViewModel(
                     }
                 } else {
                     // Fallback for old-style progress without details
-                    val processed = (status.progress * 100).toInt()
+                    // 2026 Fix: Calculate processed items correctly based on totalItems
+                    val totalItems = BackgroundOperationManager.currentOperation.value?.totalItems ?: 100
+                    val processed = (status.progress * totalItems).toInt()
                     BackgroundOperationManager.updateProgress(processed, status.message)
                 }
 

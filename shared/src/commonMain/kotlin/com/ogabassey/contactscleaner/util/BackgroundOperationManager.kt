@@ -39,15 +39,16 @@ object BackgroundOperationManager {
         )
 
         // Atomic check-and-set to prevent race conditions
-        var wasStarted = false
-        _currentOperation.update { current ->
+        val actualOperation = _currentOperation.updateAndGet { current ->
             if (current?.status == OperationStatus.Running) {
                 current // Already running, keep existing operation
             } else {
-                wasStarted = true
                 newOperation
             }
         }
+
+        // Check if our new operation was the one that got set
+        val wasStarted = actualOperation === newOperation
 
         // Only reset side-effect state if we actually started a new operation
         if (wasStarted) {

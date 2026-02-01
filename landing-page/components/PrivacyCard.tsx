@@ -60,7 +60,7 @@ export const PrivacyCard: React.FC = () => {
               "Improving our AI algorithms for better contact recognition."
             ].map((item, idx) => (
               <li key={idx} className="flex items-start gap-3 text-gray-400">
-                <svg className="h-5 w-5 text-brand mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-brand mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>{item}</span>

@@ -8,7 +8,7 @@ export const TermsCard: React.FC = () => {
         
         <div className="flex items-center gap-2 mb-8">
            <span className="h-1 w-12 bg-brand rounded-full"></span>
-           <span className="text-xs font-mono text-brand tracking-widest uppercase">Last Updated: October 2023</span>
+           <span className="text-xs font-mono text-brand tracking-widest uppercase">Last Updated: January 2025</span>
         </div>
 
         <h1 className="text-4xl md:text-5xl font-extrabold mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">

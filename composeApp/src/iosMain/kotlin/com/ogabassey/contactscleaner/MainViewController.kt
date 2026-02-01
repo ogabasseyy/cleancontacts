@@ -24,6 +24,7 @@ fun MainViewController(): UIViewController {
 }
 
 private var koinInitialized = false
+private var revenueCatInitialized = false
 
 private fun initKoinIos() {
     if (!koinInitialized) {
@@ -37,10 +38,11 @@ private fun initKoinIos() {
 }
 
 private fun initRevenueCat() {
+    if (revenueCatInitialized) return
     // 2026 Best Practice: Initialize RevenueCat after Koin
-    // Debug mode enabled for development builds
     RevenueCatInitializer.initialize(
         appUserId = null, // Anonymous user, RevenueCat generates ID
-        debugMode = true  // TODO: Set to false for production
+        debugMode = false // Production ready
     )
+    revenueCatInitialized = true
 }

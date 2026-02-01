@@ -58,9 +58,9 @@ fun CategoryDetailScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     // Handle ShowPaywall state - navigate to paywall and reset
-    LaunchedEffect(uiState) {
-        if (uiState is CategoryUiState.ShowPaywall) {
-            println("💰 [UI] Navigating to paywall")
+    val showPaywall = uiState is CategoryUiState.ShowPaywall
+    LaunchedEffect(showPaywall) {
+        if (showPaywall) {
             onNavigateToPaywall()
             viewModel.resetState()
         }
@@ -257,11 +257,7 @@ fun CategoryDetailScreen(
                                             accentColor = accentColor,
                                             isFormatType = type == ContactType.FORMAT_ISSUE,
                                             onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
-                                            onDeleteContact = {
-                                                println("📋 [UI] Setting contactToDelete to: ${it.name} (id=${it.id})")
-                                                contactToDelete = it
-                                                println("📋 [UI] contactToDelete is now: ${contactToDelete?.name}")
-                                            },
+                                            onDeleteContact = { contactToDelete = it },
                                             onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
                                         )
                                     }
@@ -511,13 +507,8 @@ fun CategoryDetailScreen(
         )
     }
 
-    // Single Contact Deletion Confirmation - Debug logging
-    LaunchedEffect(contactToDelete) {
-        println("🔔 [UI] contactToDelete changed to: ${contactToDelete?.name} (id=${contactToDelete?.id})")
-    }
-
+    // Single Contact Deletion Confirmation
     if (contactToDelete != null) {
-        println("🔔 [UI] Rendering delete dialog for: ${contactToDelete?.name}")
         val isDeleting = deletingContactId == contactToDelete?.id
         val hasError = uiState is CategoryUiState.Error
         val errorMessage = (uiState as? CategoryUiState.Error)?.message
@@ -1130,10 +1121,7 @@ private fun ContactListItem(
         ) {
             // Edit (Pencil) Icon - 44dp minimum touch target per Apple HIG
             IconButton(
-                onClick = {
-                    println("✏️ [UI] Edit button clicked for contact: ${contact.name} (id=${contact.id})")
-                    onEditContact(contact)
-                },
+                onClick = { onEditContact(contact) },
                 modifier = Modifier.size(44.dp)
             ) {
                 Icon(
@@ -1146,10 +1134,7 @@ private fun ContactListItem(
 
             // Delete (Trash) Icon - 44dp minimum touch target per Apple HIG
             IconButton(
-                onClick = {
-                    println("🗑️ [UI] Delete button clicked for contact: ${contact.name} (id=${contact.id})")
-                    onDeleteContact(contact)
-                },
+                onClick = { onDeleteContact(contact) },
                 modifier = Modifier.size(44.dp)
             ) {
                 Icon(

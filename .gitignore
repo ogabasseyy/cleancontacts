@@ -19,3 +19,8 @@ build/
 
 # Google Services
 google-services.json
+
+# Landing page
+landing-page/node_modules/
+landing-page/.env.local
+landing-page/dist/

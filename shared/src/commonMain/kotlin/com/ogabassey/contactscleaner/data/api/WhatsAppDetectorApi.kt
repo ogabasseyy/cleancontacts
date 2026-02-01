@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.data.api
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
@@ -38,9 +39,22 @@ class WhatsAppDetectorApi(
             json(json)
         }
         install(WebSockets)
+        // 2026 Security: Enforce timeouts to prevent DoS/hanging connections
+        install(HttpTimeout) {
+            requestTimeoutMillis = 30_000
+            connectTimeoutMillis = 10_000
+            socketTimeoutMillis = 30_000
+        }
     }
 
     private val wsUrl = baseUrl.replace("https://", "wss://").replace("http://", "ws://")
+
+    private companion object {
+        // 2026 Security: Input length limits to prevent buffer overflows/DoS
+        const val MAX_PHONE_NUMBER_LENGTH = 50
+        const val MAX_USER_ID_LENGTH = 100
+        const val MAX_BATCH_SIZE = 5000
+    }
 
     /**
      * Check if the service is healthy and reachable.
@@ -59,6 +73,10 @@ class WhatsAppDetectorApi(
      * @param userId Unique identifier for the user's session
      */
     suspend fun getSessionStatus(userId: String): SessionStatus {
+        // 2026 Security: Validate input length
+        if (userId.length > MAX_USER_ID_LENGTH) {
+            return SessionStatus(connected = false, error = "Invalid user ID")
+        }
         return try {
             client.get("$baseUrl/session/$userId/status").body()
         } catch (e: Exception) {
@@ -75,6 +93,13 @@ class WhatsAppDetectorApi(
      * @return PairingResponse with the 8-digit code or error
      */
     suspend fun requestPairingCode(userId: String, phoneNumber: String): PairingResponse {
+        // 2026 Security: Validate input lengths
+        if (userId.length > MAX_USER_ID_LENGTH) {
+            return PairingResponse(success = false, error = "Invalid user ID")
+        }
+        if (phoneNumber.length > MAX_PHONE_NUMBER_LENGTH) {
+            return PairingResponse(success = false, error = "Invalid phone number")
+        }
         return try {
             client.post("$baseUrl/session/$userId/pair") {
                 contentType(ContentType.Application.Json)
@@ -91,6 +116,10 @@ class WhatsAppDetectorApi(
      * @param userId Unique identifier for the user's session
      */
     suspend fun disconnect(userId: String): DisconnectResponse {
+        // 2026 Security: Validate input length
+        if (userId.length > MAX_USER_ID_LENGTH) {
+            return DisconnectResponse(success = false, error = "Invalid user ID")
+        }
         return try {
             client.delete("$baseUrl/session/$userId").body()
         } catch (e: Exception) {
@@ -106,6 +135,13 @@ class WhatsAppDetectorApi(
      * @return CheckNumbersResponse with results for each number
      */
     suspend fun checkNumbers(userId: String, numbers: List<String>): CheckNumbersResponse {
+        // 2026 Security: Validate input lengths and batch size
+        if (userId.length > MAX_USER_ID_LENGTH) {
+            return CheckNumbersResponse(success = false, results = emptyList(), error = "Invalid user ID")
+        }
+        if (numbers.size > MAX_BATCH_SIZE) {
+            return CheckNumbersResponse(success = false, results = emptyList(), error = "Batch size exceeds limit")
+        }
         return try {
             client.post("$baseUrl/session/$userId/check") {
                 contentType(ContentType.Application.Json)
@@ -133,6 +169,13 @@ class WhatsAppDetectorApi(
         numbers: List<String>,
         batchSize: Int = 50
     ): BatchCheckResponse {
+        // 2026 Security: Validate input lengths and batch size
+        if (userId.length > MAX_USER_ID_LENGTH) {
+            return BatchCheckResponse(success = false, total = 0, checked = 0, whatsappCount = 0, results = emptyList(), error = "Invalid user ID")
+        }
+        if (numbers.size > MAX_BATCH_SIZE) {
+            return BatchCheckResponse(success = false, total = 0, checked = 0, whatsappCount = 0, results = emptyList(), error = "Batch size exceeds limit")
+        }
         // Note: Batch checking uses regular check endpoint with client-side batching
         // Server handles batching internally when using the per-user check endpoint
         return try {
@@ -201,6 +244,12 @@ class WhatsAppDetectorApi(
      * @return Flow of PairingEvent for real-time updates
      */
     fun connectForPairing(userId: String, phoneNumber: String): Flow<PairingEvent> = callbackFlow {
+        // 2026 Security: Validate input lengths early
+        if (userId.length > MAX_USER_ID_LENGTH || phoneNumber.length > MAX_PHONE_NUMBER_LENGTH) {
+            trySend(PairingEvent.Error("Invalid input parameters"))
+            channel.close()
+            return@callbackFlow
+        }
         try {
             client.webSocket("$wsUrl/ws/pairing") {
                 // Send start_pairing message with userId

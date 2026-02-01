@@ -95,8 +95,13 @@ class CategoryViewModel(
         }
     }
 
-    fun loadCategory(type: ContactType) {
+    fun loadCategory(type: ContactType, successMessage: String? = null) {
         viewModelScope.launch {
+            // 2026 Safety: Clear any stale pending actions when loading category
+            // This prevents leftover actions from previous sessions from executing unexpectedly
+            actionMutex.withLock {
+                pendingAction = null
+            }
             _uiState.value = CategoryUiState.Loading
             try {
                 // For duplicate types, load groups instead of flat list
@@ -111,13 +116,25 @@ class CategoryViewModel(
                     val result = contactRepository.getContactsSnapshotByType(type)
                     _contacts.value = result
                 }
-                _uiState.value = CategoryUiState.Success
+                _uiState.value = CategoryUiState.Success(successMessage)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 _uiState.value = CategoryUiState.Error("Failed to load contacts: ${e.message}")
             }
         }
+    }
+
+    /**
+     * 2026 Fix: Reload category from database.
+     * Called when returning from native Contacts app.
+     * Note: A full rescan is heavy and should only be done from the dashboard.
+     * For now, just reload the cached data - the next scan will pick up device changes.
+     */
+    fun refreshAndLoadCategory(type: ContactType) {
+        // Simply delegate to loadCategory for now
+        // A full rescan is too heavy and can cause UI issues
+        loadCategory(type)
     }
 
     fun loadGroupContacts(groupKey: String, type: ContactType) {
@@ -143,9 +160,8 @@ class CategoryViewModel(
                 try {
                     val success = contactRepository.mergeContacts(contactIds, customName)
                     if (success) {
-                        _uiState.value = CategoryUiState.Success
-                        // Refresh the list
-                        loadCategory(type)
+                        // 2026 Best Practice: Hint to refresh Results after merge
+                        loadCategory(type, "Pull down on Results to refresh counts")
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to merge contacts")
                     }
@@ -196,8 +212,8 @@ class CategoryViewModel(
                             }
                         }
                     }
-                    // Refresh list
-                    loadCategory(type)
+                    // 2026 Best Practice: Refresh list with hint to pull-to-refresh on Results page
+                    loadCategory(type, "Pull down on Results to refresh counts")
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -223,7 +239,7 @@ class CategoryViewModel(
                     val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
                     Logger.d(TAG, "deleteContacts result: $success")
                     if (success) {
-                        _uiState.value = CategoryUiState.Success
+                        // Single delete - just reload without hint (less disruptive)
                         loadCategory(type)
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
@@ -251,7 +267,8 @@ class CategoryViewModel(
                 _uiState.value = CategoryUiState.Processing(status.progress, status.message)
             }
             is CleanupStatus.Success -> {
-                _uiState.value = CategoryUiState.Success
+                // Note: This gets overwritten by loadCategory, which provides the hint
+                _uiState.value = CategoryUiState.Success()
             }
             is CleanupStatus.Error -> {
                 _uiState.value = CategoryUiState.Error(status.message)
@@ -263,7 +280,7 @@ class CategoryViewModel(
      * Reset UI state to Success (clears error/processing states).
      */
     fun resetState() {
-        _uiState.value = CategoryUiState.Success
+        _uiState.value = CategoryUiState.Success()
     }
 
     /**
@@ -340,7 +357,7 @@ class CategoryViewModel(
                     }
                 } else {
                     // No pending action - safe to set Success
-                    _uiState.value = CategoryUiState.Success
+                    _uiState.value = CategoryUiState.Success()
                 }
             } else {
                 // Still can't perform - show paywall again
@@ -352,7 +369,8 @@ class CategoryViewModel(
 
 sealed class CategoryUiState {
     data object Loading : CategoryUiState()
-    data object Success : CategoryUiState()
+    // 2026 Best Practice: Include optional message for success feedback (e.g., refresh hints)
+    data class Success(val message: String? = null) : CategoryUiState()
     data object ShowPaywall : CategoryUiState()
     data class Error(val message: String) : CategoryUiState()
     data class Processing(val progress: Float, val message: String? = null) : CategoryUiState()

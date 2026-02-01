@@ -14,16 +14,27 @@ import com.revenuecat.purchases.kmp.result.awaitRestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
+ * Billing-specific exceptions for better error handling.
+ */
+sealed class BillingException(message: String) : Exception(message) {
+    class NoOfferingsAvailable : BillingException("No offerings available")
+    class PackageNotFound(packageId: String) : BillingException("Package not found: $packageId")
+}
+
+/**
  * RevenueCat KMP BillingRepository implementation.
  *
  * 2026 Best Practice: Official RevenueCat KMP SDK for cross-platform IAP.
  * Works on both Android and iOS with a single codebase.
+ * Provides close() for proper lifecycle management (call when disposed).
  */
 class RevenueCatKmpBillingRepository : BillingRepository {
 
@@ -44,11 +55,22 @@ class RevenueCatKmpBillingRepository : BillingRepository {
         refresh()
     }
 
+    /**
+     * Cancel the coroutine scope when disposed.
+     * Call this when the repository is no longer needed.
+     */
+    fun close() {
+        scope.cancel()
+    }
+
     override fun refresh() {
         _packages.value = Resource.Loading
         scope.launch {
-            refreshEntitlements()
-            refreshOfferings()
+            // Run both refreshes concurrently for faster load time
+            coroutineScope {
+                launch { refreshEntitlements() }
+                launch { refreshOfferings() }
+            }
         }
     }
 
@@ -99,14 +121,14 @@ class RevenueCatKmpBillingRepository : BillingRepository {
         return Purchases.sharedInstance.awaitOfferings()
             .mapCatching { offerings ->
                 val current = offerings.current
-                    ?: throw Exception("No offerings available")
+                    ?: throw BillingException.NoOfferingsAvailable()
 
                 // Find the package by ID or identifier
                 val packageToBuy = current.availablePackages.find { pkg ->
                     pkg.storeProduct.id == packageId ||
                     pkg.identifier == packageId ||
                     getPackageIdentifier(pkg.identifier) == packageId
-                } ?: throw Exception("Package not found: $packageId")
+                } ?: throw BillingException.PackageNotFound(packageId)
 
                 // Make the purchase
                 val purchaseResult = Purchases.sharedInstance.awaitPurchase(packageToBuy)

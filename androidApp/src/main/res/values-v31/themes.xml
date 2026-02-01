@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.CleanContactsAI" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.ContactsCleaner" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/space_black</item>
         <item name="android:windowSplashScreenBackground">@color/space_black</item>
         <item name="android:statusBarColor">@color/space_black</item>

@@ -25,7 +25,7 @@ import com.ogabassey.contactscleaner.ui.history.RecentActionsScreen
 import com.ogabassey.contactscleaner.ui.paywall.PaywallScreen
 import com.ogabassey.contactscleaner.ui.results.ResultsScreen
 import com.ogabassey.contactscleaner.ui.theme.PrimaryNeon
-import com.ogabassey.contactscleaner.ui.theme.CleanContactsAITheme
+import com.ogabassey.contactscleaner.ui.theme.ContactsCleanerTheme
 import com.ogabassey.contactscleaner.ui.tools.SensitiveReviewScreen
 import com.ogabassey.contactscleaner.ui.settings.SafeListScreen
 import com.ogabassey.contactscleaner.ui.history.HistoryScreen
@@ -60,7 +60,7 @@ import kotlinx.serialization.Serializable
 fun AppNavigation(
     navController: NavHostController = rememberNavController()
 ) {
-    CleanContactsAITheme {
+    ContactsCleanerTheme {
         NavHost(
             navController = navController,
             startDestination = DashboardRoute
@@ -120,7 +120,8 @@ fun AppNavigation(
                 }
                 CategoryDetailScreen(
                     type = contactType,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToPaywall = { navController.navigate(PaywallRoute) }
                 )
             }
 

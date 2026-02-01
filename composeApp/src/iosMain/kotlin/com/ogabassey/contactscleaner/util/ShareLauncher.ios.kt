@@ -11,9 +11,12 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.stringByAppendingPathComponent
 import platform.Foundation.writeToFile
-import platform.CoreGraphics.CGRectZero
+import kotlinx.cinterop.useContents
+import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
+import platform.UIKit.UIPopoverPresentationController
+import platform.UIKit.popoverPresentationController
 
 /**
  * 2026 Best Practice: iOS implementation of ShareLauncher using UIActivityViewController.
@@ -99,10 +102,10 @@ class IosShareLauncher : ShareLauncher {
         }
 
         // For iPad, we need to set popover presentation with both sourceView and sourceRect
-        // to avoid crashes. Using CGRectZero centers the popover.
-        viewController.popoverPresentationController?.let { popover ->
-            popover.sourceView = rootViewController.view
-            popover.sourceRect = CGRectZero.readValue()
+        // to avoid crashes. Using the root view centers the popover.
+        (viewController.popoverPresentationController as? UIPopoverPresentationController)?.let { popover ->
+            popover.setSourceView(rootViewController.view)
+            popover.setSourceRect(CGRectMake(0.0, 0.0, 0.0, 0.0))
         }
 
         rootViewController.presentViewController(

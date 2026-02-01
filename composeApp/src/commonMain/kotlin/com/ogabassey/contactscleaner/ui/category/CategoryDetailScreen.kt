@@ -50,16 +50,27 @@ private fun Contact.getTargetId(): String = if (isIOS) platform_uid ?: id.toStri
 fun CategoryDetailScreen(
     type: ContactType,
     viewModel: CategoryViewModel = koinViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToPaywall: () -> Unit = {}
 ) {
     val clipboardManager = LocalClipboardManager.current
     val shareLauncher = rememberShareLauncher()
     val uiState by viewModel.uiState.collectAsState()
+
+    // Handle ShowPaywall state - navigate to paywall and reset
+    LaunchedEffect(uiState) {
+        if (uiState is CategoryUiState.ShowPaywall) {
+            println("💰 [UI] Navigating to paywall")
+            onNavigateToPaywall()
+            viewModel.resetState()
+        }
+    }
     val contacts by viewModel.contacts.collectAsState()
     val duplicateGroups by viewModel.duplicateGroups.collectAsState()
     val groupContacts by viewModel.groupContacts.collectAsState()
     val deletingContactId by viewModel.deletingContactId.collectAsState()
     val exportData by viewModel.exportData.collectAsState()
+    val freeActionsRemaining by viewModel.freeActionsRemaining.collectAsState(initial = 1)
 
     // Track export format for proper file extension
     var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
@@ -171,6 +182,14 @@ fun CategoryDetailScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
+                // Free Actions Exhausted Banner
+                if (freeActionsRemaining <= 0) {
+                    FreeActionsExhaustedBanner(
+                        onUpgradeClick = onNavigateToPaywall
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
                 // ACTIONS Utility Bar at TOP (not in a separate tab)
                 ResultsUtilityBar(
                     contactType = type,
@@ -238,7 +257,11 @@ fun CategoryDetailScreen(
                                             accentColor = accentColor,
                                             isFormatType = type == ContactType.FORMAT_ISSUE,
                                             onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
-                                            onDeleteContact = { contactToDelete = it },
+                                            onDeleteContact = {
+                                                println("📋 [UI] Setting contactToDelete to: ${it.name} (id=${it.id})")
+                                                contactToDelete = it
+                                                println("📋 [UI] contactToDelete is now: ${contactToDelete?.name}")
+                                            },
                                             onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
                                         )
                                     }
@@ -488,16 +511,30 @@ fun CategoryDetailScreen(
         )
     }
 
-    // Single Contact Deletion Confirmation
+    // Single Contact Deletion Confirmation - Debug logging
+    LaunchedEffect(contactToDelete) {
+        println("🔔 [UI] contactToDelete changed to: ${contactToDelete?.name} (id=${contactToDelete?.id})")
+    }
+
     if (contactToDelete != null) {
+        println("🔔 [UI] Rendering delete dialog for: ${contactToDelete?.name}")
         val isDeleting = deletingContactId == contactToDelete?.id
         val hasError = uiState is CategoryUiState.Error
         val errorMessage = (uiState as? CategoryUiState.Error)?.message
 
+        // 2026 Fix: Track when deletion actually started to avoid immediate auto-dismiss
+        // due to initial null/Success state combination.
+        var deletionStarted by remember { mutableStateOf(false) }
+
+        LaunchedEffect(isDeleting) {
+            if (isDeleting) deletionStarted = true
+        }
+
         // 2026 Best Practice: Auto-dismiss dialog when deletion completes successfully
         LaunchedEffect(deletingContactId, uiState) {
-            if (contactToDelete != null && deletingContactId == null && uiState is CategoryUiState.Success) {
+            if (deletionStarted && deletingContactId == null && uiState is CategoryUiState.Success) {
                 contactToDelete = null
+                deletionStarted = false
             }
         }
 
@@ -1085,37 +1122,107 @@ private fun ContactListItem(
             }
         }
 
-        // Action Icons (Hold & Pencil)
+        // Action Icons (Edit & Delete) - 44dp touch targets per Apple HIG
         Row(
-            modifier = Modifier.padding(start = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(start = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Edit (Pencil) Icon
+            // Edit (Pencil) Icon - 44dp minimum touch target per Apple HIG
             IconButton(
-                onClick = { onEditContact(contact) },
-                modifier = Modifier.size(28.dp)
+                onClick = {
+                    println("✏️ [UI] Edit button clicked for contact: ${contact.name} (id=${contact.id})")
+                    onEditContact(contact)
+                },
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     Icons.Default.Edit,
                     contentDescription = "Edit",
                     tint = TextMedium.copy(alpha = 0.8f),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
-            // Delete (Trash) Icon
+            // Delete (Trash) Icon - 44dp minimum touch target per Apple HIG
             IconButton(
-                onClick = { onDeleteContact(contact) },
-                modifier = Modifier.size(28.dp)
+                onClick = {
+                    println("🗑️ [UI] Delete button clicked for contact: ${contact.name} (id=${contact.id})")
+                    onDeleteContact(contact)
+                },
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
                     tint = ErrorNeon.copy(alpha = 0.9f),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
+        }
+    }
+}
+
+/**
+ * Banner shown when free trial actions are exhausted.
+ * Prompts user to upgrade to premium.
+ */
+@Composable
+private fun FreeActionsExhaustedBanner(
+    onUpgradeClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                    colors = listOf(
+                        WarningNeon.copy(alpha = 0.15f),
+                        ErrorNeon.copy(alpha = 0.15f)
+                    )
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onUpgradeClick() }
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                Icons.Default.Lock,
+                contentDescription = null,
+                tint = WarningNeon,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+                Text(
+                    "Free Trial Used",
+                    color = TextHigh,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Text(
+                    "Upgrade to delete, merge & fix contacts",
+                    color = TextMedium,
+                    fontSize = 12.sp
+                )
+            }
+        }
+        Button(
+            onClick = onUpgradeClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PrimaryNeon,
+                contentColor = SpaceBlack
+            ),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Text("UPGRADE", fontWeight = FontWeight.Bold, fontSize = 12.sp)
         }
     }
 }

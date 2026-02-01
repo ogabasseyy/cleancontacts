@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 /**
- * CleanContactsAI Theme for Compose Multiplatform.
+ * Contacts Cleaner Theme for Compose Multiplatform.
  *
  * 2026 KMP Best Practice: Platform-agnostic theming.
  */
@@ -40,7 +40,7 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun CleanContactsAITheme(
+fun ContactsCleanerTheme(
     darkTheme: Boolean = true, // Force Dark Mode for Deep Space aesthetic
     content: @Composable () -> Unit
 ) {

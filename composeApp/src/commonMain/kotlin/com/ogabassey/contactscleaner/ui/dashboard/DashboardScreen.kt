@@ -501,7 +501,7 @@ fun SettingsContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "CleanContacts AI is built with privacy in mind. Your contacts are processed locally on your device and never uploaded to our servers.",
+            text = "Contacts Cleaner is built with privacy in mind. Your contacts are processed locally on your device and never uploaded to our servers.",
             style = MaterialTheme.typography.bodySmall,
             color = Color.White.copy(alpha = 0.5f)
         )

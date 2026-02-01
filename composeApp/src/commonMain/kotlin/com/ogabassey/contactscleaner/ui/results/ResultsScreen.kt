@@ -762,7 +762,18 @@ private fun ProcessingOverlay(progress: Float, message: String?) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         label = "progressAnimation",
-        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+    )
+    // Continuous rotation for flowing effect
+    val infiniteTransition = rememberInfiniteTransition(label = "processFlow")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "flowRotation"
     )
 
     Box(
@@ -775,7 +786,9 @@ private fun ProcessingOverlay(progress: Float, message: String?) {
             CircularProgressIndicator(
                 progress = { animatedProgress },
                 color = PrimaryNeon,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier
+                    .size(64.dp)
+                    .graphicsLayer { rotationZ = rotation },
                 strokeWidth = 6.dp
             )
             Spacer(modifier = Modifier.height(16.dp))

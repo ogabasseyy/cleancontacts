@@ -2,21 +2,16 @@ package com.ogabassey.contactscleaner.platform
 
 /**
  * iOS RevenueCat configuration.
- *
- * 2026 Best Practice: Store API keys securely.
- * TODO: Replace with your actual RevenueCat App Store API key from:
- * RevenueCat Dashboard -> Project Settings -> API Keys -> App Store
  */
 actual object RevenueCatConfig {
-    // TODO: Replace with your RevenueCat App Store public API key
-    actual val apiKey: String = "appl_YOUR_REVENUECAT_APPLE_API_KEY"
+    actual val apiKey: String = "test_cgwNwoQkAcPhlosEgrFpRcsNMpW"
 
     // Must match entitlement ID in RevenueCat dashboard
     actual val premiumEntitlementId: String = "premium"
 
     init {
-        if (apiKey.contains("YOUR_REVENUECAT")) {
-            throw IllegalStateException("RevenueCat API key not configured. Replace placeholder in RevenueCatConfig.ios.kt")
+        if (apiKey.contains("YOUR_REVENUECAT") || apiKey.isEmpty()) {
+            println("⚠️ [RevenueCat] API key not configured. Billing features will not work.")
         }
     }
 }

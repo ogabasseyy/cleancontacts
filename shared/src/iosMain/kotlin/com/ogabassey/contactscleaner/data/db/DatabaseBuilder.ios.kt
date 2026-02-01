@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.data.db
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
@@ -19,7 +20,7 @@ import platform.Foundation.NSUserDomainMask
  *
  * 2026 KMP Best Practice: Use NSFileManager to locate the Documents directory.
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
     // 2026 Best Practice: Capture NSError for proper error handling
     val dbFilePath = memScoped {

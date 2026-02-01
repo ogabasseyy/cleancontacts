@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
 import kotlinx.cinterop.ObjCObjectVar
@@ -42,6 +43,7 @@ private object DismissHandlerRegistry {
  * Helper class to handle modal dismissal from UIBarButtonItem action.
  * 2026 Best Practice: Inherits from NSObject to work with Objective-C selectors.
  */
+@OptIn(BetaInteropApi::class)
 private class DismissHandler(
     private val navigationController: UINavigationController,
     private val onDismiss: () -> Unit

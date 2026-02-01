@@ -26,3 +26,7 @@ landing-page/.env.local
 landing-page/dist/
 landing-page/.vercel/
 local-whatsapp-detector/
+
+# iOS Build
+**/build_ios/
+

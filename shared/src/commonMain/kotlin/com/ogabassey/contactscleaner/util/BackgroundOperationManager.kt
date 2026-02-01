@@ -93,7 +93,7 @@ object BackgroundOperationManager {
             current?.copy(
                 status = if (success) OperationStatus.Completed else OperationStatus.Failed,
                 completionMessage = message,
-                progress = if (success) 1f else current?.progress ?: 0f
+                progress = if (success) 1f else current.progress
             )
         }
     }

@@ -9,14 +9,9 @@ package com.ogabassey.contactscleaner.platform
  */
 actual object RevenueCatConfig {
     // TODO: Replace with your RevenueCat Google Play public API key
+    // Currently unused - using MockBillingRepository
     actual val apiKey: String = "goog_YOUR_REVENUECAT_GOOGLE_API_KEY"
 
     // Must match entitlement ID in RevenueCat dashboard
     actual val premiumEntitlementId: String = "premium"
-
-    init {
-        if (apiKey.contains("YOUR_REVENUECAT")) {
-            throw IllegalStateException("RevenueCat API key not configured. Replace placeholder in RevenueCatConfig.android.kt")
-        }
-    }
 }

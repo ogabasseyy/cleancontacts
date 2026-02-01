@@ -6,9 +6,11 @@ import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.platform.Logger
 import com.ogabassey.contactscleaner.platform.RevenueCatConfig
 import com.revenuecat.purchases.kmp.Purchases
-import com.revenuecat.purchases.kmp.models.CustomerInfo
-import com.revenuecat.purchases.kmp.models.Package
-import com.revenuecat.purchases.kmp.models.PackageType
+import com.revenuecat.purchases.kmp.models.StoreProduct
+import com.revenuecat.purchases.kmp.result.awaitCustomerInfo
+import com.revenuecat.purchases.kmp.result.awaitOfferings
+import com.revenuecat.purchases.kmp.result.awaitPurchase
+import com.revenuecat.purchases.kmp.result.awaitRestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,102 +53,90 @@ class RevenueCatKmpBillingRepository : BillingRepository {
     }
 
     private suspend fun refreshEntitlements() {
-        try {
-            val customerInfo = Purchases.sharedInstance.awaitCustomerInfo()
-            updatePremiumState(customerInfo)
-        } catch (e: Exception) {
-            Logger.e(TAG, "Error fetching customer info: ${e.message}")
-        }
+        Purchases.sharedInstance.awaitCustomerInfo()
+            .onSuccess { customerInfo ->
+                val entitlement = customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
+                val isActive = entitlement?.isActive == true
+                Logger.d(TAG, "Premium entitlement active: $isActive")
+                _isPremium.value = isActive
+            }
+            .onFailure { error ->
+                Logger.e(TAG, "Error fetching customer info: ${error.message}")
+            }
     }
 
     private suspend fun refreshOfferings() {
-        try {
-            val offerings = Purchases.sharedInstance.awaitOfferings()
-            val current = offerings.current
+        Purchases.sharedInstance.awaitOfferings()
+            .onSuccess { offerings ->
+                val current = offerings.current
+                if (current == null) {
+                    Logger.d(TAG, "No current offering available")
+                    _packages.value = Resource.Success(emptyList())
+                    return@onSuccess
+                }
 
-            if (current == null) {
-                Logger.d(TAG, "No current offering available")
-                _packages.value = Resource.Success(emptyList())
-                return
+                val packageList = current.availablePackages.map { pkg ->
+                    PaywallPackage(
+                        id = pkg.storeProduct.id,
+                        title = pkg.storeProduct.title,
+                        price = pkg.storeProduct.price.formatted,
+                        description = pkg.storeProduct.description,
+                        identifier = getPackageIdentifier(pkg.identifier)
+                    )
+                }
+                Logger.d(TAG, "Loaded ${packageList.size} packages")
+                _packages.value = Resource.Success(packageList)
             }
-
-            val packageList = current.availablePackages.map { pkg ->
-                pkg.toPaywallPackage()
+            .onFailure { error ->
+                Logger.e(TAG, "Error fetching offerings: ${error.message}")
+                _packages.value = Resource.Error(error.message ?: "Failed to load packages")
             }
-            Logger.d(TAG, "Loaded ${packageList.size} packages")
-            _packages.value = Resource.Success(packageList)
-        } catch (e: Exception) {
-            Logger.e(TAG, "Error fetching offerings: ${e.message}")
-            _packages.value = Resource.Error(e.message ?: "Failed to load packages")
-        }
     }
 
     override suspend fun purchasePremium(packageId: String): Result<Unit> {
-        return try {
-            Logger.d(TAG, "Starting purchase for package: $packageId")
+        Logger.d(TAG, "Starting purchase for package: $packageId")
 
-            // First, get the offerings to find the package
-            val offerings = Purchases.sharedInstance.awaitOfferings()
-            val current = offerings.current
-                ?: return Result.failure(Exception("No offerings available"))
+        return Purchases.sharedInstance.awaitOfferings()
+            .mapCatching { offerings ->
+                val current = offerings.current
+                    ?: throw Exception("No offerings available")
 
-            // Find the package by ID or identifier
-            val packageToBuy = current.availablePackages.find { pkg ->
-                pkg.product.id == packageId || pkg.identifier == packageId ||
-                        getPackageIdentifier(pkg.packageType) == packageId
-            } ?: return Result.failure(Exception("Package not found: $packageId"))
+                // Find the package by ID or identifier
+                val packageToBuy = current.availablePackages.find { pkg ->
+                    pkg.storeProduct.id == packageId ||
+                    pkg.identifier == packageId ||
+                    getPackageIdentifier(pkg.identifier) == packageId
+                } ?: throw Exception("Package not found: $packageId")
 
-            // Make the purchase
-            val purchaseResult = Purchases.sharedInstance.awaitPurchase(packageToBuy)
-            updatePremiumState(purchaseResult.customerInfo)
-            Logger.d(TAG, "Purchase successful!")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Logger.e(TAG, "Purchase failed: ${e.message}")
-            Result.failure(e)
-        }
+                // Make the purchase
+                val purchaseResult = Purchases.sharedInstance.awaitPurchase(packageToBuy)
+                    .getOrThrow()
+
+                // Update premium state
+                val entitlement = purchaseResult.customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
+                _isPremium.value = entitlement?.isActive == true
+                Logger.d(TAG, "Purchase successful!")
+            }
     }
 
     override suspend fun restorePurchases(): Result<Unit> {
-        return try {
-            Logger.d(TAG, "Restoring purchases...")
-            val customerInfo = Purchases.sharedInstance.awaitRestore()
-            updatePremiumState(customerInfo)
-            Logger.d(TAG, "Restore successful, premium=${_isPremium.value}")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Logger.e(TAG, "Restore failed: ${e.message}")
-            Result.failure(e)
-        }
+        Logger.d(TAG, "Restoring purchases...")
+        return Purchases.sharedInstance.awaitRestore()
+            .map { customerInfo ->
+                val entitlement = customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
+                val isActive = entitlement?.isActive == true
+                Logger.d(TAG, "Restore successful, premium=$isActive")
+                _isPremium.value = isActive
+            }
     }
 
-    private fun updatePremiumState(customerInfo: CustomerInfo) {
-        val entitlement = customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
-        val isActive = entitlement?.isActive == true
-        Logger.d(TAG, "Premium entitlement active: $isActive")
-        _isPremium.value = isActive
-    }
-
-    private fun Package.toPaywallPackage(): PaywallPackage {
-        return PaywallPackage(
-            id = product.id,
-            title = product.title,
-            price = product.price.formatted,
-            description = product.description,
-            identifier = getPackageIdentifier(packageType)
-        )
-    }
-
-    private fun getPackageIdentifier(type: PackageType): String {
-        return when (type) {
-            PackageType.MONTHLY -> "monthly"
-            PackageType.ANNUAL -> "annual"
-            PackageType.LIFETIME -> "lifetime"
-            PackageType.WEEKLY -> "weekly"
-            PackageType.SIX_MONTH -> "six_month"
-            PackageType.THREE_MONTH -> "three_month"
-            PackageType.TWO_MONTH -> "two_month"
-            else -> "custom"
+    private fun getPackageIdentifier(identifier: String): String {
+        return when {
+            identifier.contains("monthly", ignoreCase = true) -> "monthly"
+            identifier.contains("annual", ignoreCase = true) -> "annual"
+            identifier.contains("lifetime", ignoreCase = true) -> "lifetime"
+            identifier.contains("weekly", ignoreCase = true) -> "weekly"
+            else -> identifier
         }
     }
 }

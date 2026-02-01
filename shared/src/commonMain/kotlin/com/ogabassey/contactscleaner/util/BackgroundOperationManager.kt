@@ -27,20 +27,33 @@ object BackgroundOperationManager {
     /**
      * Start a new background operation.
      * Only one operation can run at a time.
+     * 2026 Fix: Use atomic update to prevent race conditions.
      */
     fun startOperation(type: OperationType, totalItems: Int, title: String? = null) {
-        if (_currentOperation.value != null && _currentOperation.value?.status == OperationStatus.Running) {
-            return // Already running an operation
-        }
-
-        _currentOperation.value = BackgroundOperation(
+        // Create the new operation before the atomic update
+        val newOperation = BackgroundOperation(
             type = type,
             totalItems = totalItems,
             title = title ?: type.displayName,
             startTime = currentTimeMillis()
         )
-        _logEntries.value = emptyList()
-        _isMinimized.value = false
+
+        // Atomic check-and-set to prevent race conditions
+        var wasStarted = false
+        _currentOperation.update { current ->
+            if (current?.status == OperationStatus.Running) {
+                current // Already running, keep existing operation
+            } else {
+                wasStarted = true
+                newOperation
+            }
+        }
+
+        // Only reset side-effect state if we actually started a new operation
+        if (wasStarted) {
+            _logEntries.value = emptyList()
+            _isMinimized.value = false
+        }
     }
 
     /**
@@ -160,8 +173,11 @@ data class BackgroundOperation(
 
 /**
  * Log entry for streaming operation progress.
+ * 2026 Fix: Added unique id to prevent key collisions when multiple entries
+ * have the same timestamp (within the same millisecond).
  */
 data class OperationLogEntry(
+    val id: String = randomUUID(),
     val timestamp: Long,
     val message: String,
     val isSuccess: Boolean = true

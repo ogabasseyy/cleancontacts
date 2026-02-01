@@ -149,7 +149,7 @@ class CategoryViewModel(
             try {
                 // 1. Refresh data in DB
                 contactRepository.refreshContacts(listOf(contact))
-                
+
                 // 2. Silently reload list (no Loading state)
                 // For duplicate types, load groups instead of flat list
                 if (type.name.startsWith("DUP_") || type == ContactType.DUPLICATE) {
@@ -163,6 +163,9 @@ class CategoryViewModel(
                     val result = contactRepository.getContactsSnapshotByType(type)
                     _contacts.value = result
                 }
+            } catch (e: CancellationException) {
+                // 2026 Fix: Propagate cancellation properly
+                throw e
             } catch (e: Exception) {
                 Logger.e(TAG, "Failed to refresh specific contact", e)
             }
@@ -313,13 +316,22 @@ class CategoryViewModel(
                             try {
                                 val groups = contactRepository.getDuplicateGroups(type)
                                 _duplicateGroups.value = groups
+                            } catch (e: CancellationException) {
+                                throw e
                             } catch (e: Exception) {
                                 Logger.e(TAG, "Failed to refresh duplicate groups: ${e.message}", e)
                             }
                         }
 
                         // Update scan result summaries in background
-                        contactRepository.updateScanResultSummary()
+                        // 2026 Fix: Wrap in try-catch to prevent exceptions from breaking deletion flow
+                        try {
+                            contactRepository.updateScanResultSummary()
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            Logger.e(TAG, "Failed to update scan result summary: ${e.message}", e)
+                        }
 
                         // Stay in Success state - no Loading transition
                         _uiState.value = CategoryUiState.Success()

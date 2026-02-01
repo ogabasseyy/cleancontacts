@@ -30,3 +30,7 @@ local-whatsapp-detector/
 # iOS Build
 **/build_ios/
 
+# Xcode user-specific data (2026 Fix: Should not be tracked)
+**/xcuserdata/
+
+build_log.txt

@@ -49,9 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4 bg-dark/80 backdrop-blur-md border-b border-white/5' : 'py-6 bg-transparent'}`}>
       <div className="container mx-auto px-6 flex justify-between items-center">
         <button type="button" onClick={handleLogoClick} className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center group-hover:bg-white transition-colors">
-             <svg aria-hidden="true" className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-          </div>
+          <img src="/logo.png" alt="CleanContacts" className="w-10 h-10 rounded-xl" />
           <span className="font-bold text-xl tracking-tight">Contacts <span className="text-brand">Cleaner</span></span>
         </button>
         

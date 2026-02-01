@@ -210,14 +210,27 @@ fun DashboardScreen(
                                 val animatedProgress by animateFloatAsState(
                                     targetValue = state.progress,
                                     label = "progressAnimation",
-                                    animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                    animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+                                )
+                                // Continuous rotation for flowing effect
+                                val infiniteTransition = rememberInfiniteTransition(label = "scanFlow")
+                                val rotation by infiniteTransition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = 360f,
+                                    animationSpec = infiniteRepeatable(
+                                        animation = tween(1500, easing = LinearEasing),
+                                        repeatMode = RepeatMode.Restart
+                                    ),
+                                    label = "flowRotation"
                                 )
                                 val pct = (animatedProgress * 100).toInt()
                                 Box(contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator(
                                         progress = { animatedProgress },
                                         color = SpaceBlack,
-                                        modifier = Modifier.size(64.dp),
+                                        modifier = Modifier
+                                            .size(64.dp)
+                                            .graphicsLayer { rotationZ = rotation },
                                         strokeWidth = 6.dp,
                                         trackColor = SpaceBlack.copy(alpha = 0.2f)
                                     )

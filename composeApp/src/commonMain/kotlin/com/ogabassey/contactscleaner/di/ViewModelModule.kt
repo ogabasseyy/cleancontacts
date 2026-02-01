@@ -17,8 +17,18 @@ val viewModelModule = module {
     // DashboardViewModel with ScanResultProvider, ScanContactsUseCase, ContactRepository
     viewModel { DashboardViewModel(get(), get(), get()) }
 
-    // ResultsViewModel with ScanResultProvider, ContactRepository, CleanupContactsUseCase, BillingRepository, UsageRepository, UndoUseCase, ScanContactsUseCase
-    viewModel { ResultsViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    // ResultsViewModel - 2026 Best Practice: Use named parameters to prevent silent dependency swaps
+    viewModel {
+        ResultsViewModel(
+            scanResultProvider = get(),
+            contactRepository = get(),
+            cleanupContactsUseCase = get(),
+            billingRepository = get(),
+            usageRepository = get(),
+            undoUseCase = get(),
+            scanContactsUseCase = get()
+        )
+    }
 
     // PaywallViewModel with BillingRepository
     viewModel { PaywallViewModel(get()) }

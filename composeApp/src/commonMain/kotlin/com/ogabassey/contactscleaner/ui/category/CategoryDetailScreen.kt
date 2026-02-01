@@ -85,14 +85,17 @@ fun CategoryDetailScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Handle ShowPaywall state - navigate to paywall and reset
-    // 2026 Fix: Dismiss any open confirmation dialogs to prevent them from
+    // 2026 Fix: Dismiss ALL open UI overlays to prevent them from
     // showing in the background when the paywall appears
     val showPaywall = uiState is CategoryUiState.ShowPaywall
     LaunchedEffect(showPaywall) {
         if (showPaywall) {
-            // Dismiss any open dialogs first
+            // Dismiss all open dialogs and overlays first
             contactToDelete = null
             showConfirmationDialog = false
+            selectedGroupKey = null  // Close bottom sheet
+            showExportFormatDialog = false  // Close export dialog
+            viewModel.clearExportData()  // Clear any pending export data
             onNavigateToPaywall()
             viewModel.resetState()
         }

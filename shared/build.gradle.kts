@@ -70,9 +70,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.websockets)
 
-            // RevenueCat KMP (in-app purchases)
+            // RevenueCat KMP (in-app purchases - await functions included in core)
             implementation(libs.purchases.kmp.core)
-            implementation(libs.purchases.kmp.result)
         }
 
         commonTest.dependencies {

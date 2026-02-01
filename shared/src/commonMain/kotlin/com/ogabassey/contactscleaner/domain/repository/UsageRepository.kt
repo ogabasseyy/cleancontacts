@@ -43,8 +43,8 @@ interface UsageRepository {
     companion object {
         /**
          * Maximum number of free trial actions allowed.
-         * Set to 1 for strict trial limit.
+         * Set to 2 to let users try multiple features before upgrading.
          */
-        const val MAX_FREE_ACTIONS = 1
+        const val MAX_FREE_ACTIONS = 2
     }
 }

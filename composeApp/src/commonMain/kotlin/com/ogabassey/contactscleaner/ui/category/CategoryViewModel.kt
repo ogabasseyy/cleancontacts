@@ -41,8 +41,11 @@ class CategoryViewModel(
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
 
-    // Trial actions tracking (limit is 1)
+    // Trial actions tracking (limit is 2)
     val freeActionsRemaining: Flow<Int> = usageRepository.freeActionsRemaining
+
+    // Premium status for UI to hide free actions pill
+    val isPremium: StateFlow<Boolean> = billingRepository.isPremium
 
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
     val contacts: StateFlow<List<Contact>> = _contacts.asStateFlow()

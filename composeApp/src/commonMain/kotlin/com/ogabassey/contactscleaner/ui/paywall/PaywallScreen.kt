@@ -51,10 +51,11 @@ fun PaywallScreen(
     val packagesResource by viewModel.packages.collectAsState()
     var selectedPackageId by remember { mutableStateOf<String?>(null) }
 
-    // Handle success - dismiss the paywall
+    // Handle success - show snackbar then dismiss the paywall
     LaunchedEffect(uiState) {
         if (uiState is PaywallUiState.Success) {
-            kotlinx.coroutines.delay(500)
+            // Give user time to see the success message
+            kotlinx.coroutines.delay(1500)
             onDismiss()
         }
     }
@@ -273,13 +274,19 @@ fun PaywallScreen(
             }
         }
 
-        // Snackbar for errors
+        // Snackbar for success and errors
         val snackbarHostState = remember { SnackbarHostState() }
         LaunchedEffect(uiState) {
-            if (uiState is PaywallUiState.Error) {
-                val message = (uiState as PaywallUiState.Error).message
-                snackbarHostState.showSnackbar(message)
-                viewModel.resetState()
+            when (uiState) {
+                is PaywallUiState.Success -> {
+                    snackbarHostState.showSnackbar("Purchase successful! Premium features unlocked.")
+                }
+                is PaywallUiState.Error -> {
+                    val message = (uiState as PaywallUiState.Error).message
+                    snackbarHostState.showSnackbar(message)
+                    viewModel.resetState()
+                }
+                else -> {}
             }
         }
         SnackbarHost(

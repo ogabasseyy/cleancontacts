@@ -205,7 +205,7 @@ class CategoryViewModel(
     }
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {
-        Logger.d(TAG, "deleteSingleContact called: id=${contact.id}, name=${contact.name}, platform_uid=${contact.platform_uid}")
+        Logger.d(TAG, "deleteSingleContact called: id=${contact.id}")
         viewModelScope.launch {
             // 2026 Best Practice: Track which contact is being deleted for proper dialog state
             _deletingContactId.value = contact.id

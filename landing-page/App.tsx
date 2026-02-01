@@ -18,7 +18,8 @@ const AppContent: React.FC = () => {
   const location = useLocation();
 
   const getCurrentView = (): ViewState => {
-    switch (location.pathname) {
+    const normalizedPath = location.pathname.replace(/\/+$/, '') || '/';
+    switch (normalizedPath) {
       case '/privacy': return 'privacy';
       case '/terms': return 'terms';
       case '/support': return 'support';

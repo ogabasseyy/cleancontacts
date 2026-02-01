@@ -13,4 +13,10 @@ actual object RevenueCatConfig {
 
     // Must match entitlement ID in RevenueCat dashboard
     actual val premiumEntitlementId: String = "premium"
+
+    init {
+        if (apiKey.contains("YOUR_REVENUECAT")) {
+            throw IllegalStateException("RevenueCat API key not configured. Replace placeholder in RevenueCatConfig.ios.kt")
+        }
+    }
 }

@@ -323,14 +323,11 @@ class IosContactRepository(
 
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
-            println("🗑️ [DELETE] Starting delete for ${contacts.size} contacts")
-            contacts.forEachIndexed { i, c ->
-                println("🗑️ [DELETE] Contact[$i]: id=${c.id}, name=${c.name}, platform_uid=${c.platform_uid}")
-            }
+            println("Deleting ${contacts.size} contacts")
 
             // Separate contacts with and without platform_uid
             val (withUid, withoutUid) = contacts.partition { it.platform_uid != null }
-            println("🗑️ [DELETE] With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
+            println("With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
 
             // Record for history/undo before deletion
             if (contacts.isNotEmpty()) {

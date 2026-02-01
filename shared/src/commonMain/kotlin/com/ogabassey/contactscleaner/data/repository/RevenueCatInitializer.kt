@@ -14,6 +14,7 @@ import com.revenuecat.purchases.kmp.Purchases
 object RevenueCatInitializer {
 
     private const val TAG = "RevenueCat"
+    @Volatile
     private var isInitialized = false
 
     /**
@@ -23,6 +24,7 @@ object RevenueCatInitializer {
      * @param appUserId Optional user ID for identifying users. Pass null for anonymous users.
      * @param debugMode Enable verbose logging for development.
      */
+    @Synchronized
     fun initialize(appUserId: String? = null, debugMode: Boolean = false) {
         if (isInitialized) {
             Logger.d(TAG, "RevenueCat already initialized, skipping")

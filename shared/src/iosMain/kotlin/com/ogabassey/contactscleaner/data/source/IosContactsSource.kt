@@ -263,11 +263,8 @@ class IosContactsSource {
         }.trim()
 
         // 2026 Fix: Sanitize names starting with slashes (e.g., from certain sync sources or SIM imports)
-        return if (rawName.startsWith("/")) {
-            rawName.removePrefix("/").trim()
-        } else {
-            rawName
-        }
+        // Use trimStart('/') to handle multiple leading slashes (e.g., "///John" -> "John")
+        return rawName.trimStart('/').trim()
     }
 
     /**

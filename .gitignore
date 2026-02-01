@@ -24,4 +24,5 @@ google-services.json
 landing-page/node_modules/
 landing-page/.env.local
 landing-page/dist/
+landing-page/.vercel/
 local-whatsapp-detector/

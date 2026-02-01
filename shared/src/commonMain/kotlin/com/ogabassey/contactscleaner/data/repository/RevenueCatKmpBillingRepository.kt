@@ -6,6 +6,10 @@ import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.platform.Logger
 import com.ogabassey.contactscleaner.platform.RevenueCatConfig
 import com.revenuecat.purchases.kmp.Purchases
+import com.revenuecat.purchases.kmp.ktx.awaitCustomerInfo
+import com.revenuecat.purchases.kmp.ktx.awaitOfferings
+import com.revenuecat.purchases.kmp.ktx.awaitPurchase
+import com.revenuecat.purchases.kmp.ktx.awaitRestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

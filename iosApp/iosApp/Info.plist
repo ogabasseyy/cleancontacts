@@ -27,8 +27,9 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSContactsUsageDescription</key>
-	<string>Contacts Cleaner needs access to your contacts to identify duplicates and help you clean up your address book.</string>
 </dict>
 </plist>

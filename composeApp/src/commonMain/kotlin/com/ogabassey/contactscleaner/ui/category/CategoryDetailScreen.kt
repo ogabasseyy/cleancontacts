@@ -72,7 +72,8 @@ fun CategoryDetailScreen(
     val groupContacts by viewModel.groupContacts.collectAsState()
     val deletingContactId by viewModel.deletingContactId.collectAsState()
     val exportData by viewModel.exportData.collectAsState()
-    val freeActionsRemaining by viewModel.freeActionsRemaining.collectAsState(initial = 1)
+    val freeActionsRemaining by viewModel.freeActionsRemaining.collectAsState(initial = 2)
+    val isPremium by viewModel.isPremium.collectAsState()
 
     // Track export format for proper file extension
     var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
@@ -172,6 +173,35 @@ fun CategoryDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    // Show free actions remaining pill for non-premium users
+                    if (!isPremium && freeActionsRemaining > 0) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = PrimaryNeon.copy(alpha = 0.15f),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = PrimaryNeon,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    "$freeActionsRemaining Free",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = PrimaryNeon,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent
                 )
@@ -184,8 +214,8 @@ fun CategoryDetailScreen(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                // Free Actions Exhausted Banner
-                if (freeActionsRemaining <= 0) {
+                // Free Actions Exhausted Banner (only for non-premium users)
+                if (!isPremium && freeActionsRemaining <= 0) {
                     FreeActionsExhaustedBanner(
                         onUpgradeClick = onNavigateToPaywall
                     )

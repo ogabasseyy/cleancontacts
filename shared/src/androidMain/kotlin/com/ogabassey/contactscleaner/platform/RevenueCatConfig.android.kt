@@ -13,7 +13,7 @@ actual object RevenueCatConfig {
     actual val apiKey: String = run {
         // Try environment variable first, fall back to default
         System.getenv("REVENUECAT_API_KEY")?.takeIf { it.isNotEmpty() }
-            ?: "goog_LygFhrickDOqQmVhowvVQTzfvSv"
+            ?: "test_cgwNwoQkAcPhlosEgrFpRcsNMpW"
     }
 
     // Must match entitlement ID in RevenueCat dashboard

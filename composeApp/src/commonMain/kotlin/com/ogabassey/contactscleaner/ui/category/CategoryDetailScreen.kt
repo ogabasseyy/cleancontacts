@@ -55,18 +55,9 @@ fun CategoryDetailScreen(
     onNavigateBack: () -> Unit = {},
     onNavigateToPaywall: () -> Unit = {}
 ) {
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboardManager.current
     val shareLauncher = rememberShareLauncher()
     val uiState by viewModel.uiState.collectAsState()
-
-    // Handle ShowPaywall state - navigate to paywall and reset
-    val showPaywall = uiState is CategoryUiState.ShowPaywall
-    LaunchedEffect(showPaywall) {
-        if (showPaywall) {
-            onNavigateToPaywall()
-            viewModel.resetState()
-        }
-    }
     val contacts by viewModel.contacts.collectAsState()
     val duplicateGroups by viewModel.duplicateGroups.collectAsState()
     val groupContacts by viewModel.groupContacts.collectAsState()
@@ -78,9 +69,10 @@ fun CategoryDetailScreen(
     // Track export format for proper file extension
     var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
 
-    // 2026 Best Practice: Refresh contacts when returning from native Contacts app
+    // 2026 Best Practice: Rescan and refresh contacts when returning from native Contacts app
+    // This ensures edits made in the Contacts app are reflected in the list
     val contactLauncher = rememberContactLauncher(
-        onReturn = { viewModel.loadCategory(type) }
+        onReturn = { viewModel.refreshAndLoadCategory(type) }
     )
 
     // Bottom sheet state for group details
@@ -91,6 +83,20 @@ fun CategoryDetailScreen(
     var showExportFormatDialog by remember { mutableStateOf(false) }
     var isGroupExport by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Handle ShowPaywall state - navigate to paywall and reset
+    // 2026 Fix: Dismiss any open confirmation dialogs to prevent them from
+    // showing in the background when the paywall appears
+    val showPaywall = uiState is CategoryUiState.ShowPaywall
+    LaunchedEffect(showPaywall) {
+        if (showPaywall) {
+            // Dismiss any open dialogs first
+            contactToDelete = null
+            showConfirmationDialog = false
+            onNavigateToPaywall()
+            viewModel.resetState()
+        }
+    }
 
     LaunchedEffect(type) {
         viewModel.loadCategory(type)
@@ -139,6 +145,20 @@ fun CategoryDetailScreen(
 
     val accentColor = getColorForType(type)
 
+    // 2026 Best Practice: Snackbar for success hints (e.g., pull-to-refresh reminder)
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show snackbar when there's a success message
+    LaunchedEffect(uiState) {
+        val state = uiState
+        if (state is CategoryUiState.Success && state.message != null) {
+            snackbarHostState.showSnackbar(
+                message = state.message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
     val countLabel = if (isDuplicateType) {
         "${duplicateGroups.size} Groups"
     } else {
@@ -147,6 +167,7 @@ fun CategoryDetailScreen(
 
     Scaffold(
         containerColor = SpaceBlack,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -887,7 +908,9 @@ fun CategoryDetailScreen(
                         // Copy to clipboard
                         OutlinedButton(
                             onClick = {
-                                exportData?.let { clipboardManager.setText(AnnotatedString(it)) }
+                                exportData?.let { data -> 
+                                    clipboard.setText(AnnotatedString(data)) 
+                                }
                                 viewModel.clearExportData()
                             },
                             modifier = Modifier.fillMaxWidth(),

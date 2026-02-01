@@ -7,8 +7,10 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
 import com.ogabassey.contactscleaner.domain.model.ScanResult
+import com.ogabassey.contactscleaner.domain.model.ScanStatus
 import com.ogabassey.contactscleaner.domain.repository.BillingRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
+import com.ogabassey.contactscleaner.domain.usecase.ScanContactsUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +34,9 @@ class ResultsViewModel(
     // 2026 Fix: Make private to encapsulate implementation detail
     private val billingRepository: BillingRepository,
     private val usageRepository: UsageRepository,
-    private val undoUseCase: com.ogabassey.contactscleaner.domain.usecase.UndoUseCase // Added
+    private val undoUseCase: com.ogabassey.contactscleaner.domain.usecase.UndoUseCase,
+    // 2026 Feature: Pull-to-refresh rescan support
+    private val scanContactsUseCase: ScanContactsUseCase
 ) : ViewModel() {
 
     // ... (rest of class) ...
@@ -58,6 +62,44 @@ class ResultsViewModel(
 
     // Trial actions tracking (limit is 1)
     val freeActionsRemaining: Flow<Int> = usageRepository.freeActionsRemaining
+
+    // 2026 Best Practice: Pull-to-refresh state for rescan
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+    /**
+     * Trigger a full rescan of contacts from device.
+     * Used by pull-to-refresh gesture on Results screen.
+     *
+     * 2026 Best Practice: Full rescan ensures fresh data from device,
+     * detecting any contacts added/edited/deleted in native Contacts app.
+     */
+    fun rescan() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                scanContactsUseCase().collect { status ->
+                    when (status) {
+                        is ScanStatus.Success -> {
+                            _isRefreshing.value = false
+                        }
+                        is ScanStatus.Error -> {
+                            _isRefreshing.value = false
+                            _uiState.value = ResultsUiState.Error(status.message)
+                        }
+                        is ScanStatus.Progress -> {
+                            // Progress is handled by pull-to-refresh indicator
+                        }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _isRefreshing.value = false
+                _uiState.value = ResultsUiState.Error(e.message ?: "Rescan failed")
+            }
+        }
+    }
 
     private val _duplicateGroups = MutableStateFlow<List<DuplicateGroupSummary>>(emptyList())
     val duplicateGroups: StateFlow<List<DuplicateGroupSummary>> = _duplicateGroups.asStateFlow()

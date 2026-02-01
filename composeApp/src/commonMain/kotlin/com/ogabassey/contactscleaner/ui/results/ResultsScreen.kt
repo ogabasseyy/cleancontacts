@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Refresh
@@ -63,6 +64,9 @@ fun ResultsScreen(
     val scanResult by viewModel.scanResult.collectAsState()
     val allIssuesCount by viewModel.allIssuesCount.collectAsState(initial = 0)
     val freeActions by viewModel.freeActionsRemaining.collectAsState(initial = 2)
+
+    // 2026 Best Practice: Pull-to-refresh state for rescan
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
     val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
@@ -150,15 +154,20 @@ fun ResultsScreen(
                 )
             }
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
+            // 2026 Best Practice: PullToRefreshBox for pull-down rescan
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = { viewModel.rescan() },
+                modifier = Modifier.fillMaxSize().padding(paddingValues)
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                     item {
                         Spacer(modifier = Modifier.height(8.dp))
                         SummaryCard(
@@ -453,6 +462,7 @@ fun ResultsScreen(
                             .padding(end = 4.dp, top = 24.dp, bottom = 24.dp)
                     )
                 }
+            } // End PullToRefreshBox
 
         }
 

@@ -119,8 +119,8 @@ lifecycle-viewmodel-compose = { group = "org.jetbrains.androidx.lifecycle", name
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 
 # RevenueCat KMP (2026 Best Practice: Official KMP SDK for in-app purchases)
+# await functions (awaitOfferings, awaitCustomerInfo, etc.) are included in core
 purchases-kmp-core = { group = "com.revenuecat.purchases", name = "purchases-kmp-core", version.ref = "purchasesKmp" }
-purchases-kmp-result = { group = "com.revenuecat.purchases", name = "purchases-kmp-result", version.ref = "purchasesKmp" }
 
 # Ktor HTTP Client for KMP (2026 Best Practice)
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }

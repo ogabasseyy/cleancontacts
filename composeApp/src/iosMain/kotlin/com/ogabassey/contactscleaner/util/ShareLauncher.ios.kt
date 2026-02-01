@@ -11,6 +11,7 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.stringByAppendingPathComponent
 import platform.Foundation.writeToFile
+import platform.Foundation.create
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIActivityViewController
@@ -71,23 +72,24 @@ class IosShareLauncher : ShareLauncher {
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     private fun writeToTempFile(content: String, fileName: String): NSURL? {
         val tempDir = NSTemporaryDirectory()
-        val filePath = (tempDir as NSString).stringByAppendingPathComponent(fileName)
+        // 2026 Fix: Use NSString.create for proper bridging instead of unsafe cast
+        val nsFilePath = NSString.create(string = tempDir).stringByAppendingPathComponent(fileName)
 
-        // Write content to file
-        val nsContent = content as NSString
+        // Write content to file using NSString.create for proper bridging
+        val nsContent = NSString.create(string = content)
         val success = nsContent.writeToFile(
-            filePath,
+            nsFilePath,
             atomically = true,
             encoding = NSUTF8StringEncoding,
             error = null
         )
 
         if (!success) {
-            println("⚠️ Failed to write export file to: $filePath")
+            println("⚠️ Failed to write export file to: $nsFilePath")
             return null
         }
 
-        return NSURL.fileURLWithPath(filePath)
+        return NSURL.fileURLWithPath(nsFilePath)
     }
 
     @OptIn(ExperimentalForeignApi::class)

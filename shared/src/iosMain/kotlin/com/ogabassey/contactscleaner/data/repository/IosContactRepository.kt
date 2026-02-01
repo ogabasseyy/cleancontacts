@@ -597,7 +597,6 @@ class IosContactRepository(
             ContactType.NON_WHATSAPP -> contactDao.getNonWhatsAppContactsSnapshot().map { it.toContact() }
             ContactType.ACCOUNT -> contactDao.getAllContacts().map { it.toContact() }
             ContactType.JUNK_SUSPICIOUS -> contactDao.getJunkContactsSnapshot().map { it.toContact() }
-            else -> emptyList()
         }
     }
 

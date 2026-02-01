@@ -525,38 +525,38 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun updateScanResultSummary() {
         android.util.Log.d("ContactRepository", "Updating ScanResult Summary from DB...")
-        val summary = contactDao.getDbScanSummary()
-        if (summary.total == 0) {
+        val total = contactDao.countTotal()
+        if (total == 0) {
             scanResultProvider.scanResult = null
             return
         }
 
         val result = ScanResult(
-            total = summary.total,
+            total = total,
             rawCount = usageRepository.rawScannedCount.first(),
-            whatsAppCount = summary.whatsAppCount,
-            telegramCount = summary.telegramCount,
-            nonWhatsAppCount = summary.total - summary.whatsAppCount,
-            junkCount = summary.junkCount,
-            duplicateCount = summary.duplicateCount,
-            noNameCount = summary.noNameCount,
-            noNumberCount = summary.noNumberCount,
-            emailDuplicateCount = summary.duplicateEmailCount,
-            numberDuplicateCount = summary.duplicateNumberCount,
-            nameDuplicateCount = summary.duplicateNameCount,
-            accountCount = summary.accountCount,
-            similarNameCount = summary.similarNameCount,
-            invalidCharCount = summary.invalidCharCount,
-            longNumberCount = summary.longNumberCount,
-            shortNumberCount = summary.shortNumberCount,
-            repetitiveNumberCount = summary.repetitiveNumberCount,
-            symbolNameCount = summary.symbolNameCount,
-            numericalNameCount = summary.numericalNameCount,
-            emojiNameCount = summary.emojiNameCount,
-            fancyFontCount = summary.fancyFontCount,
-            formatIssueCount = summary.formatIssueCount,
-            sensitiveCount = summary.sensitiveCount,
-            crossAccountDuplicateCount = summary.crossAccountDuplicateCount
+            whatsAppCount = contactDao.countWhatsApp(),
+            telegramCount = contactDao.countTelegram(),
+            nonWhatsAppCount = total - contactDao.countWhatsApp(),
+            junkCount = contactDao.countJunk(),
+            duplicateCount = contactDao.countDuplicates(),
+            noNameCount = contactDao.countNoName(),
+            noNumberCount = contactDao.countNoNumber(),
+            emailDuplicateCount = contactDao.countDuplicateEmails(),
+            numberDuplicateCount = contactDao.countDuplicateNumbers(),
+            nameDuplicateCount = contactDao.countDuplicateNames(),
+            accountCount = contactDao.countAccounts(),
+            similarNameCount = contactDao.countSimilarNames(),
+            invalidCharCount = contactDao.countInvalidChar(),
+            longNumberCount = contactDao.countLongNumber(),
+            shortNumberCount = contactDao.countShortNumber(),
+            repetitiveNumberCount = contactDao.countRepetitiveNumber(),
+            symbolNameCount = contactDao.countSymbolName(),
+            numericalNameCount = contactDao.countNumericalName(),
+            emojiNameCount = contactDao.countEmojiName(),
+            fancyFontCount = contactDao.countFancyFontName(),
+            formatIssueCount = contactDao.countFormatIssues(),
+            sensitiveCount = contactDao.countSensitive(),
+            crossAccountDuplicateCount = contactDao.countCrossAccountContacts()
         )
         scanResultProvider.scanResult = result
     }

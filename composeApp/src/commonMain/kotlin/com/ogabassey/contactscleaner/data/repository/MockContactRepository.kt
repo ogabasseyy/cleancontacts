@@ -186,6 +186,11 @@ class MockContactRepository : ContactRepository {
         // No-op for mock
     }
 
+    override suspend fun refreshContacts(contacts: List<Contact>): Boolean {
+        delay(300)
+        return true
+    }
+
     private fun generateMockContacts(): List<Contact> {
         return listOf(
             Contact(

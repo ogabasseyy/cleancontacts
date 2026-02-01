@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.ui.category
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -278,6 +280,17 @@ fun CategoryDetailScreen(
             // Processing Overlay
             if (uiState is CategoryUiState.Processing) {
                 val state = uiState as CategoryUiState.Processing
+                // Continuous rotation for flowing effect
+                val infiniteTransition = rememberInfiniteTransition(label = "categoryFlow")
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1500, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "flowRotation"
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -285,7 +298,10 @@ fun CategoryDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = PrimaryNeon)
+                        CircularProgressIndicator(
+                            color = PrimaryNeon,
+                            modifier = Modifier.graphicsLayer { rotationZ = rotation }
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             state.message ?: "Processing...",

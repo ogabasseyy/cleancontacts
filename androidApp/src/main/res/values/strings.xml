@@ -27,7 +27,7 @@
     
     <!-- Paywall -->
     <string name="paywall_upgrade_to">Upgrade to</string>
-    <string name="paywall_pro">CleanContacts Pro</string>
+    <string name="paywall_pro">Contacts Cleaner Pro</string>
     <string name="feature_delete_junk">Delete junk contacts</string>
     <string name="feature_merge_duplicates">Merge duplicates</string>
     <string name="feature_sync_google">Sync with Google Contacts</string>

@@ -3,6 +3,10 @@ options:
   bundleIdPrefix: com.ogabassey.contactscleaner
   deploymentTarget:
     iOS: "16.0"
+packages:
+  PurchasesHybridCommon:
+    url: https://github.com/RevenueCat/purchases-hybrid-common
+    exactVersion: 17.30.0
 targets:
   iosApp:
     type: application
@@ -42,3 +46,5 @@ targets:
        - sdk: Contacts.framework
          embed: false
          link: true
+       - package: PurchasesHybridCommon
+         product: PurchasesHybridCommon

@@ -14,7 +14,7 @@ buildscript {
     }
 }
 
-// Top-level build file for CleanContactsAI KMP project
+// Top-level build file for Contacts Cleaner KMP project
 plugins {
     // Android plugins (apply false - applied in subprojects)
     alias(libs.plugins.android.application) apply false

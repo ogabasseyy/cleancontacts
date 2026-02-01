@@ -28,7 +28,7 @@ import com.ogabassey.contactscleaner.data.db.entity.WhatsAppCacheMeta
         WhatsAppCacheEntry::class,
         WhatsAppCacheMeta::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @ConstructedBy(ContactDatabaseConstructor::class)

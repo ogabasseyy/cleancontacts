@@ -64,8 +64,7 @@ class RevenueCatBillingRepository @Inject constructor() : BillingRepository {
                     // MOCK SANDBOX FOR TESTING WITHOUT PLAY STORE
                     val mockPackages = listOf(
                         com.ogabassey.contactscleaner.domain.model.PaywallPackage("mock_monthly", "Monthly", "$4.99", "Billed monthly", "monthly"),
-                        com.ogabassey.contactscleaner.domain.model.PaywallPackage("mock_annual", "Annual", "$39.99", "Billed annually", "annual"),
-                        com.ogabassey.contactscleaner.domain.model.PaywallPackage("mock_lifetime", "Lifetime", "$99.99", "One-time payment", "lifetime")
+                        com.ogabassey.contactscleaner.domain.model.PaywallPackage("mock_lifetime", "Lifetime", "$49.99", "One-time payment", "lifetime")
                     )
                     _packages.value = Resource.Success(mockPackages)
                 } else {

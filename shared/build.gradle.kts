@@ -69,6 +69,9 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ktor.client.websockets)
+
+            // RevenueCat KMP (in-app purchases - await functions included in core)
+            implementation(libs.purchases.kmp.core)
         }
 
         commonTest.dependencies {

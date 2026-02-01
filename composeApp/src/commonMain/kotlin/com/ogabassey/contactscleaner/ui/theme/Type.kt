@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Typography for CleanContactsAI.
+ * Typography for Contacts Cleaner.
  *
  * 2026 KMP Best Practice: Use default system fonts for cross-platform compatibility.
  * Custom fonts can be loaded using Compose resources if needed.

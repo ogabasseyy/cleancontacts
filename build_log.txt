@@ -1,0 +1,227 @@
+Initialized native services in: /Users/mac/.gradle/native
+Initialized jansi services in: /Users/mac/.gradle/native
+Found daemon DaemonInfo{pid=11907, address=[21f3e209-e8f9-4748-a73c-e702cd9e389c port:64057, addresses:[/127.0.0.1]], state=Idle, lastBusy=1769800724079, context=DefaultDaemonContext[uid=044e7567-a20d-4ea7-8687-c59f12691b6e,javaHome=/Applications/Android Studio.app/Contents/jbr/Contents/Home,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/Users/mac/.gradle/daemon,pid=11907,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx4096m,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home (no Daemon JVM specified, using current Java home), daemonOpts=[-Xmx4096m, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=044e7567-a20d-4ea7-8687-c59f12691b6e,javaHome=/Applications/Android Studio.app/Contents/jbr/Contents/Home,javaVersion=21,javaVendor=JetBrains s.r.o.,daemonRegistryDir=/Users/mac/.gradle/daemon,pid=11907,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx4096m,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 70641). The daemon log file: /Users/mac/.gradle/daemon/9.3.0/daemon-70641.out.log
+Starting 4th build in daemon [uptime: 16 mins 32.775 secs, performance: 96%, GC rate: 0.00/s, heap usage: 0% of 4 GiB]
+Using 10 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=false, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=false, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Now considering [/Users/mac/Downloads/CleanContactsAI] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/Users/mac/Downloads/CleanContactsAI/settings.gradle.kts'.
+Projects loaded. Root project using build file '/Users/mac/Downloads/CleanContactsAI/build.gradle.kts'.
+Included projects: [root project 'ContactsCleaner', project ':androidApp', project ':composeApp', project ':shared']
+
+> Configure project :
+Evaluating root project 'ContactsCleaner' using build file '/Users/mac/Downloads/CleanContactsAI/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0', apply: false]
+Resolved plugin [id: 'com.android.library', version: '9.0.0', apply: false]
+Resolved plugin [id: 'com.android.kotlin.multiplatform.library', version: '9.0.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.3.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.3.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '2.3.0', apply: false]
+Resolved plugin [id: 'org.jetbrains.compose', version: '1.10.0', apply: false]
+Resolved plugin [id: 'com.google.devtools.ksp', version: '2.3.5', apply: false]
+Resolved plugin [id: 'com.google.dagger.hilt.android', version: '2.57', apply: false]
+Resolved plugin [id: 'androidx.room', version: '2.8.4', apply: false]
+
+> Configure project :androidApp
+Evaluating project ':androidApp' using build file '/Users/mac/Downloads/CleanContactsAI/androidApp/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '2.3.0']
+Resolved plugin [id: 'com.google.devtools.ksp', version: '2.3.5']
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+Build 72929a1a-1850-420f-8438-bdbc11467860 is started
+Using default execution profile
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+
+> Configure project :composeApp
+Evaluating project ':composeApp' using build file '/Users/mac/Downloads/CleanContactsAI/composeApp/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.3.0']
+Resolved plugin [id: 'com.android.kotlin.multiplatform.library', version: '9.0.0']
+Resolved plugin [id: 'org.jetbrains.compose', version: '1.10.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.3.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '2.3.0']
+Using Kotlin Gradle Plugin gradle813 variant
+Created androidJvm target
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+Created compile task: compileAndroidMain
+Using default execution profile
+Configure multi-module compose resources
+Configure compose resources generation
+Configure resource accessors generation for androidMain
+Configure Res object generation for commonMain
+Configure resource accessors generation for commonMain
+Configure resource accessors generation for commonTest
+Configure expect resource collectors generation for commonMain
+Configure actual resource collectors generation for androidMain
+Configure compose resources with KotlinMultiplatformAndroidComponentsExtension
+Configure resource accessors generation for iosX64Main
+Configure resource accessors generation for iosX64Test
+Configure actual resource collectors generation for iosX64Main
+Configure main resources for 'iosX64' target
+Configure KMP component publication for 'iosX64'
+Collect resolved main resources for 'iosX64'
+Configure test resources for 'iosX64' target
+Configure resource accessors generation for iosArm64Main
+Configure resource accessors generation for iosArm64Test
+Configure actual resource collectors generation for iosArm64Main
+Configure main resources for 'iosArm64' target
+Configure KMP component publication for 'iosArm64'
+Collect resolved main resources for 'iosArm64'
+Configure test resources for 'iosArm64' target
+Configure resource accessors generation for iosSimulatorArm64Main
+Configure resource accessors generation for iosSimulatorArm64Test
+Configure actual resource collectors generation for iosSimulatorArm64Main
+Configure main resources for 'iosSimulatorArm64' target
+Configure KMP component publication for 'iosSimulatorArm64'
+Collect resolved main resources for 'iosSimulatorArm64'
+Configure test resources for 'iosSimulatorArm64' target
+Configure resource accessors generation for iosMain
+[:composeApp] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+compileSdkVersion=android-36
+Configure androidMain resources for 'android' target
+Check that new 'org.jetbrains.kotlin.plugin.compose' was applied
+Configure resource accessors generation for nativeMain
+Configure resource accessors generation for appleMain
+Configure resource accessors generation for nativeTest
+Configure resource accessors generation for appleTest
+Configure resource accessors generation for iosTest
+[:composeApp] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+[:composeApp] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+[:composeApp] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+
+> Configure project :shared
+Evaluating project ':shared' using build file '/Users/mac/Downloads/CleanContactsAI/shared/build.gradle.kts'.
+Resolved plugin [id: 'org.jetbrains.kotlin.multiplatform', version: '2.3.0']
+Resolved plugin [id: 'com.android.kotlin.multiplatform.library', version: '9.0.0']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.serialization', version: '2.3.0']
+Resolved plugin [id: 'com.google.devtools.ksp', version: '2.3.5']
+Resolved plugin [id: 'androidx.room', version: '2.8.4']
+Using Kotlin Gradle Plugin gradle813 variant
+Created androidJvm target
+kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+Created compile task: compileAndroidMain
+Using default execution profile
+[:shared] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+compileSdkVersion=android-36
+[:shared] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+[:shared] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+[:shared] commonizeCInterop task registration disabled. cInteropCommonizationEnabled == false
+All projects evaluated.
+Task path ':shared:compileAndroidMain' matched project ':shared'
+Task name matched 'compileAndroidMain'
+Selected primary task 'compileAndroidMain' from project :shared
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+compileSdkVersion=android-36
+Tasks to be executed: [task ':shared:kmpPartiallyResolvedDependenciesChecker', task ':shared:checkKotlinGradlePluginConfigurationErrors', task ':shared:kspAndroidMain', task ':shared:copyRoomSchemas', task ':shared:compileAndroidMain']
+Tasks that were excluded: []
+Resolve mutations for :shared:kmpPartiallyResolvedDependenciesChecker (Thread[Execution worker,5,main]) started.
+:shared:kmpPartiallyResolvedDependenciesChecker (Thread[Execution worker,5,main]) started.
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+Caching disabled for task ':shared:kmpPartiallyResolvedDependenciesChecker' because:
+  Build cache is disabled
+Task ':shared:kmpPartiallyResolvedDependenciesChecker' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Execution stopped by some action with message: null
+Resolve mutations for :shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+:shared:checkKotlinGradlePluginConfigurationErrors (Thread[Execution worker,5,main]) started.
+
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':shared:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Resolve mutations for :shared:kspAndroidMain (Thread[Execution worker,5,main]) started.
+:shared:kspAndroidMain (Thread[Execution worker,5,main]) started.
+
+> Task :shared:kspAndroidMain UP-TO-DATE
+Caching disabled for task ':shared:kspAndroidMain' because:
+  Build cache is disabled
+Skipping task ':shared:kspAndroidMain' as it is up-to-date.
+Resolve mutations for :shared:copyRoomSchemas (Thread[Execution worker,5,main]) started.
+:shared:copyRoomSchemas (Thread[Execution worker,5,main]) started.
+
+> Task :shared:copyRoomSchemas NO-SOURCE
+Skipping task ':shared:copyRoomSchemas' as it has no source files and no previous output files.
+Resolve mutations for :shared:compileAndroidMain (Thread[Execution worker,5,main]) started.
+:shared:compileAndroidMain (Thread[Execution worker,5,main]) started.
+
+> Task :shared:compileAndroidMain
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+Caching disabled for task ':shared:compileAndroidMain' because:
+  Build cache is disabled
+Task ':shared:compileAndroidMain' is not up-to-date because:
+  Task has failed previously.
+The input changes require a full rebuild for incremental task ':shared:compileAndroidMain'.
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+Kotlin source files: /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/di/AndroidModule.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/util/Platform.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/RegionProvider.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/PhoneNumberHandler.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/RevenueCatConfig.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/Logger.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/UrlOpener.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/platform/TextAnalyzer.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/DatabaseBuilder.android.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/ContactDatabaseConstructor.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/UndoDao_Impl.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/WhatsAppCacheDao_Impl.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/IgnoredContactDao_Impl.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/ContactDao_Impl.kt, /Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/kotlin/com/ogabassey/contactscleaner/data/db/ContactDatabase_Impl.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/di/SharedModule.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/di/KoinHelper.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/util/Platform.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/util/NumberUtils.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/util/ExportUtils.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/TextAnalyzer.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/RevenueCatConfig.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/RegionProvider.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/PhoneNumberHandler.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/UrlOpener.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/platform/Logger.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/UsageRepositoryImpl.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/RevenueCatKmpBillingRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/RevenueCatInitializer.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/WhatsAppDetectorRepositoryImpl.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/BackupRepositoryImpl.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/MockBillingRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/util/ScanResultProvider.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/parser/ContactImportParser.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/detector/DuplicateDetector.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/detector/SensitiveDataDetector.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/detector/FormatDetector.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/detector/JunkDetector.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/entity/UndoLog.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/entity/IgnoredContact.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/entity/LocalContact.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/entity/WhatsAppCache.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/WhatsAppCacheDao.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/IgnoredContactDao.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/ScanStats.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/ContactDao.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/dao/UndoDao.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/ContactDatabase.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/db/DatabaseBuilder.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/api/WhatsAppDetectorApi.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/UsageRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/BackupRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/ContactRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/WhatsAppDetectorRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/FileService.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/repository/BillingRepository.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/ScanStatus.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/Contact.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/Billing.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/SensitiveData.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/FormatIssue.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/Resource.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/model/CleanupStatus.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/usecase/CleanupContactsUseCase.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/usecase/ImportContactsUseCase.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/usecase/ScanContactsUseCase.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/usecase/UndoUseCase.kt, /Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/domain/usecase/ExportUseCase.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+file or directory '/Users/mac/Downloads/CleanContactsAI/shared/build/generated/ksp/android/androidMain/java', not found
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: /opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Unknown@31b15eda, classpathChanges=NotAvailableForNonIncrementalRun, workingDir=/Users/mac/Downloads/CleanContactsAI/shared/build/kotlin/compileAndroidMain/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/Users/mac/Downloads/CleanContactsAI/shared/build/kotlin/compileAndroidMain/local-state/build-history.bin, useModuleDetection=false), icFeatures=IncrementalCompilationFeatures(usePreciseJavaTracking=true, withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[/Users/mac/Downloads/CleanContactsAI/shared/build/classes/kotlin/android/main, /Users/mac/Downloads/CleanContactsAI/shared/build/kotlin/compileAndroidMain/cacheable, /Users/mac/Downloads/CleanContactsAI/shared/build/kotlin/compileAndroidMain/local-state])
+e: file:///Users/mac/Downloads/CleanContactsAI/shared/src/commonMain/kotlin/com/ogabassey/contactscleaner/data/repository/RevenueCatKmpBillingRepository.kt:103:52 Unresolved reference 'description'.
+Finished executing kotlin compiler using DAEMON strategy
+
+> Task :shared:compileAndroidMain FAILED
+Build 72929a1a-1850-420f-8438-bdbc11467860 is closed
+
+[Incubating] Problems report is available at: file:///Users/mac/Downloads/CleanContactsAI/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':shared:compileAndroidMain'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 6s
+3 actionable tasks: 2 executed, 1 up-to-date
+Watched directory hierarchies: [/Users/mac/Downloads/CleanContactsAI]

@@ -4,8 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.work.Configuration
 import androidx.work.WorkerFactory
-import com.revenuecat.purchases.Purchases
-import com.revenuecat.purchases.PurchasesConfiguration
+import com.ogabassey.contactscleaner.data.repository.RevenueCatInitializer
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -52,9 +51,10 @@ class CleanContactsApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        // Configure RevenueCat
-        Purchases.configure(
-            PurchasesConfiguration.Builder(this, BuildConfig.REVENUECAT_API_KEY).build()
+        // Configure RevenueCat KMP SDK
+        RevenueCatInitializer.initialize(
+            appUserId = null,
+            debugMode = BuildConfig.DEBUG
         )
 
         // Force refresh billing repository

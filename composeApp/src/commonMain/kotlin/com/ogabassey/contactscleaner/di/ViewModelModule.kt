@@ -17,8 +17,8 @@ val viewModelModule = module {
     // DashboardViewModel with ScanResultProvider, ScanContactsUseCase, ContactRepository
     viewModel { DashboardViewModel(get(), get(), get()) }
 
-    // ResultsViewModel with ScanResultProvider, ContactRepository, CleanupContactsUseCase, BillingRepository, UsageRepository, UndoUseCase
-    viewModel { ResultsViewModel(get(), get(), get(), get(), get(), get()) }
+    // ResultsViewModel with ScanResultProvider, ContactRepository, CleanupContactsUseCase, BillingRepository, UsageRepository, UndoUseCase, ScanContactsUseCase
+    viewModel { ResultsViewModel(get(), get(), get(), get(), get(), get(), get()) }
 
     // PaywallViewModel with BillingRepository
     viewModel { PaywallViewModel(get()) }

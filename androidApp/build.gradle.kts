@@ -16,7 +16,11 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 
+
+
+
 val revenueCatApiKey = localProperties.getProperty("REVENUECAT_API_KEY") ?: ""
+
 
 android {
     namespace = "com.ogabassey.contactscleaner"
@@ -73,16 +77,18 @@ android {
         }
     }
 
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlin {
         compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
+
 
     buildFeatures {
         compose = true

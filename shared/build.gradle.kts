@@ -103,11 +103,13 @@ kotlin {
 }
 
 // 2026 AGP 9.0: Configure JVM target for all Kotlin compilations
+
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
+
 
 // Room KMP configuration
 room {

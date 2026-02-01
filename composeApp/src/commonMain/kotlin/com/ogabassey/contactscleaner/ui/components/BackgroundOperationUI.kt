@@ -337,7 +337,8 @@ private fun OperationProgressModal(
                                 .padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            items(logEntries, key = { it.timestamp }) { entry ->
+                            // 2026 Fix: Use unique id instead of timestamp to prevent key collisions
+                            items(logEntries, key = { it.id }) { entry ->
                                 LogEntryRow(entry)
                             }
                         }
@@ -375,6 +376,7 @@ private fun LogEntryRow(entry: OperationLogEntry) {
 /**
  * Floating bubble that shows when operation is minimized.
  * Can be dragged and tapped to expand.
+ * 2026 Fix: Added boundary clamping to keep bubble within screen bounds.
  */
 @Composable
 private fun FloatingOperationBubble(
@@ -383,6 +385,11 @@ private fun FloatingOperationBubble(
 ) {
     var offsetX by remember { mutableFloatStateOf(0f) }
     var offsetY by remember { mutableFloatStateOf(0f) }
+
+    // Bubble dimensions for boundary calculation
+    val bubbleWidth = 100.dp
+    val bubbleHeight = 56.dp
+    val padding = 16.dp
 
     // Pulse animation when nearing completion
     val pulseScale by rememberInfiniteTransition(label = "pulse").animateFloat(
@@ -406,13 +413,25 @@ private fun FloatingOperationBubble(
         label = "bubble_rotation"
     )
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomEnd
     ) {
+        // Calculate boundaries based on container size
+        // Since bubble is anchored at BottomEnd, offset is relative to that position
+        val bubbleWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) { bubbleWidth.toPx() }
+        val bubbleHeightPx = with(androidx.compose.ui.platform.LocalDensity.current) { bubbleHeight.toPx() }
+        val paddingPx = with(androidx.compose.ui.platform.LocalDensity.current) { padding.toPx() }
+
+        // Min/max offsets (negative X moves left, negative Y moves up from bottom-end anchor)
+        val minX = -(constraints.maxWidth - bubbleWidthPx - paddingPx * 2)
+        val maxX = 0f
+        val minY = -(constraints.maxHeight - bubbleHeightPx - paddingPx * 2)
+        val maxY = 0f
+
         Surface(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(padding)
                 .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
                 .graphicsLayer {
                     scaleX = pulseScale
@@ -421,8 +440,9 @@ private fun FloatingOperationBubble(
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
-                        offsetX += dragAmount.x
-                        offsetY += dragAmount.y
+                        // 2026 Fix: Clamp offset to keep bubble within screen bounds
+                        offsetX = (offsetX + dragAmount.x).coerceIn(minX, maxX)
+                        offsetY = (offsetY + dragAmount.y).coerceIn(minY, maxY)
                     }
                 }
                 .clickable(onClick = onClick),

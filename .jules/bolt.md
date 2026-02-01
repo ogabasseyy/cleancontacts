@@ -68,3 +68,17 @@ private fun hasRepetitiveDigits(digits: String): Boolean {
     return false
 }
 ```
+
+# 2026-02-18 - Compose Recomposition Deferral
+**Learning:** In Compose, reading an animated `State` value (e.g. `val value by animateFloat`) in the Composable body triggers recomposition on every frame.
+**Action:** Defer reading the state value until inside the `graphicsLayer {}` lambda block. This allows the animation to run purely on the render thread/layer phase without recomposing the UI tree.
+
+```kotlin
+// ❌ Avoid: Recomposes function every frame
+val rotation by transition.animateFloat(...)
+Box(modifier = Modifier.graphicsLayer { rotationZ = rotation })
+
+// ✅ Prefer: Recomposes once, updates layer every frame
+val rotationState = transition.animateFloat(...)
+Box(modifier = Modifier.graphicsLayer { rotationZ = rotationState.value })
+```

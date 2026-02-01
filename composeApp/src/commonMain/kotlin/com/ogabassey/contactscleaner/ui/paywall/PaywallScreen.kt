@@ -25,6 +25,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.domain.model.Resource
@@ -423,9 +426,9 @@ private fun SubscriptionLegalText() {
                 style = MaterialTheme.typography.labelSmall,
                 color = PrimaryNeon,
                 textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable {
-                    UrlOpener.openUrl(LegalUrls.TERMS_OF_USE)
-                }
+                modifier = Modifier
+                    .semantics { role = Role.Button }
+                    .clickable { UrlOpener.openUrl(LegalUrls.TERMS_OF_USE) }
             )
 
             Text(
@@ -439,9 +442,9 @@ private fun SubscriptionLegalText() {
                 style = MaterialTheme.typography.labelSmall,
                 color = PrimaryNeon,
                 textDecoration = TextDecoration.Underline,
-                modifier = Modifier.clickable {
-                    UrlOpener.openUrl(LegalUrls.PRIVACY_POLICY)
-                }
+                modifier = Modifier
+                    .semantics { role = Role.Button }
+                    .clickable { UrlOpener.openUrl(LegalUrls.PRIVACY_POLICY) }
             )
         }
     }

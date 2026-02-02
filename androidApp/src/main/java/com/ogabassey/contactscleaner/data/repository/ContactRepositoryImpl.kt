@@ -491,7 +491,7 @@ class ContactRepositoryImpl constructor(
                     val name = contactNames[id]
                     if (name != null) {
                         recentItems.add(0, "Updated: $name")
-                        if (recentItems.size > 10) recentItems.removeLast()
+                        if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
                     }
                 }
             }

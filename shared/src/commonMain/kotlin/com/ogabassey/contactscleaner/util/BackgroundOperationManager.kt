@@ -142,12 +142,16 @@ object BackgroundOperationManager {
 
     /**
      * Get estimated time remaining based on processing rate.
+     * 2026 Fix: Guard against zero elapsed time to prevent divide-by-zero.
      */
     fun getEstimatedTimeRemaining(): Long? {
         val operation = _currentOperation.value ?: return null
         if (operation.processedItems == 0) return null
 
         val elapsed = currentTimeMillis() - operation.startTime
+        // Guard against zero/negative elapsed time
+        if (elapsed <= 0) return null
+
         val rate = operation.processedItems.toFloat() / elapsed.toFloat()
         val remaining = operation.totalItems - operation.processedItems
 

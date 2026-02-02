@@ -36,6 +36,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalUriHandler
 import com.ogabassey.contactscleaner.ui.components.ContactsPermissionState
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.components.rememberContactsPermissionState
@@ -463,6 +464,8 @@ fun SettingsContent(
     onDismiss: () -> Unit,
     onNavigateToSafeList: () -> Unit = {}
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -507,13 +510,15 @@ fun SettingsContent(
         SettingsItem(
             icon = Icons.Default.Info,
             title = "Privacy Policy",
-            subtitle = "How we handle your data"
+            subtitle = "How we handle your data",
+            onClick = { uriHandler.openUri("https://contactscleaner.tech/privacy") }
         )
 
         SettingsItem(
             icon = Icons.AutoMirrored.Filled.List,
             title = "Terms of Service",
-            subtitle = "Legal agreements"
+            subtitle = "Legal agreements",
+            onClick = { uriHandler.openUri("https://contactscleaner.tech/terms") }
         )
 
         Spacer(modifier = Modifier.height(32.dp))

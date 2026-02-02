@@ -182,7 +182,7 @@ class WhatsAppLinkViewModel(
     private fun startPairingTimer() {
         timerJob?.cancel()
         val startTime = Clock.System.now().toEpochMilliseconds()
-        val expirationMillis = startTime + (20 * 60 * 1000L).toLong()
+        val expirationMillis = startTime + (20 * 60 * 1000L)
         _pairingCodeExpiration.value = 1200L // 20 minutes in seconds
 
         timerJob = viewModelScope.launch {

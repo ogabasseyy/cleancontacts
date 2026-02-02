@@ -130,16 +130,21 @@ interface ContactDao {
     suspend fun countSimilarNames(): Int
 
     // --- Cross-Account Duplicates Queries ---
+    // 2026 Fix: Only detect cross-account duplicates between Google and iOS (local) accounts.
+    // Excludes WhatsApp and Telegram since those are synced contacts, not user duplicates.
 
     /**
      * Count unique contacts that exist in multiple accounts.
      * A contact is considered cross-account if it has the same matching_key
      * but different account_type or account_name combinations.
+     * Only counts Google (com.google) and iOS local (null/empty/Local) accounts.
+     * 2026 Fix: Added account_type = 'Local' to include iOS local contacts.
      */
     @Query("""
         SELECT COUNT(*) FROM (
             SELECT matching_key FROM contacts
             WHERE matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
             GROUP BY matching_key
             HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
         )
@@ -150,12 +155,16 @@ interface ContactDao {
      * Get all contacts that exist in multiple accounts.
      * Returns all LocalContact instances where the matching_key appears
      * in more than one distinct account.
+     * Only includes Google (com.google) and iOS local (null/empty/Local) accounts.
+     * 2026 Fix: Added account_type = 'Local' to include iOS local contacts.
      */
     @Query("""
         SELECT * FROM contacts
-        WHERE matching_key IN (
+        WHERE (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+        AND matching_key IN (
             SELECT matching_key FROM contacts
             WHERE matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
             GROUP BY matching_key
             HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
         )
@@ -165,8 +174,15 @@ interface ContactDao {
 
     /**
      * Get all instances of a contact across accounts by matching key.
+     * Only includes Google (com.google) and iOS local (null/empty/Local) accounts.
+     * 2026 Fix: Added account_type = 'Local' to include iOS local contacts.
      */
-    @Query("SELECT * FROM contacts WHERE matching_key = :matchingKey ORDER BY account_type, account_name")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE matching_key = :matchingKey
+        AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+        ORDER BY account_type, account_name
+    """)
     suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<LocalContact>
 
     // --- Bulk Updates for Analysis ---

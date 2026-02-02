@@ -14,7 +14,8 @@ actual class TextAnalyzer actual constructor() {
     actual fun isEmojiOnly(text: String): Boolean {
         if (text.isBlank()) return false
 
-        val nsString = text as NSString
+        // 2026 Fix: Use NSString.create for proper bridging instead of unsafe cast
+        val nsString = NSString.create(string = text)
         var hasTrueEmoji = false
         var onlyEmojiOrSpace = true
 
@@ -42,7 +43,8 @@ actual class TextAnalyzer actual constructor() {
     actual fun hasFancyFonts(text: String): Boolean {
         if (text.isBlank()) return false
         
-        val nsString = text as NSString
+        // 2026 Fix: Use NSString.create for proper bridging instead of unsafe cast
+        val nsString = NSString.create(string = text)
         var foundFancy = false
         
         nsString.enumerateSubstringsInRange(

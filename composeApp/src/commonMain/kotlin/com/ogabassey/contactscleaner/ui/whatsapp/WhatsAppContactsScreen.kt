@@ -49,7 +49,7 @@ fun WhatsAppContactsScreen(
     var showExportDialog by remember { mutableStateOf(false) }
     var exportFormat by remember { mutableStateOf("") }
     val exportData by viewModel.exportData.collectAsState()
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboardManager.current
 
     // Handle export data when available
     LaunchedEffect(exportData) {
@@ -180,7 +180,7 @@ fun WhatsAppContactsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        exportData?.let { clipboardManager.setText(AnnotatedString(it)) }
+                        exportData?.let { clipboard.setText(AnnotatedString(it)) }
                         showExportDialog = false
                         viewModel.clearExportData()
                     },
@@ -324,7 +324,7 @@ private fun ContactsContent(
         )
 
         // Tabs
-        TabRow(
+        PrimaryTabRow(
             selectedTabIndex = selectedTab.ordinal,
             containerColor = Color.Transparent,
             contentColor = PrimaryNeon

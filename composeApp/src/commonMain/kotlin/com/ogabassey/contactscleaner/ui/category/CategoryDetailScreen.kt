@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
+import com.ogabassey.contactscleaner.ui.components.BackgroundOperationOverlay
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -69,10 +70,23 @@ fun CategoryDetailScreen(
     // Track export format for proper file extension
     var lastExportFormat by remember { mutableStateOf(ExportFormat.CSV) }
 
+    // 2026 Fix: Track last interacted contact for targeted refresh
+    var lastInteractedContact by remember { mutableStateOf<Contact?>(null) }
+
     // 2026 Best Practice: Rescan and refresh contacts when returning from native Contacts app
     // This ensures edits made in the Contacts app are reflected in the list
     val contactLauncher = rememberContactLauncher(
-        onReturn = { viewModel.refreshAndLoadCategory(type) }
+        onReturn = { 
+            val contacted = lastInteractedContact
+            if (contacted != null) {
+                // Targeted refresh for better UX (no full loading spinner)
+                viewModel.refreshSpecificContact(contacted, type)
+                lastInteractedContact = null
+            } else {
+                // Fallback to full category reload
+                viewModel.refreshAndLoadCategory(type)
+            }
+        }
     )
 
     // Bottom sheet state for group details
@@ -312,9 +326,15 @@ fun CategoryDetailScreen(
                                             contact = contact,
                                             accentColor = accentColor,
                                             isFormatType = type == ContactType.FORMAT_ISSUE,
-                                            onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
+                                            onContactClick = { c -> 
+                                                lastInteractedContact = c
+                                                contactLauncher.openContact(c.getTargetId()) 
+                                            },
                                             onDeleteContact = { contactToDelete = it },
-                                            onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
+                                            onEditContact = { c -> 
+                                                lastInteractedContact = c
+                                                contactLauncher.openContact(c.getTargetId()) 
+                                            }
                                         )
                                     }
                                 }
@@ -473,9 +493,15 @@ fun CategoryDetailScreen(
                                 contact = contact,
                                 accentColor = accentColor,
                                 isFormatType = false,
-                                onContactClick = { c -> contactLauncher.openContact(c.getTargetId()) },
+                                onContactClick = { c -> 
+                                    lastInteractedContact = c
+                                    contactLauncher.openContact(c.getTargetId()) 
+                                },
                                 onDeleteContact = { contactToDelete = it },
-                                onEditContact = { c -> contactLauncher.openContact(c.getTargetId()) }
+                                onEditContact = { c -> 
+                                    lastInteractedContact = c
+                                    contactLauncher.openContact(c.getTargetId()) 
+                                }
                             )
                         }
                     }
@@ -936,6 +962,10 @@ fun CategoryDetailScreen(
             }
         )
     }
+
+    // 2026 Best Practice: Background operation overlay with minimize-to-bubble support
+    // Shows streaming progress for bulk operations (fix all, merge all, delete all)
+    BackgroundOperationOverlay()
 }
 
 @Composable

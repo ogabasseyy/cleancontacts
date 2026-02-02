@@ -65,8 +65,9 @@ fun ResultsScreen(
     val allIssuesCount by viewModel.allIssuesCount.collectAsState(initial = 0)
     val freeActions by viewModel.freeActionsRemaining.collectAsState(initial = 2)
 
-    // 2026 Best Practice: Pull-to-refresh state for rescan
+    // 2026 Best Practice: Pull-to-refresh state for rescan with progress
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val refreshProgress by viewModel.refreshProgress.collectAsState()
 
     // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
     val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
@@ -256,7 +257,10 @@ fun ResultsScreen(
                         // Dynamic Sorted List of Issues
                         val issues = listOfNotNull(
                             if (scanResult.junkCount > 0) ResultItem(
-                                "Junk Contacts", scanResult.junkCount, Icons.Default.Error, ErrorNeon, "Contacts with missing or invalid data", ContactType.JUNK_NO_NAME
+                                "Junk Contacts", scanResult.junkCount, Icons.Default.Error, ErrorNeon, "Contacts with missing or invalid data", ContactType.JUNK
+                            ) else null,
+                            if (scanResult.noNameCount > 0) ResultItem(
+                                "Missing Names", scanResult.noNameCount, Icons.Default.Person, ErrorNeon, "Contacts without a display name", ContactType.JUNK_NO_NAME
                             ) else null,
                             if (scanResult.noNumberCount > 0) ResultItem(
                                 "Missing Numbers", scanResult.noNumberCount, Icons.Default.Phone, ErrorNeon, "Contacts without any phone numbers", ContactType.JUNK_NO_NUMBER
@@ -461,6 +465,15 @@ fun ResultsScreen(
                             .align(Alignment.CenterEnd)
                             .padding(end = 4.dp, top = 24.dp, bottom = 24.dp)
                     )
+
+                    // 2026 Best Practice: Show scan progress during pull-to-refresh
+                    if (isRefreshing) {
+                        RefreshProgressOverlay(
+                            progress = refreshProgress.progress,
+                            message = refreshProgress.message,
+                            modifier = Modifier.align(Alignment.TopCenter)
+                        )
+                    }
                 }
             } // End PullToRefreshBox
 
@@ -812,6 +825,80 @@ private fun ProcessingOverlay(progress: Float, message: String?) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(it, style = MaterialTheme.typography.bodyMedium, color = TextMedium)
             }
+        }
+    }
+}
+
+/**
+ * Compact progress overlay for pull-to-refresh rescan.
+ * Shows progress percentage and status message at top of screen.
+ */
+@Composable
+private fun RefreshProgressOverlay(
+    progress: Float,
+    message: String?,
+    modifier: Modifier = Modifier
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        label = "refreshProgress",
+        animationSpec = tween(durationMillis = 200)
+    )
+
+    Surface(
+        modifier = modifier
+            .padding(top = 60.dp, start = 16.dp, end = 16.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        color = SpaceBlack.copy(alpha = 0.95f),
+        shadowElevation = 8.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CircularProgressIndicator(
+                    progress = { animatedProgress },
+                    color = PrimaryNeon,
+                    modifier = Modifier.size(32.dp),
+                    strokeWidth = 3.dp
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Scanning contacts...",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    message?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMedium
+                        )
+                    }
+                }
+                Text(
+                    "${(animatedProgress * 100).toInt()}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = PrimaryNeon,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            LinearProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                color = PrimaryNeon,
+                trackColor = Color.White.copy(alpha = 0.1f)
+            )
         }
     }
 }

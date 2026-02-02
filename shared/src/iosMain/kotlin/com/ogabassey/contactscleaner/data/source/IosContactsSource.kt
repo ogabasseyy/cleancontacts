@@ -553,4 +553,76 @@ class IosContactsSource {
     private fun String.normalizePhoneNumber(): String {
         return this.filter { it.isDigit() || it == '+' }
     }
+
+    /**
+     * Get specific contacts by their identifiers.
+     * Efficient O(1) fetch for refresh operations.
+     *
+     * 2026 Fix: Accept existing account metadata to preserve account info during refresh.
+     * @param uids List of contact UIDs to fetch
+     * @param existingAccountInfo Map of UID -> (accountType, accountName) pairs from existing contacts
+     */
+    suspend fun getContactsByUids(
+        uids: List<String>,
+        existingAccountInfo: Map<String, Pair<String?, String?>> = emptyMap()
+    ): List<Contact> = withContext(Dispatchers.IO) {
+        if (uids.isEmpty()) return@withContext emptyList()
+
+        // 2026 Best Practice: Check permission before read operations
+        val hasPermission = requestContactsPermission()
+        if (!hasPermission) {
+            println("Contacts permission not granted for fetching by UIDs")
+            return@withContext emptyList()
+        }
+
+        val contacts = mutableListOf<Contact>()
+        try {
+            val predicate = CNContact.predicateForContactsWithIdentifiers(uids)
+            // Include all keys needed by cnContactToContact to avoid runtime crashes
+            val keysToFetch = listOf(
+                CNContactIdentifierKey,
+                CNContactGivenNameKey,
+                CNContactFamilyNameKey,
+                CNContactMiddleNameKey,
+                CNContactPhoneNumbersKey,
+                CNContactEmailAddressesKey,
+                CNContactSocialProfilesKey,
+                CNContactInstantMessageAddressesKey,
+                CNContactOrganizationNameKey
+            )
+
+            memScoped {
+                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                val fetchedContacts = contactStore.unifiedContactsMatchingPredicate(
+                    predicate,
+                    keysToFetch = keysToFetch,
+                    error = errorPtr.ptr
+                )
+
+                if (errorPtr.value != null) {
+                    println("Error fetching contacts by UIDs: ${errorPtr.value?.localizedDescription}")
+                    return@memScoped
+                }
+
+                fetchedContacts?.forEach { obj ->
+                    val cnContact = obj as? CNContact ?: return@forEach
+                    val uid = cnContact.identifier
+
+                    // 2026 Fix: Preserve existing account metadata if available
+                    val (accountType, accountName) = existingAccountInfo[uid]
+                        ?: Pair("Local", "Device")
+
+                    val contact = cnContactToContact(
+                        cnContact,
+                        accountType ?: "Local",
+                        accountName ?: "Device"
+                    )
+                    contacts.add(contact)
+                }
+            }
+        } catch (e: Exception) {
+            println("Error fetching contacts by UIDs: ${e.message}")
+        }
+        contacts
+    }
 }

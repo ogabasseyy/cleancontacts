@@ -264,7 +264,7 @@ private fun PairingCodeContent(
     viewModel: WhatsAppLinkViewModel = koinViewModel()
 ) {
     val expirationSeconds by viewModel.pairingCodeExpiration.collectAsState()
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboardManager.current
     val haptic = LocalHapticFeedback.current
 
     Column(
@@ -319,7 +319,7 @@ private fun PairingCodeContent(
                 // Copy Button
                 OutlinedButton(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(code))
+                        clipboard.setText(AnnotatedString(code))
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
                     border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryNeon.copy(alpha = 0.3f)),

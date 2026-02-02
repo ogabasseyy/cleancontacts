@@ -160,4 +160,10 @@ interface ContactRepository {
         keepAccountType: String?,
         keepAccountName: String?
     ): Flow<CleanupStatus>
+
+    /**
+     * Refresh specific contacts from the native source.
+     * Used after editing contacts in the native editor.
+     */
+    suspend fun refreshContacts(contacts: List<Contact>): Boolean
 }

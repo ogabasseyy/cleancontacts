@@ -214,7 +214,8 @@ class CategoryViewModel(
     }
 
     fun performAction(type: ContactType) {
-        viewModelScope.launch {
+        // 2026 Fix: Capture job reference to enable proper cancellation
+        val job = viewModelScope.launch {
             runWithPremiumCheck {
                 pendingAction = null
 
@@ -285,6 +286,8 @@ class CategoryViewModel(
                 }
             }
         }
+        // 2026 Fix: Register job for proper cancellation support
+        BackgroundOperationManager.registerJob(job)
     }
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {

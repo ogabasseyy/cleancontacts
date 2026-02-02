@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.util
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.update
 /**
  * 2026 Best Practice: Singleton manager for background operations with streaming progress.
  * Allows operations to run in background while user navigates the app.
- * Supports minimize-to-bubble and real-time progress streaming.
+ * Supports minimize-to-bubble, real-time progress streaming, and proper job cancellation.
  */
 object BackgroundOperationManager {
 
@@ -21,6 +22,9 @@ object BackgroundOperationManager {
     private val _logEntries = MutableStateFlow<List<OperationLogEntry>>(emptyList())
     val logEntries: StateFlow<List<OperationLogEntry>> = _logEntries.asStateFlow()
 
+    // 2026 Fix: Track the coroutine job for proper cancellation
+    private var currentJob: Job? = null
+
     // Maximum log entries to keep for UI scrolling
     private const val MAX_LOG_ENTRIES = 100
 
@@ -28,8 +32,13 @@ object BackgroundOperationManager {
      * Start a new background operation.
      * Only one operation can run at a time.
      * 2026 Fix: Use atomic update to prevent race conditions.
+     *
+     * @param type The type of operation
+     * @param totalItems Total items to process
+     * @param title Optional custom title
+     * @param job The coroutine Job to enable proper cancellation
      */
-    fun startOperation(type: OperationType, totalItems: Int, title: String? = null) {
+    fun startOperation(type: OperationType, totalItems: Int, title: String? = null, job: Job? = null) {
         // Create the new operation before the atomic update
         val newOperation = BackgroundOperation(
             type = type,
@@ -51,9 +60,17 @@ object BackgroundOperationManager {
 
         // Only reset side-effect state if we actually started a new operation
         if (wasStarted) {
+            currentJob = job
             _logEntries.value = emptyList()
             _isMinimized.value = false
         }
+    }
+
+    /**
+     * Register the job after operation has started (for cases where job isn't available at start).
+     */
+    fun registerJob(job: Job) {
+        currentJob = job
     }
 
     /**
@@ -89,6 +106,7 @@ object BackgroundOperationManager {
      * Mark operation as complete.
      */
     fun complete(success: Boolean, message: String? = null) {
+        currentJob = null // Clear job reference on completion
         _currentOperation.update { current ->
             current?.copy(
                 status = if (success) OperationStatus.Completed else OperationStatus.Failed,
@@ -100,8 +118,14 @@ object BackgroundOperationManager {
 
     /**
      * Cancel the current operation.
+     * 2026 Fix: Actually cancels the coroutine job, not just UI state.
      */
     fun cancel() {
+        // Cancel the actual coroutine job first
+        currentJob?.cancel()
+        currentJob = null
+
+        // Update UI state
         _currentOperation.update { current ->
             current?.copy(
                 status = OperationStatus.Cancelled,
@@ -128,6 +152,7 @@ object BackgroundOperationManager {
      * Dismiss/clear the operation (after completion or user dismissal).
      */
     fun dismiss() {
+        currentJob = null
         _currentOperation.value = null
         _logEntries.value = emptyList()
         _isMinimized.value = false

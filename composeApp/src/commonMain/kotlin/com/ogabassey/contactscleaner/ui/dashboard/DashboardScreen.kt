@@ -63,6 +63,8 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val permissionsState = rememberContactsPermissionState()
     val haptic = LocalHapticFeedback.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var scanRequested by remember { mutableStateOf(false) }
 
     // Handle navigation events
@@ -88,6 +90,7 @@ fun DashboardScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Row(
                 modifier = Modifier
@@ -336,6 +339,18 @@ fun DashboardScreen(
                 onNavigateToSafeList = {
                     showSettingsSheet = false
                     onNavigateToSafeList()
+                },
+                onPrivacyPolicyClick = {
+                    showSettingsSheet = false
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Coming soon: Privacy Policy")
+                    }
+                },
+                onTermsClick = {
+                    showSettingsSheet = false
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Coming soon: Terms of Service")
+                    }
                 }
             )
         }
@@ -461,7 +476,9 @@ private fun SensitiveSuggestionBanner(count: Int, onClick: () -> Unit) {
 fun SettingsContent(
     versionName: String,
     onDismiss: () -> Unit,
-    onNavigateToSafeList: () -> Unit = {}
+    onNavigateToSafeList: () -> Unit = {},
+    onPrivacyPolicyClick: () -> Unit = {},
+    onTermsClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -507,13 +524,15 @@ fun SettingsContent(
         SettingsItem(
             icon = Icons.Default.Info,
             title = "Privacy Policy",
-            subtitle = "How we handle your data"
+            subtitle = "How we handle your data",
+            onClick = onPrivacyPolicyClick
         )
 
         SettingsItem(
             icon = Icons.AutoMirrored.Filled.List,
             title = "Terms of Service",
-            subtitle = "Legal agreements"
+            subtitle = "Legal agreements",
+            onClick = onTermsClick
         )
 
         Spacer(modifier = Modifier.height(32.dp))

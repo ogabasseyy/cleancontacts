@@ -2,6 +2,8 @@ package com.ogabassey.contactscleaner.data.db
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.ogabassey.contactscleaner.platform.Logger
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
@@ -14,12 +16,14 @@ import platform.Foundation.NSError
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 
+private const val TAG = "DatabaseBuilder"
+
 /**
  * iOS database builder using file-based storage.
  *
  * 2026 KMP Best Practice: Use NSFileManager to locate the Documents directory.
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
     // 2026 Best Practice: Capture NSError for proper error handling
     val dbFilePath = memScoped {
@@ -34,7 +38,8 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
 
         val nsError = errorPtr.value
         if (nsError != null) {
-            println("⚠️ Database directory error: ${nsError.localizedDescription}")
+            // 2026 Fix: Use structured Logger instead of println
+            Logger.w(TAG, "Database directory error: ${nsError.localizedDescription}")
         }
 
         // 2026 Fix: Handle null documentDirectory properly - use Application Support fallback
@@ -54,7 +59,8 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
             require(!supportPath.isNullOrEmpty()) {
                 "Failed to resolve Application Support directory for database"
             }
-            println("⚠️ Using Application Support fallback path: $supportPath")
+            // 2026 Fix: Use debug-level logging with redacted path to avoid exposing full sandbox path
+            Logger.d(TAG, "Using Application Support fallback for database storage")
             "$supportPath/${ContactDatabase.DATABASE_NAME}.db"
         } else {
             "$path/${ContactDatabase.DATABASE_NAME}.db"

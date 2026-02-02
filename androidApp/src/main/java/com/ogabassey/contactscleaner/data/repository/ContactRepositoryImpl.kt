@@ -6,6 +6,7 @@ import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
 import com.ogabassey.contactscleaner.data.detector.JunkDetector
 import com.ogabassey.contactscleaner.data.source.ContactsProviderSource
+import com.ogabassey.contactscleaner.domain.model.CleanupDetails
 import com.ogabassey.contactscleaner.domain.model.CleanupStatus
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
@@ -32,6 +33,105 @@ class ContactRepositoryImpl constructor(
     private val usageRepository: com.ogabassey.contactscleaner.domain.repository.UsageRepository,
     private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository
 ) : ContactRepository {
+
+    /**
+     * 2026 Best Practice: Extract shared contact processing logic.
+     * Processes a single contact through all detectors and builds a LocalContact entity.
+     * Used by both scanContacts() and refreshContacts() to eliminate code duplication.
+     *
+     * @param contact The contact to process
+     * @param ignoredIds Set of contact IDs that should skip sensitive/junk detection
+     * @return LocalContact entity ready for database insertion
+     */
+    private fun processContactToEntity(
+        contact: Contact,
+        ignoredIds: Set<String>
+    ): LocalContact {
+        val numbers = contact.numbers
+        val primaryNumber = numbers.firstOrNull() ?: ""
+        val isIgnored = ignoredIds.contains(contact.id.toString())
+
+        // Run Sensitive Data Detection (Safety Net)
+        var isSensitive = false
+        var sensitiveDesc: String? = null
+
+        if (!isIgnored) {
+            // 1. Scan Name
+            val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
+            if (nameMatch != null) {
+                isSensitive = true
+                sensitiveDesc = nameMatch.description
+            }
+
+            // 2. Scan All Numbers (if not already found sensitive in name)
+            if (!isSensitive) {
+                for (num in contact.numbers) {
+                    if (num.isNotBlank()) {
+                        val match = sensitiveDetector.analyze(num)
+                        if (match != null) {
+                            isSensitive = true
+                            sensitiveDesc = match.description
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        // Run Junk Detection
+        val junkType = if (!isIgnored) {
+            junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
+        } else null
+
+        // Format Issue Detection (Enhanced)
+        var isFormatIssue = false
+        var detectedNormalized: String? = contact.normalizedNumber
+
+        // Format detection: Only for non-junk, non-sensitive contacts
+        if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+            // 1. Check if Provider already flagged it
+            val normNum = contact.normalizedNumber
+            if (!primaryNumber.startsWith("+") &&
+                !primaryNumber.startsWith("*") &&
+                !primaryNumber.startsWith("#") &&
+                normNum != null &&
+                normNum.startsWith("+") &&
+                normNum != primaryNumber
+            ) {
+                isFormatIssue = true
+            }
+
+            // 2. If not flagged yet, run Advanced "Missing Plus" Check
+            if (!isFormatIssue && !primaryNumber.startsWith("+")) {
+                val issue = formatDetector.analyze(primaryNumber)
+                if (issue != null) {
+                    isFormatIssue = true
+                    detectedNormalized = issue.normalizedNumber
+                }
+            }
+        }
+
+        return LocalContact(
+            id = contact.id,
+            displayName = contact.name,
+            normalizedNumber = detectedNormalized,
+            rawNumbers = contact.numbers.joinToString(","),
+            rawEmails = contact.emails.joinToString(","),
+            isWhatsApp = contact.isWhatsApp,
+            isTelegram = contact.isTelegram,
+            accountType = contact.accountType,
+            accountName = contact.accountName,
+            isJunk = junkType != null && !isSensitive, // Sensitive takes precedence over Junk
+            junkType = junkType?.name,
+            duplicateType = null,
+            isFormatIssue = isFormatIssue,
+            detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
+            isSensitive = isSensitive,
+            sensitiveDescription = sensitiveDesc,
+            lastSynced = System.currentTimeMillis()
+        )
+    }
+
     override fun getContactsFlow(type: ContactType): Flow<List<Contact>> {
         return flow {
             val contacts = getContactsSnapshotByType(type)
@@ -81,95 +181,9 @@ class ContactRepositoryImpl constructor(
         
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
             .collect { batchContacts ->
-                val entities = batchContacts.mapNotNull { contact ->
-                    // 2026 Best Practice: Check Ignore List first (Skip if explicitly ignored)
-                    // Note: In a production app, we'd pre-load a HashSet of ignored IDs for O(1) check
-                    // but for this implementation we'll assume it's small or handled by filter logic.
-                    // For performance, we'll implement it as a skip here.
-                    
-                    val numbers = contact.numbers
-                    val primaryNumber = numbers.firstOrNull() ?: ""
-                    val isIgnored = ignoredIds.contains(contact.id.toString())
-                    
-                    // Run Sensitive Data Detection (Safety Net)
-                    var isSensitive = false
-                    var sensitiveDesc: String? = null
-                    
-                    if (!isIgnored) {
-                        // 1. Scan Name
-                        val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
-                        if (nameMatch != null) {
-                            isSensitive = true
-                            sensitiveDesc = nameMatch.description
-                        }
-                        
-                        // 2. Scan All Numbers (if not already found sensitive in name)
-                        if (!isSensitive) {
-                            for (num in contact.numbers) {
-                                if (num.isNotBlank()) {
-                                    val match = sensitiveDetector.analyze(num)
-                                    if (match != null) {
-                                        isSensitive = true
-                                        sensitiveDesc = match.description
-                                        break
-                                    }
-                                }
-                                if (isSensitive) break
-                            }
-                        }
-                    }
-
-                    // Run Junk Detection
-                    val junkType = if (!isIgnored) {
-                        junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
-                    } else null
-                    
-                    // Format Issue Detection (Enhanced)
-                    var isFormatIssue = false
-                    var detectedNormalized: String? = contact.normalizedNumber
-                    
-                    // Format detection: Only for non-junk, non-sensitive contacts
-                    if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                        // 1. Check if Provider already flagged it (Old Logic)
-                        val normNum = contact.normalizedNumber
-                        if (!primaryNumber.startsWith("+") && 
-                             !primaryNumber.startsWith("*") &&
-                             !primaryNumber.startsWith("#") &&
-                             normNum != null && 
-                             normNum.startsWith("+") &&
-                             normNum != primaryNumber) {
-                            isFormatIssue = true
-                        }
-                        
-                        // 2. If not flagged yet, run Advanced "Missing Plus" Check
-                        if (!isFormatIssue && !primaryNumber.startsWith("+")) {
-                             val issue = formatDetector.analyze(primaryNumber)
-                             if (issue != null) {
-                                 isFormatIssue = true
-                                 detectedNormalized = issue.normalizedNumber
-                             }
-                        }
-                    }
-
-                    LocalContact(
-                        id = contact.id,
-                        displayName = contact.name,
-                        normalizedNumber = detectedNormalized,
-                        rawNumbers = contact.numbers.joinToString(","),
-                        rawEmails = contact.emails.joinToString(","),
-                        isWhatsApp = contact.isWhatsApp,
-                        isTelegram = contact.isTelegram,
-                        accountType = contact.accountType,
-                        accountName = contact.accountName,
-                        isJunk = junkType != null && !isSensitive, // Sensitive takes precedence over Junk
-                        junkType = junkType?.name,
-                        duplicateType = null,
-                        isFormatIssue = isFormatIssue,
-                        detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                        isSensitive = isSensitive,
-                        sensitiveDescription = sensitiveDesc,
-                        lastSynced = System.currentTimeMillis()
-                    )
+                // 2026 Best Practice: Use extracted helper to process contacts
+                val entities = batchContacts.map { contact ->
+                    processContactToEntity(contact, ignoredIds)
                 }
                 
                 allEntities.addAll(entities)
@@ -460,30 +474,59 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No formatting issues found"))
             return@flow
         }
-        
+
         var successCount = 0
         val total = ids.size
-        
+
+        // Pre-fetch contact names for streaming display
+        val contactEntities = contactDao.getFormatIssueContactsByIds(ids)
+        val contactNames = contactEntities.associate { it.id to (it.displayName ?: "Unknown") }
+
         // Record for history
-        val formatIssues = contactDao.getFormatIssueContactsByIds(ids).map { it.toDomain() }
+        val formatIssues = contactEntities.map { it.toDomain() }
         backupRepository.performBackup(
             contacts = formatIssues,
             actionType = "FORMAT",
             description = "Standardized ${formatIssues.size} numbers"
         )
-        
-        // 2026 Best Practice: Large batches for high-speed processing
-        ids.chunked(500).forEachIndexed { index, batch ->
+
+        // Track recent items for streaming log
+        val recentItems = mutableListOf<String>()
+
+        // 2026 Optimization: Smaller batches (50) for 10x faster visual feedback
+        // Previously used 500 which caused "stuck at 0%" perception
+        ids.chunked(50).forEachIndexed { batchIndex, batch ->
             if (standardizeFormat(batch)) {
                 successCount += batch.size
+
+                // Add batch items to recent list for streaming display
+                batch.forEach { id ->
+                    val name = contactNames[id]
+                    if (name != null) {
+                        recentItems.add(0, "Updated: $name")
+                        if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
+                    }
+                }
             }
+
             val progress = successCount.toFloat() / total.toFloat()
-            emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Standardizing... [$successCount of $total]"))
+            val currentItem = batch.lastOrNull()?.let { contactNames[it] }
+
+            emit(CleanupStatus.Progress(
+                progress = progress.coerceAtMost(1f),
+                message = "Standardizing: ${currentItem ?: "..."} [$successCount of $total]",
+                details = CleanupDetails(
+                    processed = successCount,
+                    total = total,
+                    currentItem = currentItem,
+                    recentItems = recentItems.toList()
+                )
+            ))
         }
-        
+
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
     }
 
@@ -516,6 +559,7 @@ class ContactRepositoryImpl constructor(
             ContactType.JUNK_SYMBOL -> contactDao.getSymbolNameContactsSnapshot()
             ContactType.JUNK_NUMERICAL_NAME -> contactDao.getNumericalNameContactsSnapshot()
             ContactType.JUNK_EMOJI_NAME -> contactDao.getEmojiNameContactsSnapshot()
+            ContactType.JUNK_FANCY_FONT -> contactDao.getFancyFontNameContactsSnapshot()
             // V3
             ContactType.ACCOUNT -> contactDao.getAllContacts() // Default fallback for accounts
             else -> contactDao.getAllContacts()
@@ -619,7 +663,7 @@ class ContactRepositoryImpl constructor(
                             contactId = instance.id,
                             accountType = instance.accountType,
                             accountName = instance.accountName,
-                            displayLabel = getAccountDisplayLabel(instance.accountType)
+                            displayLabel = getAccountDisplayLabel(instance.accountType, instance.accountName)
                         )
                     }
                 )
@@ -675,9 +719,6 @@ class ContactRepositoryImpl constructor(
         return success
     }
 
-    /**
-     * Consolidate multiple contacts to a single account.
-     */
     override suspend fun consolidateContactsToAccount(
         matchingKeys: List<String>,
         keepAccountType: String?,
@@ -703,13 +744,54 @@ class ContactRepositoryImpl constructor(
         emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
     }
 
-    private fun getAccountDisplayLabel(accountType: String?): String {
+    override suspend fun refreshContacts(contacts: List<Contact>): Boolean {
+        if (contacts.isEmpty()) return true
+
+        try {
+            val ids = contacts.map { it.id }
+            val whatsAppIds = contactsProviderSource.getWhatsAppContactIds()
+            val telegramIds = contactsProviderSource.getTelegramContactIds()
+            
+            // 1. Fetch fresh data from provider
+            val freshContacts = contactsProviderSource.getContactsSnapshot(ids, whatsAppIds, telegramIds)
+            
+            // 2. Process contacts using extracted helper (2026 Best Practice: DRY)
+            val ignoredIds = ignoredContactDao.getAllIds().toSet()
+            val entities = freshContacts.map { contact ->
+                processContactToEntity(contact, ignoredIds)
+            }
+            
+            // 3. Update DB
+            // First check if any contacts were NOT returned (deleted externally)
+            val returnedIds = entities.map { it.id }.toSet()
+            val deletedIds = ids.filter { it !in returnedIds }
+            
+            if (deletedIds.isNotEmpty()) {
+                contactDao.deleteContacts(deletedIds)
+            }
+            
+            if (entities.isNotEmpty()) {
+                contactDao.insertContacts(entities)
+            }
+            
+            // 4. Update Summary
+            updateScanResultSummary()
+            
+            return true
+        } catch (e: Exception) {
+            android.util.Log.e("ContactRepository", "Failed to refresh contacts", e)
+            return false
+        }
+    }
+
+    private fun getAccountDisplayLabel(accountType: String?, accountName: String? = null): String {
         return when {
-            accountType == null -> "Local"
-            accountType.contains("google", ignoreCase = true) -> "Google"
+            accountType == null || accountType.isEmpty() -> "Local"
+            accountType.contains("google", ignoreCase = true) -> {
+                // Show actual email address for Gmail accounts to distinguish between multiple accounts
+                accountName?.takeIf { it.contains("@") } ?: "Gmail"
+            }
             accountType.contains("icloud", ignoreCase = true) -> "iCloud"
-            accountType.contains("whatsapp", ignoreCase = true) -> "WhatsApp"
-            accountType.contains("telegram", ignoreCase = true) -> "Telegram"
             accountType.contains("exchange", ignoreCase = true) -> "Exchange"
             accountType.contains("yahoo", ignoreCase = true) -> "Yahoo"
             accountType.contains("outlook", ignoreCase = true) -> "Outlook"

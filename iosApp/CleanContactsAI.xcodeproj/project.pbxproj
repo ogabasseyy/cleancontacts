@@ -11,6 +11,7 @@
 		2A49FA396CE7D76B42D876AD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCCDE2D1CF03D043C6D9581 /* ContentView.swift */; };
 		6E96D6BC3D819CBAC6082EEA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 86CBB941DD704C810ADB9D74 /* Assets.xcassets */; };
 		727148E449F5F428D0422DC8 /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123C0CC7AD67A17D005AFBEC /* iOSApp.swift */; };
+		91C828BCBE7AF4DB268165F3 /* PurchasesHybridCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 39E007E63C51CCA98B895C36 /* PurchasesHybridCommon */; };
 		EF59AD032B52D5E2BE0537EC /* Contacts.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 94CCAB3D5461C2BD435593FA /* Contacts.framework */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +32,7 @@
 			files = (
 				035275BAAC3BBAB43558192F /* composeApp.framework in Frameworks */,
 				EF59AD032B52D5E2BE0537EC /* Contacts.framework in Frameworks */,
+				91C828BCBE7AF4DB268165F3 /* PurchasesHybridCommon in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +94,7 @@
 			);
 			name = iosApp;
 			packageProductDependencies = (
+				39E007E63C51CCA98B895C36 /* PurchasesHybridCommon */,
 			);
 			productName = iosApp;
 			productReference = CBE92C20A2A1913FF56DAD6A /* iosApp.app */;
@@ -121,6 +124,9 @@
 			);
 			mainGroup = 0038F6952BB320AC1CCEAE7A;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FBD4169E27ABD900DB119737 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -158,7 +164,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export JAVA_HOME=\"$(/usr/libexec/java_home -v 17 2>/dev/null || echo $JAVA_HOME)\"\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "# 2026 Fix: Use dynamic JAVA_HOME detection instead of hard-coded path\nif [ -z \"$JAVA_HOME\" ]; then\n  export JAVA_HOME=\"$(/usr/libexec/java_home -v 17 2>/dev/null || /usr/libexec/java_home 2>/dev/null)\"\nfi\n# Fail-fast if Java is still missing\nif [ -z \"$JAVA_HOME\" ]; then\n  echo \"error: JAVA_HOME not set and could not be found. Please install JDK 17+.\" >&2\n  exit 1\nfi\ncd \"$SRCROOT/..\"\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -376,6 +382,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FBD4169E27ABD900DB119737 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-hybrid-common";
+			requirement = {
+				kind = exactVersion;
+				version = 17.30.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		39E007E63C51CCA98B895C36 /* PurchasesHybridCommon */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FBD4169E27ABD900DB119737 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */;
+			productName = PurchasesHybridCommon;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = D8AC31E4BBC0AF927559BF5B /* Project object */;
 }

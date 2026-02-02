@@ -441,31 +441,33 @@ private fun getAccountStyle(
     displayLabel: String
 ): Pair<Color, androidx.compose.ui.graphics.vector.ImageVector> {
     // First try matching by accountType (stable, not affected by localization)
+    // Note: Only Gmail and iOS local accounts appear in cross-account duplicates
     accountType?.let { type ->
         when {
             type.contains("google", ignoreCase = true) ->
                 return Pair(Color(0xFF4285F4), Icons.Default.Email)
             type.contains("apple", ignoreCase = true) || type.contains("icloud", ignoreCase = true) ->
                 return Pair(Color(0xFF007AFF), Icons.Default.Cloud)
-            type.contains("whatsapp", ignoreCase = true) ->
-                return Pair(SuccessNeon, Icons.Default.Chat)
-            type.contains("telegram", ignoreCase = true) ->
-                return Pair(SecondaryNeon, Icons.Default.Send)
             type.contains("exchange", ignoreCase = true) || type.contains("microsoft", ignoreCase = true) ->
                 return Pair(Color(0xFF0078D4), Icons.Default.Business)
         }
     }
+    // null/empty accountType = iOS local contacts
+    if (accountType.isNullOrEmpty()) {
+        return Pair(Color(0xFF007AFF), Icons.Default.Phone)
+    }
 
     // Fallback to displayLabel matching for unknown accountTypes
     return when {
+        // Match Gmail emails (e.g., "user@gmail.com") or explicit Gmail/Google labels
+        displayLabel.contains("@gmail.com", ignoreCase = true) ||
+        displayLabel.contains("Gmail", ignoreCase = true) ||
         displayLabel.contains("Google", ignoreCase = true) ->
             Pair(Color(0xFF4285F4), Icons.Default.Email)
         displayLabel.contains("iCloud", ignoreCase = true) ->
             Pair(Color(0xFF007AFF), Icons.Default.Cloud)
-        displayLabel.contains("WhatsApp", ignoreCase = true) ->
-            Pair(SuccessNeon, Icons.Default.Chat)
-        displayLabel.contains("Telegram", ignoreCase = true) ->
-            Pair(SecondaryNeon, Icons.Default.Send)
+        displayLabel.contains("iOS", ignoreCase = true) || displayLabel.contains("Local", ignoreCase = true) ->
+            Pair(Color(0xFF007AFF), Icons.Default.Phone)
         displayLabel.contains("Exchange", ignoreCase = true) ->
             Pair(Color(0xFF0078D4), Icons.Default.Business)
         else -> Pair(TextMedium, Icons.Default.AccountCircle)

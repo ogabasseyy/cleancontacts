@@ -351,45 +351,8 @@ fun CategoryDetailScreen(
                 }
             }
 
-            // Processing Overlay
-            if (uiState is CategoryUiState.Processing) {
-                val state = uiState as CategoryUiState.Processing
-                // Continuous rotation for flowing effect
-                val infiniteTransition = rememberInfiniteTransition(label = "categoryFlow")
-                val rotation by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1500, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
-                    ),
-                    label = "flowRotation"
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.7f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(
-                            color = PrimaryNeon,
-                            modifier = Modifier.graphicsLayer { rotationZ = rotation }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            state.message ?: "Processing...",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            "${(state.progress * 100).toInt()}%",
-                            color = PrimaryNeon,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
+            // 2026 Fix: Removed old Processing Overlay - now using BackgroundOperationManager
+            // which provides a minimizable modal that persists across navigation
         }
     }
 

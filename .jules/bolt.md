@@ -68,3 +68,27 @@ private fun hasRepetitiveDigits(digits: String): Boolean {
     return false
 }
 ```
+
+# 2026-02-18 - Single Pass Analysis Loop
+
+**Learning:** When validating strings for multiple criteria (valid chars, digit count, repetition), performing multiple passes (e.g., `filter` + `length`, `any`, custom loop) creates unnecessary temporary objects and iterates the string multiple times.
+
+**Action:** Consolidate multiple string analysis checks into a single character iteration loop that maintains state (counts, flags) to compute all metrics in one pass.
+
+```kotlin
+// ❌ Avoid: Multiple passes and allocation
+val cleaned = input.filter { it.isDigit() } // Pass 1 + Allocation
+if (input.any { !isValid(it) }) return // Pass 2
+if (cleaned.length < 6) return
+if (hasRepetition(cleaned)) return // Pass 3
+
+// ✅ Prefer: Single pass state machine
+var digitCount = 0
+for (c in input) {
+    if (!isValid(c)) return
+    if (c.isDigit()) {
+        digitCount++
+        // track repetition here...
+    }
+}
+```

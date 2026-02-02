@@ -33,6 +33,105 @@ class ContactRepositoryImpl constructor(
     private val usageRepository: com.ogabassey.contactscleaner.domain.repository.UsageRepository,
     private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository
 ) : ContactRepository {
+
+    /**
+     * 2026 Best Practice: Extract shared contact processing logic.
+     * Processes a single contact through all detectors and builds a LocalContact entity.
+     * Used by both scanContacts() and refreshContacts() to eliminate code duplication.
+     *
+     * @param contact The contact to process
+     * @param ignoredIds Set of contact IDs that should skip sensitive/junk detection
+     * @return LocalContact entity ready for database insertion
+     */
+    private fun processContactToEntity(
+        contact: Contact,
+        ignoredIds: Set<String>
+    ): LocalContact {
+        val numbers = contact.numbers
+        val primaryNumber = numbers.firstOrNull() ?: ""
+        val isIgnored = ignoredIds.contains(contact.id.toString())
+
+        // Run Sensitive Data Detection (Safety Net)
+        var isSensitive = false
+        var sensitiveDesc: String? = null
+
+        if (!isIgnored) {
+            // 1. Scan Name
+            val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
+            if (nameMatch != null) {
+                isSensitive = true
+                sensitiveDesc = nameMatch.description
+            }
+
+            // 2. Scan All Numbers (if not already found sensitive in name)
+            if (!isSensitive) {
+                for (num in contact.numbers) {
+                    if (num.isNotBlank()) {
+                        val match = sensitiveDetector.analyze(num)
+                        if (match != null) {
+                            isSensitive = true
+                            sensitiveDesc = match.description
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        // Run Junk Detection
+        val junkType = if (!isIgnored) {
+            junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
+        } else null
+
+        // Format Issue Detection (Enhanced)
+        var isFormatIssue = false
+        var detectedNormalized: String? = contact.normalizedNumber
+
+        // Format detection: Only for non-junk, non-sensitive contacts
+        if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+            // 1. Check if Provider already flagged it
+            val normNum = contact.normalizedNumber
+            if (!primaryNumber.startsWith("+") &&
+                !primaryNumber.startsWith("*") &&
+                !primaryNumber.startsWith("#") &&
+                normNum != null &&
+                normNum.startsWith("+") &&
+                normNum != primaryNumber
+            ) {
+                isFormatIssue = true
+            }
+
+            // 2. If not flagged yet, run Advanced "Missing Plus" Check
+            if (!isFormatIssue && !primaryNumber.startsWith("+")) {
+                val issue = formatDetector.analyze(primaryNumber)
+                if (issue != null) {
+                    isFormatIssue = true
+                    detectedNormalized = issue.normalizedNumber
+                }
+            }
+        }
+
+        return LocalContact(
+            id = contact.id,
+            displayName = contact.name,
+            normalizedNumber = detectedNormalized,
+            rawNumbers = contact.numbers.joinToString(","),
+            rawEmails = contact.emails.joinToString(","),
+            isWhatsApp = contact.isWhatsApp,
+            isTelegram = contact.isTelegram,
+            accountType = contact.accountType,
+            accountName = contact.accountName,
+            isJunk = junkType != null && !isSensitive, // Sensitive takes precedence over Junk
+            junkType = junkType?.name,
+            duplicateType = null,
+            isFormatIssue = isFormatIssue,
+            detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
+            isSensitive = isSensitive,
+            sensitiveDescription = sensitiveDesc,
+            lastSynced = System.currentTimeMillis()
+        )
+    }
+
     override fun getContactsFlow(type: ContactType): Flow<List<Contact>> {
         return flow {
             val contacts = getContactsSnapshotByType(type)
@@ -82,95 +181,9 @@ class ContactRepositoryImpl constructor(
         
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
             .collect { batchContacts ->
-                val entities = batchContacts.mapNotNull { contact ->
-                    // 2026 Best Practice: Check Ignore List first (Skip if explicitly ignored)
-                    // Note: In a production app, we'd pre-load a HashSet of ignored IDs for O(1) check
-                    // but for this implementation we'll assume it's small or handled by filter logic.
-                    // For performance, we'll implement it as a skip here.
-                    
-                    val numbers = contact.numbers
-                    val primaryNumber = numbers.firstOrNull() ?: ""
-                    val isIgnored = ignoredIds.contains(contact.id.toString())
-                    
-                    // Run Sensitive Data Detection (Safety Net)
-                    var isSensitive = false
-                    var sensitiveDesc: String? = null
-                    
-                    if (!isIgnored) {
-                        // 1. Scan Name
-                        val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
-                        if (nameMatch != null) {
-                            isSensitive = true
-                            sensitiveDesc = nameMatch.description
-                        }
-                        
-                        // 2. Scan All Numbers (if not already found sensitive in name)
-                        if (!isSensitive) {
-                            for (num in contact.numbers) {
-                                if (num.isNotBlank()) {
-                                    val match = sensitiveDetector.analyze(num)
-                                    if (match != null) {
-                                        isSensitive = true
-                                        sensitiveDesc = match.description
-                                        break
-                                    }
-                                }
-                                if (isSensitive) break
-                            }
-                        }
-                    }
-
-                    // Run Junk Detection
-                    val junkType = if (!isIgnored) {
-                        junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
-                    } else null
-                    
-                    // Format Issue Detection (Enhanced)
-                    var isFormatIssue = false
-                    var detectedNormalized: String? = contact.normalizedNumber
-                    
-                    // Format detection: Only for non-junk, non-sensitive contacts
-                    if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                        // 1. Check if Provider already flagged it (Old Logic)
-                        val normNum = contact.normalizedNumber
-                        if (!primaryNumber.startsWith("+") && 
-                             !primaryNumber.startsWith("*") &&
-                             !primaryNumber.startsWith("#") &&
-                             normNum != null && 
-                             normNum.startsWith("+") &&
-                             normNum != primaryNumber) {
-                            isFormatIssue = true
-                        }
-                        
-                        // 2. If not flagged yet, run Advanced "Missing Plus" Check
-                        if (!isFormatIssue && !primaryNumber.startsWith("+")) {
-                             val issue = formatDetector.analyze(primaryNumber)
-                             if (issue != null) {
-                                 isFormatIssue = true
-                                 detectedNormalized = issue.normalizedNumber
-                             }
-                        }
-                    }
-
-                    LocalContact(
-                        id = contact.id,
-                        displayName = contact.name,
-                        normalizedNumber = detectedNormalized,
-                        rawNumbers = contact.numbers.joinToString(","),
-                        rawEmails = contact.emails.joinToString(","),
-                        isWhatsApp = contact.isWhatsApp,
-                        isTelegram = contact.isTelegram,
-                        accountType = contact.accountType,
-                        accountName = contact.accountName,
-                        isJunk = junkType != null && !isSensitive, // Sensitive takes precedence over Junk
-                        junkType = junkType?.name,
-                        duplicateType = null,
-                        isFormatIssue = isFormatIssue,
-                        detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                        isSensitive = isSensitive,
-                        sensitiveDescription = sensitiveDesc,
-                        lastSynced = System.currentTimeMillis()
-                    )
+                // 2026 Best Practice: Use extracted helper to process contacts
+                val entities = batchContacts.map { contact ->
+                    processContactToEntity(contact, ignoredIds)
                 }
                 
                 allEntities.addAll(entities)
@@ -742,90 +755,10 @@ class ContactRepositoryImpl constructor(
             // 1. Fetch fresh data from provider
             val freshContacts = contactsProviderSource.getContactsSnapshot(ids, whatsAppIds, telegramIds)
             
-            // 2. Process contacts (Junk, Sensitive, Format) - Reuse logic from scanContacts
+            // 2. Process contacts using extracted helper (2026 Best Practice: DRY)
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
-            
             val entities = freshContacts.map { contact ->
-                val numbers = contact.numbers
-                val primaryNumber = numbers.firstOrNull() ?: ""
-                val isIgnored = ignoredIds.contains(contact.id.toString())
-                
-                // Run Sensitive Data Detection (Safety Net)
-                var isSensitive = false
-                var sensitiveDesc: String? = null
-                
-                if (!isIgnored) {
-                    // Scan Name
-                    val nameMatch = sensitiveDetector.analyze(contact.name ?: "")
-                    if (nameMatch != null) {
-                        isSensitive = true
-                        sensitiveDesc = nameMatch.description
-                    }
-                    
-                    // Scan All Numbers
-                    if (!isSensitive) {
-                        for (num in contact.numbers) {
-                            if (num.isNotBlank()) {
-                                val match = sensitiveDetector.analyze(num)
-                                if (match != null) {
-                                    isSensitive = true
-                                    sensitiveDesc = match.description
-                                    break
-                                }
-                            }
-                            if (isSensitive) break
-                        }
-                    }
-                }
-
-                // Run Junk Detection
-                val junkType = if (!isIgnored) {
-                    junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
-                } else null
-                
-                // Format Issue Detection
-                var isFormatIssue = false
-                var detectedNormalized: String? = contact.normalizedNumber
-                
-                if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                    val normNum = contact.normalizedNumber
-                    if (!primaryNumber.startsWith("+") && 
-                         !primaryNumber.startsWith("*") &&
-                         !primaryNumber.startsWith("#") &&
-                         normNum != null && 
-                         normNum.startsWith("+") &&
-                         normNum != primaryNumber) {
-                        isFormatIssue = true
-                    }
-                    
-                    if (!isFormatIssue && !primaryNumber.startsWith("+")) {
-                         val issue = formatDetector.analyze(primaryNumber)
-                         if (issue != null) {
-                             isFormatIssue = true
-                             detectedNormalized = issue.normalizedNumber
-                         }
-                    }
-                }
-
-                LocalContact(
-                    id = contact.id,
-                    displayName = contact.name,
-                    normalizedNumber = detectedNormalized,
-                    rawNumbers = contact.numbers.joinToString(","),
-                    rawEmails = contact.emails.joinToString(","),
-                    isWhatsApp = contact.isWhatsApp,
-                    isTelegram = contact.isTelegram,
-                    accountType = contact.accountType,
-                    accountName = contact.accountName,
-                    isJunk = junkType != null && !isSensitive,
-                    junkType = junkType?.name,
-                    duplicateType = null, // Will be re-calculated in next full scan or we could try to preserve/recalc here
-                    isFormatIssue = isFormatIssue,
-                    detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                    isSensitive = isSensitive,
-                    sensitiveDescription = sensitiveDesc,
-                    lastSynced = System.currentTimeMillis()
-                )
+                processContactToEntity(contact, ignoredIds)
             }
             
             // 3. Update DB

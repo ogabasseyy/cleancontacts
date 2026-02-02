@@ -659,10 +659,16 @@ class IosContactRepository(
             val ids = contacts.map { it.id } // DB IDs
             if (uids.isEmpty()) return false
 
-            // 1. Fetch fresh data from source
-            val freshContacts = contactsSource.getContactsByUids(uids)
+            // 1. Build existing account metadata map to preserve during refresh
+            // 2026 Fix: Preserve account info that may not be available from CNContact directly
+            val existingAccountInfo = contacts
+                .filter { it.platform_uid != null }
+                .associate { it.platform_uid!! to Pair(it.accountType, it.accountName) }
 
-            // 2. Load cached WhatsApp numbers if available
+            // 2. Fetch fresh data from source with preserved account info
+            val freshContacts = contactsSource.getContactsByUids(uids, existingAccountInfo)
+
+            // 3. Load cached WhatsApp numbers if available
             var whatsAppPhoneNumbers = emptySet<String>()
             if (whatsAppRepository != null && settings != null) {
                 try {
@@ -675,7 +681,7 @@ class IosContactRepository(
                 }
             }
 
-            // 3. Process contacts
+            // 4. Process contacts
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
             
             val localContacts = withContext(Dispatchers.Default) {

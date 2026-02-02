@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Refresh
@@ -53,6 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ResultsScreen(
     viewModel: ResultsViewModel = koinViewModel(),
+    autoRescan: Boolean = false,
     onNavigateBack: () -> Unit = {},
     onNavigateToDetail: (ContactType) -> Unit = {},
     onNavigateToPaywall: () -> Unit = {},
@@ -60,6 +63,12 @@ fun ResultsScreen(
     onNavigateToWhatsAppLink: () -> Unit = {},
     onNavigateToWhatsAppContacts: () -> Unit = {}
 ) {
+    // 2026 Fix: Automatically trigger rescan if requested via navigation
+    LaunchedEffect(autoRescan) {
+        if (autoRescan) {
+            viewModel.rescan()
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
     val scanResult by viewModel.scanResult.collectAsState()
     val allIssuesCount by viewModel.allIssuesCount.collectAsState(initial = 0)
@@ -141,6 +150,7 @@ fun ResultsScreen(
         } else {
             val scanResult = currentResult // Local shadow for smart cast
             val listState = rememberLazyListState()
+            val pullToRefreshState = rememberPullToRefreshState()
             val accountsCount by viewModel.accountsCount.collectAsState(initial = 0)
             val accountGroups by viewModel.accountGroups.collectAsState()
 
@@ -159,7 +169,21 @@ fun ResultsScreen(
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 onRefresh = { viewModel.rescan() },
-                modifier = Modifier.fillMaxSize().padding(paddingValues)
+                state = pullToRefreshState,
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                indicator = {
+                    // 2026 Fix: Hide the default indicator when refreshing, as our custom overlay takes over.
+                    // Keep it visible while pulling to provide visual feedback for the gesture.
+                    if (!isRefreshing) {
+                        PullToRefreshDefaults.Indicator(
+                            state = pullToRefreshState,
+                            isRefreshing = isRefreshing,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            color = PrimaryNeon,
+                            containerColor = SpaceBlack.copy(alpha = 0.8f)
+                        )
+                    }
+                }
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(

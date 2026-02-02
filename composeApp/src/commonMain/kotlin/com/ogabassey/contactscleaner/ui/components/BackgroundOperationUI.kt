@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
  * Place this at the root of your app (in the main navigation container).
  */
 @Composable
-fun BackgroundOperationOverlay() {
+fun BackgroundOperationOverlay(onRescan: () -> Unit = {}) {
     val operation by BackgroundOperationManager.currentOperation.collectAsState()
     val isMinimized by BackgroundOperationManager.isMinimized.collectAsState()
 
@@ -59,7 +59,8 @@ fun BackgroundOperationOverlay() {
                 operation = operation!!,
                 onMinimize = { BackgroundOperationManager.minimize() },
                 onCancel = { BackgroundOperationManager.cancel() },
-                onDismiss = { BackgroundOperationManager.dismiss() }
+                onDismiss = { BackgroundOperationManager.dismiss() },
+                onRescan = onRescan
             )
         }
     }
@@ -74,9 +75,11 @@ private fun OperationProgressModal(
     operation: BackgroundOperation,
     onMinimize: () -> Unit,
     onCancel: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onRescan: () -> Unit
 ) {
     val isComplete = operation.status != OperationStatus.Running
+    val isSuccess = operation.status == OperationStatus.Completed
 
     Box(
         modifier = Modifier
@@ -121,24 +124,50 @@ private fun OperationProgressModal(
                         Spacer(modifier = Modifier.width(1.dp))
                     }
 
-                    // Cancel or Close button
-                    TextButton(
-                        onClick = if (isComplete) onDismiss else onCancel,
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (isComplete) PrimaryNeon else ErrorNeon
-                        )
-                    ) {
-                        Icon(
-                            if (isComplete) Icons.Default.Close else Icons.Default.Cancel,
-                            contentDescription = if (isComplete) "Close" else "Cancel",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            if (isComplete) "Close" else "Cancel",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    // Header Actions
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Rescan Button (Recommended)
+                        if (isSuccess && operation.recommendRescan) {
+                            Button(
+                                onClick = {
+                                    onRescan()
+                                    onDismiss()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = PrimaryNeon.copy(alpha = 0.2f),
+                                    contentColor = PrimaryNeon
+                                ),
+                                modifier = Modifier.height(32.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryNeon.copy(alpha = 0.5f))
+                            ) {
+                                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("RESCAN NOW", fontSize = 11.sp, fontWeight = FontWeight.Black)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+
+                        // Cancel or Close button
+                        TextButton(
+                            onClick = if (isComplete) onDismiss else onCancel,
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = if (isComplete) PrimaryNeon else ErrorNeon
+                            )
+                        ) {
+                            Icon(
+                                if (isComplete) Icons.Default.Close else Icons.Default.Cancel,
+                                contentDescription = if (isComplete) "Close" else "Cancel",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                if (isComplete) "Close" else "Cancel",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 

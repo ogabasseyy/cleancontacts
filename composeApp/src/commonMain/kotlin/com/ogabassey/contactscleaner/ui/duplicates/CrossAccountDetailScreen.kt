@@ -3,6 +3,7 @@ package com.ogabassey.contactscleaner.ui.duplicates
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -409,10 +410,12 @@ private fun CrossAccountContactItem(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // Account Badges
-            Row(
+            // Account Badges (2026 Fix: Use FlowRow for wrapping multiple accounts)
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(
                 modifier = Modifier.padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 contact.accounts.forEach { account ->
                     AccountBadge(account)
@@ -497,7 +500,10 @@ private fun AccountBadge(account: AccountInstance) {
                 account.displayLabel,
                 style = MaterialTheme.typography.labelSmall,
                 color = color,
-                fontSize = 10.sp
+                fontSize = 10.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

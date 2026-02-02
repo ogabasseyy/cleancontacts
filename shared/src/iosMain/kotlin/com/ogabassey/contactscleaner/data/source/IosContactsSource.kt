@@ -557,8 +557,15 @@ class IosContactsSource {
     /**
      * Get specific contacts by their identifiers.
      * Efficient O(1) fetch for refresh operations.
+     *
+     * 2026 Fix: Accept existing account metadata to preserve account info during refresh.
+     * @param uids List of contact UIDs to fetch
+     * @param existingAccountInfo Map of UID -> (accountType, accountName) pairs from existing contacts
      */
-    suspend fun getContactsByUids(uids: List<String>): List<Contact> = withContext(Dispatchers.IO) {
+    suspend fun getContactsByUids(
+        uids: List<String>,
+        existingAccountInfo: Map<String, Pair<String?, String?>> = emptyMap()
+    ): List<Contact> = withContext(Dispatchers.IO) {
         if (uids.isEmpty()) return@withContext emptyList()
 
         // 2026 Best Practice: Check permission before read operations
@@ -599,11 +606,17 @@ class IosContactsSource {
 
                 fetchedContacts?.forEach { obj ->
                     val cnContact = obj as? CNContact ?: return@forEach
-                    // For refresh, we assume Local/Device context since we lost the original container info
-                    // But usually, these IDs persist. If we really need account info, we'd need to re-fetch containers 
-                    // check container of this contact. For now, "Local" is a safe fallback for display logic.
-                    // To be perfect, we could re-query container for each contact, but that's expensive (N queries).
-                    val contact = cnContactToContact(cnContact, "Local", "Device")
+                    val uid = cnContact.identifier
+
+                    // 2026 Fix: Preserve existing account metadata if available
+                    val (accountType, accountName) = existingAccountInfo[uid]
+                        ?: Pair("Local", "Device")
+
+                    val contact = cnContactToContact(
+                        cnContact,
+                        accountName ?: "Device",
+                        accountType ?: "Local"
+                    )
                     contacts.add(contact)
                 }
             }

@@ -63,9 +63,13 @@ fun ResultsScreen(
     onNavigateToWhatsAppLink: () -> Unit = {},
     onNavigateToWhatsAppContacts: () -> Unit = {}
 ) {
-    // 2026 Fix: Automatically trigger rescan if requested via navigation
+    // 2026 Fix: Track if autoRescan has been consumed to prevent re-triggering on recomposition
+    var autoRescanConsumed by remember { mutableStateOf(false) }
+
+    // 2026 Fix: Automatically trigger rescan if requested via navigation (only once)
     LaunchedEffect(autoRescan) {
-        if (autoRescan) {
+        if (autoRescan && !autoRescanConsumed) {
+            autoRescanConsumed = true
             viewModel.rescan()
         }
     }

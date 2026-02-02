@@ -31,21 +31,6 @@ class JunkDetector(
     /** Valid numerical name chars - same as phone number chars */
     private fun isNumericalNameChar(c: Char): Boolean = isValidNumberChar(c)
 
-    /** Check for 6+ consecutive identical digits (e.g., "111111") */
-    private fun hasRepetitiveDigits(digits: String): Boolean {
-        if (digits.length < REPETITIVE_THRESHOLD) return false
-        var count = 1
-        for (i in 1 until digits.length) {
-            if (digits[i] == digits[i - 1]) {
-                count++
-                if (count >= REPETITIVE_THRESHOLD) return true
-            } else {
-                count = 1
-            }
-        }
-        return false
-    }
-
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
 
@@ -86,28 +71,51 @@ class JunkDetector(
         if (name.length > MAX_INPUT_LENGTH) return JunkType.LONG_NAME
 
         // 2. Number Analysis (number is guaranteed non-null here after isNullOrBlank check)
-        // Optimization: Use filter for ASCII digit check instead of Regex replace
-        val cleanedNumber = number.filter { it in '0'..'9' }
+        // 2026 Optimization: Single pass loop to validate chars, count digits, and check repetition
+        // This avoids allocating a 'cleanedNumber' string and iterating multiple times.
+        var digitCount = 0
+        var lastDigit = '\u0000'
+        var currentConsecutive = 0
+        var maxConsecutive = 0
 
-        // Invalid Chars (anything not digits, +, -, space, brackets)
-        // 2026 Optimization: O(N) char check instead of regex
-        if (number.any { !isValidNumberChar(it) }) {
-            return JunkType.INVALID_CHAR
+        for (c in number) {
+            // Check for invalid chars first
+            if (!isValidNumberChar(c)) {
+                return JunkType.INVALID_CHAR
+            }
+
+            if (c in '0'..'9') {
+                digitCount++
+                if (currentConsecutive == 0) {
+                    lastDigit = c
+                    currentConsecutive = 1
+                } else if (c == lastDigit) {
+                    currentConsecutive++
+                } else {
+                    if (currentConsecutive > maxConsecutive) maxConsecutive = currentConsecutive
+                    lastDigit = c
+                    currentConsecutive = 1
+                }
+            }
+            // Non-digit valid chars (e.g. '-', ' ') are ignored for repetition check
+            // effectively treating "1-1" as "11" for repetition purposes
         }
 
+        // Final update for maxConsecutive
+        if (currentConsecutive > maxConsecutive) maxConsecutive = currentConsecutive
+
         // Short Number (< 6 digits)
-        if (cleanedNumber.length < 6) {
+        if (digitCount < 6) {
             return JunkType.SHORT_NUMBER
         }
 
         // Long Number (> 15 digits)
-        if (cleanedNumber.length > 15) {
+        if (digitCount > 15) {
             return JunkType.LONG_NUMBER
         }
 
         // Repetitive Digits (e.g. 111111)
-        // 2026 Optimization: O(N) loop instead of regex backreference
-        if (hasRepetitiveDigits(cleanedNumber)) {
+        if (maxConsecutive >= REPETITIVE_THRESHOLD) {
             return JunkType.REPETITIVE_DIGITS
         }
 

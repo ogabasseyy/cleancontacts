@@ -6,7 +6,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.verticalDrag
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -33,45 +34,55 @@ fun VerticalScrollBar(
 ) {
     var trackHeight by remember { mutableStateOf(0f) }
     
-    // Smooth alpha transition: stays partially visible when idle, brightens on scroll
-    val scrollbarAlpha by animateFloatAsState(
-        targetValue = if (listState.isScrollInProgress) 0.8f else 0.4f,
-        animationSpec = tween(durationMillis = 300)
-    )
-
     val coroutineScope = rememberCoroutineScope()
     var isDragging by remember { mutableStateOf(false) }
+
+    // Smooth alpha transition: stays partially visible when idle, brightens on scroll/hold
+    val scrollbarAlpha by animateFloatAsState(
+        targetValue = if (listState.isScrollInProgress || isDragging) 1.0f else 0.4f,
+        animationSpec = tween(durationMillis = 300)
+    )
     
     val thumbWidth by animateDpAsState(
-        targetValue = if (isDragging) 8.dp else 5.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessLow)
+        targetValue = if (isDragging) 10.dp else 5.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        )
     )
 
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .width(16.dp) // Wide invisible touch target
+            .width(20.dp) // Wide invisible touch target for easier grabbing
             .onGloballyPositioned { trackHeight = it.size.height.toFloat() }
-            .pointerInput(trackHeight) {
-                val totalItems = listState.layoutInfo.totalItemsCount
-                if (totalItems <= 0) return@pointerInput
+            // 2026 Fix: Use listState as key so pointerInput restarts when list changes
+            .pointerInput(listState, trackHeight) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val down = awaitFirstDown()
+                        isDragging = true
 
-                coroutineScope.launch {
-                    detectDragGestures(
-                        onDragStart = { isDragging = true },
-                        onDragEnd = { isDragging = false },
-                        onDragCancel = { isDragging = false },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            val dragY = change.position.y.coerceIn(0f, trackHeight)
-                            val scrollRatio = dragY / trackHeight
+                        // Track drag within pointer scope, launch scrolls separately
+                        verticalDrag(down.id) { change ->
+                            // 2026 Fix: Read totalItems dynamically inside drag loop to avoid stale values
+                            val totalItems = listState.layoutInfo.totalItemsCount
+                            if (totalItems <= 0) return@verticalDrag
+
+                            val dragPosition = change.position.y.coerceIn(0f, trackHeight)
+                            val scrollRatio = dragPosition / trackHeight
                             val targetIndex = (totalItems * scrollRatio).toInt().coerceIn(0, totalItems - 1)
-                            
+
+                            // Launch scroll in external scope (verticalDrag callback is not suspending)
                             coroutineScope.launch {
                                 listState.scrollToItem(targetIndex)
                             }
+                            change.consume()
                         }
-                    )
+
+                        // Drag ended or cancelled
+                        isDragging = false
+                    }
                 }
             }
     ) {

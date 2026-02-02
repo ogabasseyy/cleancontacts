@@ -54,7 +54,8 @@ fun CategoryDetailScreen(
     type: ContactType,
     viewModel: CategoryViewModel = koinViewModel(),
     onNavigateBack: () -> Unit = {},
-    onNavigateToPaywall: () -> Unit = {}
+    onNavigateToPaywall: () -> Unit = {},
+    onNavigateToResultsWithRescan: () -> Unit = {}
 ) {
     val clipboard = LocalClipboardManager.current
     val shareLauncher = rememberShareLauncher()
@@ -928,7 +929,9 @@ fun CategoryDetailScreen(
 
     // 2026 Best Practice: Background operation overlay with minimize-to-bubble support
     // Shows streaming progress for bulk operations (fix all, merge all, delete all)
-    BackgroundOperationOverlay()
+    BackgroundOperationOverlay(
+        onRescan = onNavigateToResultsWithRescan
+    )
 }
 
 @Composable

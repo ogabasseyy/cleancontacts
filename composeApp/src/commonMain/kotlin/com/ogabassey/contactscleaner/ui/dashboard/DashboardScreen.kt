@@ -41,6 +41,7 @@ import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.components.rememberContactsPermissionState
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.PI
 import kotlin.math.cos

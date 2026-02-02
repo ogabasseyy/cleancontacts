@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -64,6 +65,7 @@ fun DashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val permissionsState = rememberContactsPermissionState()
     val haptic = LocalHapticFeedback.current
+    val uriHandler = LocalUriHandler.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var scanRequested by remember { mutableStateOf(false) }
@@ -343,9 +345,7 @@ fun DashboardScreen(
                 },
                 onPrivacyPolicyClick = {
                     showSettingsSheet = false
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Coming soon: Privacy Policy")
-                    }
+                    uriHandler.openUri("https://contactscleaner.tech/privacy")
                 },
                 onTermsClick = {
                     showSettingsSheet = false

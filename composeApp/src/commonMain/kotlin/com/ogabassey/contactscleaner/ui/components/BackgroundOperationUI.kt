@@ -6,9 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -30,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.BackgroundOperation
 import com.ogabassey.contactscleaner.util.BackgroundOperationManager
-import com.ogabassey.contactscleaner.util.OperationLogEntry
 import com.ogabassey.contactscleaner.util.OperationStatus
 import kotlin.math.roundToInt
 
@@ -42,7 +38,6 @@ import kotlin.math.roundToInt
 fun BackgroundOperationOverlay() {
     val operation by BackgroundOperationManager.currentOperation.collectAsState()
     val isMinimized by BackgroundOperationManager.isMinimized.collectAsState()
-    val logEntries by BackgroundOperationManager.logEntries.collectAsState()
 
     if (operation == null) return
 
@@ -62,7 +57,6 @@ fun BackgroundOperationOverlay() {
         } else {
             OperationProgressModal(
                 operation = operation!!,
-                logEntries = logEntries,
                 onMinimize = { BackgroundOperationManager.minimize() },
                 onCancel = { BackgroundOperationManager.cancel() },
                 onDismiss = { BackgroundOperationManager.dismiss() }
@@ -72,37 +66,17 @@ fun BackgroundOperationOverlay() {
 }
 
 /**
- * Full-screen modal showing detailed operation progress with streaming log.
+ * Full-screen modal showing operation progress.
+ * 2026 Fix: Simplified - removed activity log since batch operations don't process 1-by-1.
  */
 @Composable
 private fun OperationProgressModal(
     operation: BackgroundOperation,
-    logEntries: List<OperationLogEntry>,
     onMinimize: () -> Unit,
     onCancel: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val isComplete = operation.status != OperationStatus.Running
-    val listState = rememberLazyListState()
-
-    // Auto-scroll to top when new entries are added
-    LaunchedEffect(logEntries.size) {
-        if (logEntries.isNotEmpty()) {
-            listState.animateScrollToItem(0)
-        }
-    }
-
-    // Continuous rotation animation for the spinner
-    val infiniteTransition = rememberInfiniteTransition(label = "progress_rotation")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
 
     Box(
         modifier = Modifier
@@ -113,14 +87,14 @@ private fun OperationProgressModal(
         Surface(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.7f),
+                .wrapContentHeight(),
             shape = RoundedCornerShape(24.dp),
             color = SurfaceSpaceElevated,
             tonalElevation = 8.dp
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(20.dp)
             ) {
                 // Header Row with Minimize and Cancel/Close buttons
@@ -182,11 +156,10 @@ private fun OperationProgressModal(
                     ) {
                         when (operation.status) {
                             OperationStatus.Running -> {
+                                // 2026 Fix: Removed rotation - causes glitching with determinate progress
                                 CircularProgressIndicator(
                                     progress = { operation.progress },
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .graphicsLayer { rotationZ = rotation * 0.1f },
+                                    modifier = Modifier.size(64.dp),
                                     color = PrimaryNeon,
                                     trackColor = PrimaryNeon.copy(alpha = 0.2f),
                                     strokeWidth = 4.dp
@@ -297,79 +270,10 @@ private fun OperationProgressModal(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Activity Log Section
-                if (logEntries.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.History,
-                            contentDescription = null,
-                            tint = TextMedium,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Activity Log",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = TextMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Scrollable log
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        color = SpaceBlack
-                    ) {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            // 2026 Fix: Use unique id instead of timestamp to prevent key collisions
-                            items(logEntries, key = { it.id }) { entry ->
-                                LogEntryRow(entry)
-                            }
-                        }
-                    }
-                }
+                // 2026 Fix: Removed activity log - batch operations don't process items 1-by-1
+                // so individual log entries were inaccurate. The progress bar is sufficient.
             }
         }
-    }
-}
-
-@Composable
-private fun LogEntryRow(entry: OperationLogEntry) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            if (entry.isSuccess) Icons.Default.Check else Icons.Default.Close,
-            contentDescription = null,
-            tint = if (entry.isSuccess) SuccessNeon else ErrorNeon,
-            modifier = Modifier.size(14.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            entry.message,
-            style = MaterialTheme.typography.bodySmall,
-            color = TextMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

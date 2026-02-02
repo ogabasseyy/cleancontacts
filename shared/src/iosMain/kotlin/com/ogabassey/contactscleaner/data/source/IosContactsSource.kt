@@ -614,8 +614,8 @@ class IosContactsSource {
 
                     val contact = cnContactToContact(
                         cnContact,
-                        accountName ?: "Device",
-                        accountType ?: "Local"
+                        accountType ?: "Local",
+                        accountName ?: "Device"
                     )
                     contacts.add(contact)
                 }

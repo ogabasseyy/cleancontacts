@@ -38,13 +38,14 @@ object BackgroundOperationManager {
      * @param title Optional custom title
      * @param job The coroutine Job to enable proper cancellation
      */
-    fun startOperation(type: OperationType, totalItems: Int, title: String? = null, job: Job? = null) {
+    fun startOperation(type: OperationType, totalItems: Int, title: String? = null, job: Job? = null, recommendRescan: Boolean = true) {
         // Create the new operation before the atomic update
         val newOperation = BackgroundOperation(
             type = type,
             totalItems = totalItems,
             title = title ?: type.displayName,
-            startTime = currentTimeMillis()
+            startTime = currentTimeMillis(),
+            recommendRescan = recommendRescan
         )
 
         // Atomic check-and-set to prevent race conditions
@@ -197,7 +198,8 @@ data class BackgroundOperation(
     val progress: Float = 0f,
     val startTime: Long,
     val status: OperationStatus = OperationStatus.Running,
-    val completionMessage: String? = null
+    val completionMessage: String? = null,
+    val recommendRescan: Boolean = false
 )
 
 /**

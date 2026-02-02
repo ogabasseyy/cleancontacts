@@ -40,7 +40,7 @@ import kotlinx.serialization.Serializable
  * Type-safe navigation routes using @Serializable (2026 KMP Best Practice).
  */
 @Serializable object DashboardRoute
-@Serializable object ResultsRoute
+@Serializable data class ResultsRoute(val autoRescan: Boolean = false)
 @Serializable object RecentActionsRoute
 @Serializable object SafeListRoute
 @Serializable object ReviewSensitiveRoute
@@ -67,15 +67,17 @@ fun AppNavigation(
         ) {
             composable<DashboardRoute> {
                 DashboardScreen(
-                    onNavigateToResults = { navController.navigate(ResultsRoute) },
+                    onNavigateToResults = { navController.navigate(ResultsRoute()) },
                     onNavigateToRecentActions = { navController.navigate(RecentActionsRoute) },
                     onNavigateToSafeList = { navController.navigate(SafeListRoute) },
                     onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) }
                 )
             }
 
-            composable<ResultsRoute> {
+            composable<ResultsRoute> { backStackEntry ->
+                val route: ResultsRoute = backStackEntry.toRoute()
                 ResultsScreen(
+                    autoRescan = route.autoRescan,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToDetail = { contactType ->
                         when (contactType) {
@@ -121,7 +123,12 @@ fun AppNavigation(
                 CategoryDetailScreen(
                     type = contactType,
                     onNavigateBack = { navController.popBackStack() },
-                    onNavigateToPaywall = { navController.navigate(PaywallRoute) }
+                    onNavigateToPaywall = { navController.navigate(PaywallRoute) },
+                    onNavigateToResultsWithRescan = { 
+                        navController.navigate(ResultsRoute(autoRescan = true)) {
+                            popUpTo(DashboardRoute) // Clear stack back to dashboard
+                        }
+                    }
                 )
             }
 

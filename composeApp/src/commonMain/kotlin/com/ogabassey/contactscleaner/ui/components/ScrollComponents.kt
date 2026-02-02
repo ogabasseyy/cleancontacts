@@ -63,21 +63,21 @@ fun VerticalScrollBar(
                         val down = awaitFirstDown()
                         isDragging = true
 
-                        // Start tracking drag - single coroutine for the entire drag gesture
-                        coroutineScope.launch {
-                            verticalDrag(down.id) { change ->
-                                // 2026 Fix: Read totalItems dynamically inside drag loop to avoid stale values
-                                val totalItems = listState.layoutInfo.totalItemsCount
-                                if (totalItems <= 0) return@verticalDrag
+                        // Track drag within pointer scope, launch scrolls separately
+                        verticalDrag(down.id) { change ->
+                            // 2026 Fix: Read totalItems dynamically inside drag loop to avoid stale values
+                            val totalItems = listState.layoutInfo.totalItemsCount
+                            if (totalItems <= 0) return@verticalDrag
 
-                                val dragPosition = change.position.y.coerceIn(0f, trackHeight)
-                                val scrollRatio = dragPosition / trackHeight
-                                val targetIndex = (totalItems * scrollRatio).toInt().coerceIn(0, totalItems - 1)
+                            val dragPosition = change.position.y.coerceIn(0f, trackHeight)
+                            val scrollRatio = dragPosition / trackHeight
+                            val targetIndex = (totalItems * scrollRatio).toInt().coerceIn(0, totalItems - 1)
 
-                                // 2026 Fix: Use scrollToItem directly - already in coroutine context
+                            // Launch scroll in external scope (verticalDrag callback is not suspending)
+                            coroutineScope.launch {
                                 listState.scrollToItem(targetIndex)
-                                change.consume()
                             }
+                            change.consume()
                         }
 
                         // Drag ended or cancelled

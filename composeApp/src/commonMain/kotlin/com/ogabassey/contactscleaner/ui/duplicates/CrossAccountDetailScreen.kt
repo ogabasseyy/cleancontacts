@@ -481,9 +481,11 @@ private fun getAccountStyle(
 private fun AccountBadge(account: AccountInstance) {
     val (color, icon) = getAccountStyle(account.accountType, account.displayLabel)
 
+    // 2026 Fix: Add max width constraint so text can ellipsize as intended
     Surface(
         shape = RoundedCornerShape(4.dp),
-        color = color.copy(alpha = 0.15f)
+        color = color.copy(alpha = 0.15f),
+        modifier = Modifier.widthIn(max = 120.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),

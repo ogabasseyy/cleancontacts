@@ -52,6 +52,101 @@ class IosContactRepository(
         private const val KEY_DEVICE_ID = "whatsapp_device_id"
     }
 
+    /**
+     * 2026 Best Practice: Extract shared contact processing logic.
+     * Processes a single contact through all detectors and builds a LocalContact entity.
+     * Used by both scanContacts() and refreshContacts() to eliminate code duplication.
+     *
+     * @param contact The contact to process
+     * @param ignoredIds Set of contact IDs that should skip sensitive/junk detection
+     * @param whatsAppPhoneNumbers Set of WhatsApp phone numbers for matching
+     * @return LocalContact entity ready for database insertion
+     */
+    private fun processContactToEntity(
+        contact: Contact,
+        ignoredIds: Set<String>,
+        whatsAppPhoneNumbers: Set<String> = emptySet()
+    ): LocalContact {
+        val primaryNumber = contact.numbers.firstOrNull() ?: ""
+        val isIgnored = ignoredIds.contains(contact.id.toString())
+
+        // Sensitive detection
+        var isSensitive = false
+        var sensitiveDesc: String? = null
+
+        if (!isIgnored) {
+            // 1. Scan Name
+            contact.name?.let { name ->
+                sensitiveDetector.analyze(name)?.let {
+                    isSensitive = true
+                    sensitiveDesc = it.description
+                }
+            }
+
+            // 2. Scan All Numbers (if not already found sensitive in name)
+            if (!isSensitive) {
+                contact.numbers.forEach { num ->
+                    if (!isSensitive) {
+                        sensitiveDetector.analyze(num)?.let {
+                            isSensitive = true
+                            sensitiveDesc = it.description
+                        }
+                    }
+                }
+            }
+        }
+
+        // Junk detection
+        val junkType = if (!isIgnored && !isSensitive) {
+            junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
+        } else null
+
+        // Format issue detection
+        var isFormatIssue = false
+        var detectedNormalized = contact.normalizedNumber
+
+        if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+            if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
+                formatDetector.analyze(primaryNumber)?.let { issue ->
+                    isFormatIssue = true
+                    detectedNormalized = issue.normalizedNumber
+                }
+            }
+        }
+
+        // Check if contact is on WhatsApp by comparing normalized numbers
+        val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
+            contact.numbers.any { num ->
+                val normalized = num.filter { it.isDigit() }
+                whatsAppPhoneNumbers.contains(normalized)
+            }
+        } else {
+            contact.isWhatsApp
+        }
+
+        return LocalContact(
+            id = contact.id,
+            displayName = contact.name,
+            normalizedNumber = detectedNormalized,
+            rawNumbers = contact.numbers.joinToString(","),
+            rawEmails = contact.emails.joinToString(","),
+            isWhatsApp = isOnWhatsApp,
+            isTelegram = contact.isTelegram,
+            accountType = contact.accountType,
+            accountName = contact.accountName,
+            isJunk = junkType != null && !isSensitive,
+            junkType = junkType?.name,
+            duplicateType = null,
+            isFormatIssue = isFormatIssue,
+            detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
+            isSensitive = isSensitive,
+            sensitiveDescription = sensitiveDesc,
+            matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
+            platformUid = contact.platform_uid,
+            lastSynced = Clock.System.now().toEpochMilliseconds()
+        )
+    }
+
     override suspend fun scanContacts(): Flow<ScanStatus> = flow {
         emit(ScanStatus.Progress(0.05f, "Loading contacts from device..."))
 
@@ -108,94 +203,10 @@ class IosContactRepository(
         // 4. Get ignored contacts
         val ignoredIds = ignoredContactDao.getAllIds().toSet()
 
-        // 5. Process each contact - 2026 Best Practice: Run CPU-intensive work on background thread
+        // 5. Process each contact - 2026 Best Practice: Use extracted helper for consistency
         val localContacts = withContext(Dispatchers.Default) {
-            contacts.mapIndexed { index, contact ->
-                val primaryNumber = contact.numbers.firstOrNull() ?: ""
-                val isIgnored = ignoredIds.contains(contact.id.toString())
-
-                // Sensitive detection (iOS Parity Fix: Strip + prefix before analysis)
-                // iOS contact sync often adds + prefix to numbers. We strip it for detection
-                // so that 11-digit NINs like "+12345678901" become "12345678901" and match the pattern.
-                var isSensitive = false
-                var sensitiveDesc: String? = null
-
-                if (!isIgnored) {
-                    // 1. Scan Name
-                    contact.name?.let { name ->
-                        sensitiveDetector.analyze(name)?.let {
-                            isSensitive = true
-                            sensitiveDesc = it.description
-                        }
-                    }
-
-                        // 2. Scan All Numbers (if not already found sensitive in name)
-                    if (!isSensitive) {
-                        contact.numbers.forEach { num ->
-                            if (!isSensitive) {
-                                // Pass RAW number to detector.
-                                // The detector needs to know if it starts with '+' to distinguish
-                                // real international numbers from IDs that happen to start with 1, 44, etc.
-                                sensitiveDetector.analyze(num)?.let {
-                                    isSensitive = true
-                                    sensitiveDesc = it.description
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Junk detection
-                val junkType = if (!isIgnored && !isSensitive) {
-                    junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
-                } else null
-
-                // Format issue detection
-                var isFormatIssue = false
-                var detectedNormalized = contact.normalizedNumber
-
-                if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                    if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
-                        formatDetector.analyze(primaryNumber)?.let { issue ->
-                            isFormatIssue = true
-                            detectedNormalized = issue.normalizedNumber
-                        }
-                    }
-                }
-
-                // Check if contact is on WhatsApp by comparing normalized numbers
-                val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
-                    // Check if any of the contact's numbers match WhatsApp numbers
-                    contact.numbers.any { num ->
-                        val normalized = num.filter { it.isDigit() }
-                        whatsAppPhoneNumbers.contains(normalized)
-                    }
-                } else {
-                    // Fallback to iOS sync detection if WhatsApp not linked
-                    contact.isWhatsApp
-                }
-
-                LocalContact(
-                    id = contact.id,
-                    displayName = contact.name,
-                    normalizedNumber = detectedNormalized,
-                    rawNumbers = contact.numbers.joinToString(","),
-                    rawEmails = contact.emails.joinToString(","),
-                    isWhatsApp = isOnWhatsApp,
-                    isTelegram = contact.isTelegram,
-                    accountType = contact.accountType,
-                    accountName = contact.accountName,
-                    isJunk = junkType != null && !isSensitive,
-                    junkType = junkType?.name,
-                    duplicateType = null,
-                    isFormatIssue = isFormatIssue,
-                    detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                    isSensitive = isSensitive,
-                    sensitiveDescription = sensitiveDesc,
-                    matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
-                    platformUid = contact.platform_uid,
-                    lastSynced = Clock.System.now().toEpochMilliseconds()
-                )
+            contacts.map { contact ->
+                processContactToEntity(contact, ignoredIds, whatsAppPhoneNumbers)
             }
         }
 
@@ -681,91 +692,11 @@ class IosContactRepository(
                 }
             }
 
-            // 4. Process contacts
+            // 4. Process contacts using extracted helper
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
-            
             val localContacts = withContext(Dispatchers.Default) {
                 freshContacts.map { contact ->
-                    val primaryNumber = contact.numbers.firstOrNull() ?: ""
-                    val isIgnored = ignoredIds.contains(contact.id.toString()) // contact.id from source is likely new hash, we need to match appropriately. 
-                    // Wait, contact.id from source is hash of UID. So it should match if UID is same.
-                    // But input `contacts` has the valid DB ID. `freshContacts` will have ID generated from UID.
-                    // Ideally we should use the UID for ignore check if possible, or ensure ID generation is deterministic (it is).
-                    
-                    var isSensitive = false
-                    var sensitiveDesc: String? = null
-
-                    if (!isIgnored) {
-                        // Scan Name
-                        contact.name?.let { name ->
-                            sensitiveDetector.analyze(name)?.let {
-                                isSensitive = true
-                                sensitiveDesc = it.description
-                            }
-                        }
-
-                        // Scan All Numbers
-                        if (!isSensitive) {
-                            contact.numbers.forEach { num ->
-                                if (!isSensitive) {
-                                    sensitiveDetector.analyze(num)?.let {
-                                        isSensitive = true
-                                        sensitiveDesc = it.description
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Junk detection
-                    val junkType = if (!isIgnored && !isSensitive) {
-                        junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
-                    } else null
-
-                    // Format issue detection
-                    var isFormatIssue = false
-                    var detectedNormalized = contact.normalizedNumber
-
-                    if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-                         if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
-                             formatDetector.analyze(primaryNumber)?.let { issue ->
-                                 isFormatIssue = true
-                                 detectedNormalized = issue.normalizedNumber
-                             }
-                         }
-                    }
-
-                    // Check WhatsApp
-                    val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
-                        contact.numbers.any { num ->
-                            val normalized = num.filter { it.isDigit() }
-                            whatsAppPhoneNumbers.contains(normalized)
-                        }
-                    } else {
-                        contact.isWhatsApp
-                    }
-
-                    LocalContact(
-                        id = contact.id, // This ID is deterministic from UID in iOS source
-                        displayName = contact.name,
-                        normalizedNumber = detectedNormalized,
-                        rawNumbers = contact.numbers.joinToString(","),
-                        rawEmails = contact.emails.joinToString(","),
-                        isWhatsApp = isOnWhatsApp,
-                        isTelegram = contact.isTelegram,
-                        accountType = contact.accountType,
-                        accountName = contact.accountName,
-                        isJunk = junkType != null && !isSensitive,
-                        junkType = junkType?.name,
-                        duplicateType = null,
-                        isFormatIssue = isFormatIssue,
-                        detectedRegion = if (isFormatIssue && detectedNormalized != null) formatDetector.getRegionCode(detectedNormalized) else null,
-                        isSensitive = isSensitive,
-                        sensitiveDescription = sensitiveDesc,
-                        matchingKey = detectedNormalized ?: contact.emails.firstOrNull() ?: contact.name,
-                        platformUid = contact.platform_uid,
-                        lastSynced = Clock.System.now().toEpochMilliseconds()
-                    )
+                    processContactToEntity(contact, ignoredIds, whatsAppPhoneNumbers)
                 }
             }
 
@@ -801,6 +732,9 @@ class IosContactRepository(
             // 5. Update Summary
             updateScanResultSummary()
             true
+        } catch (e: CancellationException) {
+            // 2026 Best Practice: Preserve coroutine cancellation semantics
+            throw e
         } catch (e: Exception) {
             println("Error refreshing contacts: ${e.message}")
             false

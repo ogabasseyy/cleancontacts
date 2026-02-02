@@ -59,8 +59,8 @@ actual fun getDatabaseBuilder(): RoomDatabase.Builder<ContactDatabase> {
             require(!supportPath.isNullOrEmpty()) {
                 "Failed to resolve Application Support directory for database"
             }
-            // 2026 Fix: Use structured Logger instead of println
-            Logger.w(TAG, "Using Application Support fallback path: $supportPath")
+            // 2026 Fix: Use debug-level logging with redacted path to avoid exposing full sandbox path
+            Logger.d(TAG, "Using Application Support fallback for database storage")
             "$supportPath/${ContactDatabase.DATABASE_NAME}.db"
         } else {
             "$path/${ContactDatabase.DATABASE_NAME}.db"

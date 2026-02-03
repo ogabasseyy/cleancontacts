@@ -20,3 +20,8 @@
 **Vulnerability:** `DuplicateDetector` performed O(N*M) Levenshtein distance calculations on potentially unbounded name strings, allowing DoS via massive inputs.
 **Learning:** Reusing buffers for performance (optimization) does not prevent algorithmic complexity attacks if the inputs themselves are too large.
 **Prevention:** Enforce strict length limits (e.g. 1000 chars) on inputs before passing them to computationally expensive algorithms (O(N^2) or worse).
+
+## 2026-01-30 - DoS Risk in Contact Import
+**Vulnerability:** `ContactImportParser` processed unbounded line lengths and instantiated `Regex` in a loop, creating DoS and performance risks with massive inputs.
+**Learning:** File parsing without limits is a trivial DoS vector.
+**Prevention:** Enforce `MAX_LINE_LENGTH` (e.g., 2000 chars) and replace simple Regex checks with manual character iteration (O(N)).

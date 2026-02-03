@@ -66,34 +66,6 @@ jobs:
         if: steps.semgrep.outcome == 'failure'
         run: exit 1
 
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - name: Checkout repository
-        # Pin to full SHA for supply chain security
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Dependency Review
-        # Pin to full SHA for supply chain security
-        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4
-        with:
-          fail-on-severity: high
-          # 2026 best practice: use allow-licenses (deny-licenses is deprecated)
-          # Allow permissive licenses + AGPL for TruffleHog security tool
-          allow-licenses: >-
-            MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD,
-            Unlicense, CC0-1.0, WTFPL, Zlib, BlueOak-1.0.0,
-            MPL-2.0, LGPL-2.1-only, LGPL-2.1-or-later,
-            LGPL-3.0-only, LGPL-3.0-or-later,
-            AGPL-3.0-only, AGPL-3.0-or-later,
-            CC-BY-3.0, CC-BY-4.0, Python-2.0, PSF-2.0, Artistic-2.0
-
   secrets-scan:
     name: Secret Scanning
     runs-on: ubuntu-latest

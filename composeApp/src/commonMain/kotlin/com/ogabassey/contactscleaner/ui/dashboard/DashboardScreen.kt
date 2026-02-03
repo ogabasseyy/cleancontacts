@@ -42,6 +42,7 @@ import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.components.rememberContactsPermissionState
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.PI
 import kotlin.math.cos
@@ -465,38 +466,54 @@ fun SettingsContent(
     onNavigateToSafeList: () -> Unit = {}
 ) {
     val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-            .padding(bottom = 32.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .padding(bottom = 32.dp)
         ) {
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = PrimaryNeon
-            )
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close Settings",
-                    tint = Color.White.copy(alpha = 0.6f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Settings",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryNeon
                 )
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close Settings",
+                        tint = Color.White.copy(alpha = 0.6f)
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        SettingsItem(icon = Icons.Default.Info, title = "Version", subtitle = versionName)
+            SettingsItem(
+                icon = Icons.Default.Info,
+                title = "Version",
+                subtitle = versionName,
+                onClick = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("You're using the latest version")
+                    }
+                },
+                showChevron = false
+            )
 
-        HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
+            HorizontalDivider(
+                color = Color.White.copy(alpha = 0.05f),
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
 
         SettingsItem(
             icon = Icons.Default.Lock,
@@ -529,6 +546,12 @@ fun SettingsContent(
             color = Color.White.copy(alpha = 0.5f)
         )
     }
+
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.align(Alignment.BottomCenter)
+    )
+    }
 }
 
 @Composable
@@ -536,7 +559,8 @@ fun SettingsItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    showChevron: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -562,7 +586,7 @@ fun SettingsItem(
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
         }
         // 2026 UX: Visual affordance - chevron indicates item is clickable
-        if (onClick != null) {
+        if (onClick != null && showChevron) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,

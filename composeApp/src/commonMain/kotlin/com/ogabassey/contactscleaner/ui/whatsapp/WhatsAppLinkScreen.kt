@@ -150,6 +150,12 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    // Calculate max local digits based on country code (total max 15 digits)
+    val countryCodeDigits = remember(selectedCountry) {
+        selectedCountry.code.filter { it.isDigit() }.length
+    }
+    val maxLocalDigits = 15 - countryCodeDigits
+
     val isValid = remember(selectedCountry, phoneNumber) {
         val fullNumber = selectedCountry.code + phoneNumber
         val digits = fullNumber.filter { it.isDigit() }
@@ -198,12 +204,14 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Phone input
+        // Phone input - limit based on country code (total max 15 digits)
         OutlinedTextField(
             value = phoneNumber,
-            onValueChange = { 
-                // Only allow digits in the main field now
-                phoneNumber = it.filter { c -> c.isDigit() } 
+            onValueChange = { newValue ->
+                val digitsOnly = newValue.filter { c -> c.isDigit() }
+                if (digitsOnly.length <= maxLocalDigits) {
+                    phoneNumber = digitsOnly
+                }
             },
             label = { Text("Phone Number") },
             placeholder = { Text("812 345 6789") },

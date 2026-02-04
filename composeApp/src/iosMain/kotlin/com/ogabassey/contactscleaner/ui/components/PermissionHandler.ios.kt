@@ -9,12 +9,15 @@ import androidx.compose.runtime.setValue
 import platform.Contacts.CNAuthorizationStatusAuthorized
 import platform.Contacts.CNAuthorizationStatusDenied
 import platform.Contacts.CNAuthorizationStatusNotDetermined
-import platform.Contacts.CNAuthorizationStatusLimited
 import platform.Contacts.CNContactStore
 import platform.Contacts.CNEntityType
 import platform.Foundation.NSURL
+import platform.Foundation.NSOperatingSystemVersion
+import platform.Foundation.NSProcessInfo
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_get_main_queue
 
 /**
  * iOS implementation using CNContactStore.
@@ -39,14 +42,17 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
             launchRequest = {
                 val store = CNContactStore()
                 store.requestAccessForEntityType(CNEntityType.CNEntityTypeContacts) { _, _ ->
-                    // Re-check status after request (could be limited or full)
-                    authStatus = checkAuthorizationStatus()
+                    // 2026 Fix: Dispatch state update to main thread for thread safety
+                    dispatch_async(dispatch_get_main_queue()) {
+                        authStatus = checkAuthorizationStatus()
+                    }
                 }
             },
             openSettings = {
                 val url = NSURL.URLWithString(UIApplicationOpenSettingsURLString)
                 if (url != null) {
-                    UIApplication.sharedApplication.openURL(url)
+                    // 2026 Fix: Use newer openURL API with completion handler
+                    UIApplication.sharedApplication.openURL(url, emptyMap<Any?, Any>()) { _ -> }
                 }
             }
         )
@@ -54,16 +60,32 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
 }
 
 /**
+ * Check if running iOS 18+
+ */
+private fun isIOS18OrLater(): Boolean {
+    val version = NSProcessInfo.processInfo.operatingSystemVersion
+    return version.majorVersion >= 18L
+}
+
+/**
  * Maps CNAuthorizationStatus to our cross-platform enum.
  * iOS 18+ adds CNAuthorizationStatusLimited for partial access.
+ * 2026 Fix: Use runtime check for iOS 18+ to safely handle LIMITED status.
  */
 private fun checkAuthorizationStatus(): ContactsAuthorizationStatus {
     val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
     return when (status) {
         CNAuthorizationStatusAuthorized -> ContactsAuthorizationStatus.AUTHORIZED
-        CNAuthorizationStatusLimited -> ContactsAuthorizationStatus.LIMITED
         CNAuthorizationStatusDenied -> ContactsAuthorizationStatus.DENIED
         CNAuthorizationStatusNotDetermined -> ContactsAuthorizationStatus.NOT_DETERMINED
-        else -> ContactsAuthorizationStatus.NOT_DETERMINED
+        else -> {
+            // iOS 18+ may return CNAuthorizationStatusLimited (value 4)
+            // Check at runtime since the constant may not be available on older iOS
+            if (isIOS18OrLater() && status.toLong() == 4L) {
+                ContactsAuthorizationStatus.LIMITED
+            } else {
+                ContactsAuthorizationStatus.NOT_DETERMINED
+            }
+        }
     }
 }

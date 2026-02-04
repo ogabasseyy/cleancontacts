@@ -35,6 +35,9 @@ import com.ogabassey.contactscleaner.ui.duplicates.CrossAccountDetailScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsScreen
 import com.ogabassey.contactscleaner.ui.limitedaccess.LimitedAccessScreen
+import com.ogabassey.contactscleaner.data.DemoDataProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import kotlinx.serialization.Serializable
 
 /**
@@ -181,12 +184,8 @@ fun AppNavigation(
             }
 
             composable<LimitedAccessRoute> {
+                // 2026 Fix: Removed unused onPickContacts parameter
                 LimitedAccessScreen(
-                    onPickContacts = {
-                        // Contact picker will be launched from the screen itself
-                        // For now, navigate back - actual picker logic handled in screen
-                        navController.popBackStack()
-                    },
                     onDemoMode = {
                         navController.navigate(DemoModeRoute) {
                             popUpTo(LimitedAccessRoute) { inclusive = true }
@@ -200,6 +199,14 @@ fun AppNavigation(
             }
 
             composable<DemoModeRoute> {
+                // 2026 Fix: Enable/disable demo mode properly
+                LaunchedEffect(Unit) {
+                    DemoDataProvider.enableDemoMode()
+                }
+                DisposableEffect(Unit) {
+                    onDispose { DemoDataProvider.disableDemoMode() }
+                }
+
                 // Demo mode uses the same DashboardScreen but with demo data
                 DashboardScreen(
                     onNavigateToResults = { navController.navigate(ResultsRoute()) },

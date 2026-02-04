@@ -38,7 +38,6 @@ import com.ogabassey.contactscleaner.ui.theme.*
  */
 @Composable
 fun LimitedAccessScreen(
-    onPickContacts: () -> Unit,
     onDemoMode: () -> Unit,
     onOpenSettings: () -> Unit,
     onContactPicked: (PickedContact) -> Unit = {}
@@ -154,48 +153,51 @@ fun LimitedAccessScreen(
     }
 
     // Show dialog when contact is picked
-    if (showPickedContactDialog && pickedContact != null) {
-        AlertDialog(
-            onDismissRequest = { showPickedContactDialog = false },
-            title = {
-                Text("Contact Selected", color = Color.White)
-            },
-            text = {
-                Column {
-                    Text(
-                        text = pickedContact?.name ?: "Unknown",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = PrimaryNeon
-                    )
-                    pickedContact?.phoneNumber?.let {
+    // 2026 Fix: Use let to avoid redundant null checks after smart cast
+    if (showPickedContactDialog) {
+        pickedContact?.let { contact ->
+            AlertDialog(
+                onDismissRequest = { showPickedContactDialog = false },
+                title = {
+                    Text("Contact Selected", color = Color.White)
+                },
+                text = {
+                    Column {
                         Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = contact.name ?: "Unknown",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = PrimaryNeon
+                        )
+                        contact.phoneNumber?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextMedium
+                            )
+                        }
+                        contact.email?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextLow
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "This contact has been selected for cleaning. In a full implementation, you would be shown analysis and cleanup options for this contact.",
+                            style = MaterialTheme.typography.bodySmall,
                             color = TextMedium
                         )
                     }
-                    pickedContact?.email?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextLow
-                        )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showPickedContactDialog = false }) {
+                        Text("OK", color = PrimaryNeon)
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "This contact has been selected for cleaning. In a full implementation, you would be shown analysis and cleanup options for this contact.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextMedium
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showPickedContactDialog = false }) {
-                    Text("OK", color = PrimaryNeon)
-                }
-            },
-            containerColor = SurfaceSpaceElevated
-        )
+                },
+                containerColor = SurfaceSpaceElevated
+            )
+        }
     }
 }
 

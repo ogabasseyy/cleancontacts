@@ -173,7 +173,7 @@ object DemoDataProvider {
         emailDuplicateCount = demoContacts.count { it.duplicateType == DuplicateType.EMAIL_MATCH },
         numberDuplicateCount = demoContacts.count { it.duplicateType == DuplicateType.NUMBER_MATCH },
         nameDuplicateCount = 0,
-        accountCount = 3, // google, apple, whatsapp
+        accountCount = demoContacts.mapNotNull { it.accountType }.distinct().size,
         similarNameCount = 0,
         invalidCharCount = 0,
         longNumberCount = 0,
@@ -185,7 +185,10 @@ object DemoDataProvider {
         fancyFontCount = 0,
         formatIssueCount = demoContacts.count { it.formatIssue != null },
         sensitiveCount = demoContacts.count { it.isSensitive },
-        crossAccountDuplicateCount = 1 // John Smith exists in both Google and iCloud
+        crossAccountDuplicateCount = demoContacts
+            .filter { it.normalizedNumber != null && it.accountType != null }
+            .groupBy { it.normalizedNumber }
+            .count { (_, contacts) -> contacts.map { it.accountType }.distinct().size > 1 }
     )
 
     /**

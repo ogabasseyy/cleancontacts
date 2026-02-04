@@ -34,6 +34,7 @@ import com.ogabassey.contactscleaner.ui.duplicates.DuplicateSubGroupsScreen
 import com.ogabassey.contactscleaner.ui.duplicates.CrossAccountDetailScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsScreen
+import com.ogabassey.contactscleaner.ui.limitedaccess.LimitedAccessScreen
 import kotlinx.serialization.Serializable
 
 /**
@@ -50,6 +51,8 @@ import kotlinx.serialization.Serializable
 @Serializable object HistoryRoute
 @Serializable object WhatsAppLinkRoute
 @Serializable object WhatsAppContactsRoute
+@Serializable object LimitedAccessRoute
+@Serializable object DemoModeRoute
 @Serializable data class CategoryDetailRoute(val typeName: String)
 
 /**
@@ -70,7 +73,8 @@ fun AppNavigation(
                     onNavigateToResults = { navController.navigate(ResultsRoute()) },
                     onNavigateToRecentActions = { navController.navigate(RecentActionsRoute) },
                     onNavigateToSafeList = { navController.navigate(SafeListRoute) },
-                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) }
+                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) },
+                    onNavigateToLimitedAccess = { navController.navigate(LimitedAccessRoute) }
                 )
             }
 
@@ -173,6 +177,36 @@ fun AppNavigation(
             composable<CrossAccountRoute> {
                 CrossAccountDetailScreen(
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<LimitedAccessRoute> {
+                LimitedAccessScreen(
+                    onPickContacts = {
+                        // Contact picker will be launched from the screen itself
+                        // For now, navigate back - actual picker logic handled in screen
+                        navController.popBackStack()
+                    },
+                    onDemoMode = {
+                        navController.navigate(DemoModeRoute) {
+                            popUpTo(LimitedAccessRoute) { inclusive = true }
+                        }
+                    },
+                    onOpenSettings = {
+                        // Settings opening handled by the screen's permissionState.openSettings()
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<DemoModeRoute> {
+                // Demo mode uses the same DashboardScreen but with demo data
+                DashboardScreen(
+                    onNavigateToResults = { navController.navigate(ResultsRoute()) },
+                    onNavigateToRecentActions = { navController.navigate(RecentActionsRoute) },
+                    onNavigateToSafeList = { navController.navigate(SafeListRoute) },
+                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) },
+                    onNavigateToLimitedAccess = { navController.navigate(LimitedAccessRoute) }
                 )
             }
         }

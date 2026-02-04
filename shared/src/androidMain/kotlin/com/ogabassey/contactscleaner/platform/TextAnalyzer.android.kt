@@ -23,8 +23,8 @@ actual class TextAnalyzer actual constructor() {
         val cleanedText = text.filter { !it.isWhitespace() }
         if (cleanedText.isEmpty()) return false
 
-        // 2026 Optimization: Avoid regex for ASCII alphanumeric check
-        val hasAlphanumeric = cleanedText.any { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' }
+        // Use Unicode-aware check to detect letters/digits in any script (e.g., "É", "ß", "١")
+        val hasAlphanumeric = cleanedText.any { it.isLetterOrDigit() }
         if (hasAlphanumeric) return false
 
         // If it's a fancy font, it's NOT an "emoji name"

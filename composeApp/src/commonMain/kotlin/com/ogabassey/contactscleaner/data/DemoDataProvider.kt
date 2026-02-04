@@ -193,7 +193,7 @@ object DemoDataProvider {
 
     /**
      * Whether demo mode is currently active.
-     * 2026 Fix: Use StateFlow for thread-safe, reactive state.
+     * Uses StateFlow for thread-safe, reactive state.
      */
     private val _isDemoModeActive = MutableStateFlow(false)
     val isDemoModeActive: StateFlow<Boolean> = _isDemoModeActive.asStateFlow()

@@ -19,8 +19,8 @@ class ContactImportParserSecurityTest {
 
     @Test
     fun `parseFile ignores lines exceeding max length limit`() {
-        // Create a massive line (e.g., 5000 chars) that exceeds the 2000 char limit
-        val massiveLine = "0".repeat(5000)
+        // Use constant from production code to ensure test stays in sync
+        val massiveLine = "0".repeat(ContactImportParser.MAX_LINE_LENGTH * 2 + 1000)
         val validLine = "+1234567890"
         val content = "$massiveLine\n$validLine"
 
@@ -32,15 +32,15 @@ class ContactImportParserSecurityTest {
     }
 
     @Test
-    fun `parseFile boundary test for 2000 char limit`() {
-        // Test exact boundary: 2000 chars should be accepted, 2001 should be skipped
-        val exactlyAtLimit = "0".repeat(2000)
-        val oneOverLimit = "0".repeat(2001)
+    fun `parseFile boundary test for max line length limit`() {
+        // Test exact boundary using the actual constant
+        val exactlyAtLimit = "0".repeat(ContactImportParser.MAX_LINE_LENGTH)
+        val oneOverLimit = "0".repeat(ContactImportParser.MAX_LINE_LENGTH + 1)
         val content = "$exactlyAtLimit\n$oneOverLimit"
 
         val result = parser.parseFile(content, "boundary.txt")
 
-        // Only the 2000-char line should be accepted (condition is > not >=)
+        // Only the line at exactly MAX_LINE_LENGTH should be accepted (condition is > not >=)
         assertEquals(1, result.validContacts.size)
         assertEquals(exactlyAtLimit, result.validContacts[0].numbers[0])
     }

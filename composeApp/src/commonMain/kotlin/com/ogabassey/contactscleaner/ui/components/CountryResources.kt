@@ -12,6 +12,15 @@ data class CountryCode(
 )
 
 object CountryResources {
+    // Hardcoded fallback ensures initialization never fails even if list is modified
+    private val DEFAULT_FALLBACK = CountryCode(
+        name = "Nigeria",
+        code = "+234",
+        flag = "\uD83C\uDDF3\uD83C\uDDEC",
+        regionIso = "NG",
+        localDigits = 10
+    )
+
     // Local digit counts sourced from ITU-T E.164 and telecom standards
     val countries = listOf(
         CountryCode("Algeria", "+213", "🇩🇿", "DZ", 9),
@@ -73,7 +82,9 @@ object CountryResources {
         CountryCode("Vietnam", "+84", "🇻🇳", "VN", 9)
     )
 
-    private val fallbackCountry = countries.first { it.regionIso == "NG" }
+    // Defensive lookup: firstOrNull + Elvis operator prevents NoSuchElementException
+    private val fallbackCountry = countries.firstOrNull { it.regionIso == "NG" }
+        ?: DEFAULT_FALLBACK
 
     /**
      * Get the default country based on device region.

@@ -12,8 +12,16 @@ actual class TextAnalyzer actual constructor() {
         // Low surrogate: 0xDC00 to 0xDFFF (handled via containsMatchIn)
         private val FANCY_FONT_REGEX = Regex("[\\uD835][\\uDC00-\\uDFFF]|[\\u2460-\\u24FF]")
 
-        // JVM Regex engine is quite advanced with Unicode properties.
-        private val EMOJI_REGEX = Regex("^[\\p{So}\\p{Cn}\\p{Sk}\\p{Sm}\\p{Sc}\\p{Pd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Po}\\p{Ps}\\u200D\\uFE0F\\uFE0E]+$")
+        // 2026 Best Practice: Only include Symbol,Other (\p{So}) for emoji detection.
+        // Excluded categories that are NOT emojis:
+        //   - \p{Cn} (Unassigned codepoints)
+        //   - \p{Sk} (Modifier symbols like ^, `, ¨)
+        //   - \p{Sm} (Math symbols like +, =, <, >)
+        //   - \p{Sc} (Currency symbols like $, €, £)
+        //   - \p{Pd/Pe/Pf/Pi/Po/Ps} (Punctuation categories)
+        // ZWJ (\u200D) and variation selectors (\uFE0F, \uFE0E) are included for emoji sequences.
+        // Note: Java 21's \p{IsEmoji} requires Android API 36+; we target API 26.
+        private val EMOJI_REGEX = Regex("^[\\p{So}\\u200D\\uFE0F\\uFE0E]+$")
     }
 
     actual fun isEmojiOnly(text: String): Boolean {
@@ -28,7 +36,7 @@ actual class TextAnalyzer actual constructor() {
         if (hasAlphanumeric) return false
 
         // If it's a fancy font, it's NOT an "emoji name"
-        if (hasFancyFonts(text)) return false
+        if (hasFancyFonts(cleanedText)) return false
 
         return EMOJI_REGEX.matches(cleanedText)
     }

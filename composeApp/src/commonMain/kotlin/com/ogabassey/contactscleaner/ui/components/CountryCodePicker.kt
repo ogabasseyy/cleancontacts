@@ -122,7 +122,10 @@ private fun CountrySelectionContent(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(filteredCountries) { country ->
+            items(
+                items = filteredCountries,
+                key = { country -> country.regionIso }
+            ) { country ->
                 CountryItem(
                     country = country,
                     onClick = { onSelected(country) }

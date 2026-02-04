@@ -205,4 +205,12 @@ object DemoDataProvider {
     fun disableDemoMode() {
         _isDemoModeActive.value = false
     }
+
+    /**
+     * Resets demo mode state for test isolation.
+     * Call in @Before/@BeforeEach to ensure clean state between tests.
+     */
+    internal fun resetForTesting() {
+        _isDemoModeActive.value = false
+    }
 }

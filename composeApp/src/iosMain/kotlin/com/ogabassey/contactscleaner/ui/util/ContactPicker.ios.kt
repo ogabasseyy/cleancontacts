@@ -2,6 +2,9 @@ package com.ogabassey.contactscleaner.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.cinterop.BetaInteropApi
 import platform.Contacts.CNContact
 import platform.Contacts.CNLabeledValue
@@ -14,17 +17,26 @@ import platform.darwin.NSObject
 
 /**
  * Registry to prevent delegate garbage collection during picker presentation.
- * Same pattern as DismissHandlerRegistry in ContactLauncher.ios.kt
+ *
+ * 2026 Best Practice: Thread-safe using AtomicReference with immutable list.
+ * Uses CAS (compare-and-swap) loop for lock-free thread safety.
  */
+@OptIn(ExperimentalAtomicApi::class)
 private object ContactPickerDelegateRegistry {
-    private val activeDelegates = mutableListOf<ContactPickerDelegate>()
+    private val activeDelegates = AtomicReference(listOf<ContactPickerDelegate>())
 
     fun register(delegate: ContactPickerDelegate) {
-        activeDelegates.add(delegate)
+        while (true) {
+            val current = activeDelegates.load()
+            if (activeDelegates.compareAndSet(current, current + delegate)) break
+        }
     }
 
     fun unregister(delegate: ContactPickerDelegate) {
-        activeDelegates.remove(delegate)
+        while (true) {
+            val current = activeDelegates.load()
+            if (activeDelegates.compareAndSet(current, current - delegate)) break
+        }
     }
 }
 
@@ -123,7 +135,16 @@ actual fun rememberContactPicker(
     onContactPicked: (PickedContact) -> Unit,
     onCancelled: () -> Unit
 ): ContactPicker {
-    return remember(onContactPicked, onCancelled) {
-        IosContactPicker(onContactPicked, onCancelled)
+    // 2026 Best Practice: Use rememberUpdatedState for lambda stability.
+    // This prevents recreation of IosContactPicker when callers pass inline lambdas,
+    // while ensuring we always invoke the latest callback values.
+    val currentOnContactPicked = rememberUpdatedState(onContactPicked)
+    val currentOnCancelled = rememberUpdatedState(onCancelled)
+
+    return remember {
+        IosContactPicker(
+            onContactPicked = { contact -> currentOnContactPicked.value(contact) },
+            onCancelled = { currentOnCancelled.value() }
+        )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import platform.Contacts.CNAuthorizationStatusAuthorized
 import platform.Contacts.CNAuthorizationStatusDenied
 import platform.Contacts.CNAuthorizationStatusNotDetermined
+import platform.Contacts.CNAuthorizationStatusRestricted
 import platform.Contacts.CNContactStore
 import platform.Contacts.CNEntityType
 import platform.Foundation.NSURL
@@ -77,6 +78,7 @@ private fun checkAuthorizationStatus(): ContactsAuthorizationStatus {
     return when (status) {
         CNAuthorizationStatusAuthorized -> ContactsAuthorizationStatus.AUTHORIZED
         CNAuthorizationStatusDenied -> ContactsAuthorizationStatus.DENIED
+        CNAuthorizationStatusRestricted -> ContactsAuthorizationStatus.DENIED // Parental controls or MDM
         CNAuthorizationStatusNotDetermined -> ContactsAuthorizationStatus.NOT_DETERMINED
         else -> {
             // iOS 18+ may return CNAuthorizationStatusLimited (value 4)

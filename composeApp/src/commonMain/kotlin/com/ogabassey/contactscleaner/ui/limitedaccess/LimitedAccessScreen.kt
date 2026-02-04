@@ -153,7 +153,6 @@ fun LimitedAccessScreen(
     }
 
     // Show dialog when contact is picked
-    // 2026 Fix: Use let to avoid redundant null checks after smart cast
     if (showPickedContactDialog) {
         pickedContact?.let { contact ->
             AlertDialog(

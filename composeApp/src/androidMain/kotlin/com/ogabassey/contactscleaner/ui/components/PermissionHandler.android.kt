@@ -29,28 +29,27 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
     )
     val context = LocalContext.current
 
-    // Determine authorization status
-    val authStatus = when {
-        permissionsState.allPermissionsGranted -> ContactsAuthorizationStatus.AUTHORIZED
-        permissionsState.shouldShowRationale -> ContactsAuthorizationStatus.DENIED
-        // If not granted and no rationale, either not determined or permanently denied
-        permissionsState.permissions.any { !it.status.isGranted } -> {
-            // Check if we've asked before (heuristic: shouldShowRationale would be true if denied once)
-            if (permissionsState.revokedPermissions.isNotEmpty()) {
-                ContactsAuthorizationStatus.DENIED
-            } else {
-                ContactsAuthorizationStatus.NOT_DETERMINED
-            }
-        }
-        else -> ContactsAuthorizationStatus.NOT_DETERMINED
-    }
-
+    // 2026 Fix: Compute authStatus inside remember to avoid stale closure
     return remember(
         permissionsState.allPermissionsGranted,
         permissionsState.shouldShowRationale,
-        permissionsState,
+        permissionsState.revokedPermissions.size,
         context
     ) {
+        // Determine authorization status
+        // Note: shouldShowRationale = true means user denied once but can still re-prompt
+        // We treat it as NOT_DETERMINED so the app can re-request permission
+        val authStatus = when {
+            permissionsState.allPermissionsGranted -> ContactsAuthorizationStatus.AUTHORIZED
+            permissionsState.shouldShowRationale -> {
+                // User denied once but system allows re-prompting - treat as promptable
+                ContactsAuthorizationStatus.NOT_DETERMINED
+            }
+            // If not granted, no rationale, but has revoked permissions -> permanently denied
+            permissionsState.revokedPermissions.isNotEmpty() -> ContactsAuthorizationStatus.DENIED
+            else -> ContactsAuthorizationStatus.NOT_DETERMINED
+        }
+
         ContactsPermissionState(
             allPermissionsGranted = permissionsState.allPermissionsGranted,
             authorizationStatus = authStatus,

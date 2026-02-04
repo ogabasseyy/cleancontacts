@@ -60,6 +60,10 @@ class IosContactPicker(
         val rootVC = getRootViewController()
         if (rootVC != null) {
             rootVC.presentViewController(picker, animated = true, completion = null)
+        } else {
+            // 2026 Fix: Handle null rootViewController by notifying user
+            ContactPickerDelegateRegistry.unregister(delegate)
+            onCancelled()
         }
     }
 

@@ -5,6 +5,9 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateType
 import com.ogabassey.contactscleaner.domain.model.FormatIssue
 import com.ogabassey.contactscleaner.domain.model.JunkType
 import com.ogabassey.contactscleaner.domain.model.ScanResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Demo Data Provider - Apple Guideline 5.1.1 Compliance
@@ -187,16 +190,16 @@ object DemoDataProvider {
 
     /**
      * Whether demo mode is currently active.
-     * Used to show demo badge in UI.
+     * 2026 Fix: Use StateFlow for thread-safe, reactive state.
      */
-    var isDemoModeActive: Boolean = false
-        private set
+    private val _isDemoModeActive = MutableStateFlow(false)
+    val isDemoModeActive: StateFlow<Boolean> = _isDemoModeActive.asStateFlow()
 
     fun enableDemoMode() {
-        isDemoModeActive = true
+        _isDemoModeActive.value = true
     }
 
     fun disableDemoMode() {
-        isDemoModeActive = false
+        _isDemoModeActive.value = false
     }
 }

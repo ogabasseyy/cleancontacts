@@ -1,7 +1,6 @@
 package com.ogabassey.contactscleaner.ui.util
 
 import androidx.compose.runtime.Composable
-import com.ogabassey.contactscleaner.domain.model.Contact
 
 /**
  * Contact picked from the system picker.

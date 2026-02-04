@@ -67,7 +67,6 @@ fun DashboardScreen(
     val permissionsState = rememberContactsPermissionState()
     val haptic = LocalHapticFeedback.current
     var scanRequested by remember { mutableStateOf(false) }
-    var permissionRequestCompleted by remember { mutableStateOf(false) }
 
     // Handle navigation events
     LaunchedEffect(Unit) {
@@ -80,38 +79,23 @@ fun DashboardScreen(
         }
     }
 
-    // Auto-start scan if permission granted after request, or navigate to limited access if denied
-    LaunchedEffect(permissionsState.authorizationStatus, scanRequested, permissionRequestCompleted) {
-        if (scanRequested && permissionRequestCompleted) {
+    // 2026 Fix: Consolidated LaunchedEffect for permission handling
+    // When scanRequested and status is determined, take action immediately
+    LaunchedEffect(permissionsState.authorizationStatus, scanRequested) {
+        if (scanRequested && permissionsState.authorizationStatus != ContactsAuthorizationStatus.NOT_DETERMINED) {
+            scanRequested = false
             when (permissionsState.authorizationStatus) {
-                ContactsAuthorizationStatus.AUTHORIZED -> {
-                    scanRequested = false
-                    permissionRequestCompleted = false
-                    viewModel.startScan()
-                }
+                ContactsAuthorizationStatus.AUTHORIZED,
                 ContactsAuthorizationStatus.LIMITED -> {
-                    // iOS 18+: User granted limited access, can still scan available contacts
-                    scanRequested = false
-                    permissionRequestCompleted = false
+                    // Can scan with full or limited access
                     viewModel.startScan()
                 }
                 ContactsAuthorizationStatus.DENIED -> {
                     // Apple Guideline 5.1.1: Navigate to limited access screen
-                    scanRequested = false
-                    permissionRequestCompleted = false
                     onNavigateToLimitedAccess()
                 }
-                ContactsAuthorizationStatus.NOT_DETERMINED -> {
-                    // Still waiting for user response
-                }
+                else -> { /* NOT_DETERMINED handled by outer condition */ }
             }
-        }
-    }
-
-    // Track when permission request completes
-    LaunchedEffect(permissionsState.authorizationStatus) {
-        if (scanRequested && permissionsState.authorizationStatus != ContactsAuthorizationStatus.NOT_DETERMINED) {
-            permissionRequestCompleted = true
         }
     }
 

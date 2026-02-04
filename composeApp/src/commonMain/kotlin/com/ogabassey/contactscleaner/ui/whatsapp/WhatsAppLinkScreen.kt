@@ -150,16 +150,12 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // Calculate max local digits based on country code (total max 15 digits)
-    val countryCodeDigits = remember(selectedCountry) {
-        selectedCountry.code.filter { it.isDigit() }.length
-    }
-    val maxLocalDigits = 15 - countryCodeDigits
+    // Use country-specific local digit count for validation
+    val expectedDigits = selectedCountry.localDigits
 
+    // Exact validation: phone number must match expected local digit count
     val isValid = remember(selectedCountry, phoneNumber) {
-        val fullNumber = selectedCountry.code + phoneNumber
-        val digits = fullNumber.filter { it.isDigit() }
-        digits.length in 8..15
+        phoneNumber.length == expectedDigits
     }
 
     val fullPhoneNumber = remember(selectedCountry, phoneNumber) {
@@ -204,12 +200,12 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Phone input - limit based on country code (total max 15 digits)
+        // Phone input - limit to country-specific digit count
         OutlinedTextField(
             value = phoneNumber,
             onValueChange = { newValue ->
                 val digitsOnly = newValue.filter { c -> c.isDigit() }
-                if (digitsOnly.length <= maxLocalDigits) {
+                if (digitsOnly.length <= expectedDigits) {
                     phoneNumber = digitsOnly
                 }
             },
@@ -249,9 +245,9 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            "Select your country and enter your local number",
+            "Enter $expectedDigits digits for ${selectedCountry.name} (${phoneNumber.length}/$expectedDigits)",
             style = MaterialTheme.typography.labelSmall,
-            color = TextLow
+            color = if (isValid) PrimaryNeon else TextLow
         )
 
         Spacer(modifier = Modifier.height(32.dp))

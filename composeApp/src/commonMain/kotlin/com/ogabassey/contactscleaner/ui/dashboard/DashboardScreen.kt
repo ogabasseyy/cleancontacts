@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalUriHandler
 import com.ogabassey.contactscleaner.ui.components.ContactsPermissionState
-import com.ogabassey.contactscleaner.ui.components.ContactsAuthorizationStatus
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.components.rememberContactsPermissionState
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -60,14 +59,12 @@ fun DashboardScreen(
     onNavigateToResults: () -> Unit = {},
     onNavigateToRecentActions: () -> Unit = {},
     onNavigateToSafeList: () -> Unit = {},
-    onNavigateToReviewSensitive: () -> Unit = {},
-    onNavigateToLimitedAccess: () -> Unit = {}
+    onNavigateToReviewSensitive: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val permissionsState = rememberContactsPermissionState()
     val haptic = LocalHapticFeedback.current
     var scanRequested by remember { mutableStateOf(false) }
-    var permissionRequestCompleted by remember { mutableStateOf(false) }
 
     // Handle navigation events
     LaunchedEffect(Unit) {
@@ -80,38 +77,11 @@ fun DashboardScreen(
         }
     }
 
-    // Auto-start scan if permission granted after request, or navigate to limited access if denied
-    LaunchedEffect(permissionsState.authorizationStatus, scanRequested, permissionRequestCompleted) {
-        if (scanRequested && permissionRequestCompleted) {
-            when (permissionsState.authorizationStatus) {
-                ContactsAuthorizationStatus.AUTHORIZED -> {
-                    scanRequested = false
-                    permissionRequestCompleted = false
-                    viewModel.startScan()
-                }
-                ContactsAuthorizationStatus.LIMITED -> {
-                    // iOS 18+: User granted limited access, can still scan available contacts
-                    scanRequested = false
-                    permissionRequestCompleted = false
-                    viewModel.startScan()
-                }
-                ContactsAuthorizationStatus.DENIED -> {
-                    // Apple Guideline 5.1.1: Navigate to limited access screen
-                    scanRequested = false
-                    permissionRequestCompleted = false
-                    onNavigateToLimitedAccess()
-                }
-                ContactsAuthorizationStatus.NOT_DETERMINED -> {
-                    // Still waiting for user response
-                }
-            }
-        }
-    }
-
-    // Track when permission request completes
-    LaunchedEffect(permissionsState.authorizationStatus) {
-        if (scanRequested && permissionsState.authorizationStatus != ContactsAuthorizationStatus.NOT_DETERMINED) {
-            permissionRequestCompleted = true
+    // Auto-start scan if permission granted after request
+    LaunchedEffect(permissionsState.allPermissionsGranted) {
+        if (permissionsState.allPermissionsGranted && scanRequested) {
+            scanRequested = false
+            viewModel.startScan()
         }
     }
 
@@ -227,22 +197,11 @@ fun DashboardScreen(
                                 indication = null
                             ) {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                val status = permissionsState.authorizationStatus
-                                when (status) {
-                                    ContactsAuthorizationStatus.AUTHORIZED,
-                                    ContactsAuthorizationStatus.LIMITED -> {
-                                        // Can scan with full or limited access
-                                        viewModel.startScan()
-                                    }
-                                    ContactsAuthorizationStatus.DENIED -> {
-                                        // Already denied - go to limited access screen
-                                        onNavigateToLimitedAccess()
-                                    }
-                                    ContactsAuthorizationStatus.NOT_DETERMINED -> {
-                                        // Request permission
-                                        scanRequested = true
-                                        permissionsState.launchRequest()
-                                    }
+                                if (permissionsState.allPermissionsGranted) {
+                                    viewModel.startScan()
+                                } else {
+                                    scanRequested = true
+                                    permissionsState.launchRequest()
                                 }
                             },
                         contentAlignment = Alignment.Center

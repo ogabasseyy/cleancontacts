@@ -75,7 +75,7 @@ class IosContactLauncher(
         return UIApplication.sharedApplication.keyWindow?.rootViewController
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun openContact(id: String) {
         val keysToFetch = listOf(CNContactViewController.descriptorForRequiredKeys())
 

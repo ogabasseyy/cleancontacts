@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import platform.Contacts.CNAuthorizationStatusAuthorized
 import platform.Contacts.CNAuthorizationStatusDenied
 import platform.Contacts.CNAuthorizationStatusNotDetermined
@@ -60,34 +62,41 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
     }
 }
 
-/**
- * Check if running iOS 18+
- */
+@OptIn(ExperimentalForeignApi::class)
 private fun isIOS18OrLater(): Boolean {
-    val version = NSProcessInfo.processInfo.operatingSystemVersion
-    return version.majorVersion >= 18L
+    return try {
+        val currentVersion = NSProcessInfo.processInfo.operatingSystemVersion
+        currentVersion.useContents { majorVersion >= 18L }
+    } catch (e: Exception) {
+        // Fallback: assume iOS 18+ if check fails on newer iOS versions
+        true
+    }
 }
 
 /**
  * Maps CNAuthorizationStatus to our cross-platform enum.
  * iOS 18+ adds CNAuthorizationStatusLimited for partial access.
- * 2026 Fix: Use runtime check for iOS 18+ to safely handle LIMITED status.
  */
 private fun checkAuthorizationStatus(): ContactsAuthorizationStatus {
-    val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
-    return when (status) {
-        CNAuthorizationStatusAuthorized -> ContactsAuthorizationStatus.AUTHORIZED
-        CNAuthorizationStatusDenied -> ContactsAuthorizationStatus.DENIED
-        CNAuthorizationStatusRestricted -> ContactsAuthorizationStatus.DENIED // Parental controls or MDM
-        CNAuthorizationStatusNotDetermined -> ContactsAuthorizationStatus.NOT_DETERMINED
-        else -> {
-            // iOS 18+ may return CNAuthorizationStatusLimited (value 4)
-            // Check at runtime since the constant may not be available on older iOS
-            if (isIOS18OrLater() && status.toLong() == 4L) {
-                ContactsAuthorizationStatus.LIMITED
-            } else {
-                ContactsAuthorizationStatus.NOT_DETERMINED
+    return try {
+        val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
+        when (status) {
+            CNAuthorizationStatusAuthorized -> ContactsAuthorizationStatus.AUTHORIZED
+            CNAuthorizationStatusDenied -> ContactsAuthorizationStatus.DENIED
+            CNAuthorizationStatusRestricted -> ContactsAuthorizationStatus.DENIED // Parental controls or MDM
+            CNAuthorizationStatusNotDetermined -> ContactsAuthorizationStatus.NOT_DETERMINED
+            else -> {
+                // iOS 18+ may return CNAuthorizationStatusLimited (value 4)
+                if (isIOS18OrLater() && status.toLong() == 4L) {
+                    ContactsAuthorizationStatus.LIMITED
+                } else {
+                    ContactsAuthorizationStatus.NOT_DETERMINED
+                }
             }
         }
+    } catch (e: Exception) {
+        // Defensive fallback if authorization check fails
+        println("⚠️ Error checking contacts authorization: ${e.message}")
+        ContactsAuthorizationStatus.NOT_DETERMINED
     }
 }

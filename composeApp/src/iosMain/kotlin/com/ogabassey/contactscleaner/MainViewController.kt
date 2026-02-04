@@ -12,23 +12,17 @@ import platform.UIKit.UIViewController
  * 2026 KMP Best Practice: Uses real iOS Contacts implementation via CNContactStore.
  */
 fun MainViewController(): UIViewController {
-    // Initialize SDK dependencies with defensive error handling
+    // Initialize RevenueCat BEFORE Koin to ensure BillingRepository
+    // can access Purchases.sharedInstance during its own initialization.
+    // Note: RevenueCat failure is non-fatal - billing features will be unavailable
     try {
-        // Initialize RevenueCat BEFORE Koin to ensure BillingRepository
-        // can access Purchases.sharedInstance during its own initialization.
         initRevenueCat()
     } catch (e: Exception) {
         println("⚠️ RevenueCat initialization failed: ${e.message}")
-        // Continue without RevenueCat - billing features will be unavailable
     }
 
-    try {
-        // Initialize Koin for iOS
-        initKoinIos()
-    } catch (e: Exception) {
-        println("⚠️ Koin initialization failed: ${e.message}")
-        // This is critical - app may not function properly
-    }
+    // Initialize Koin for iOS - critical for app functionality
+    initKoinIos()
 
     return ComposeUIViewController {
         App()

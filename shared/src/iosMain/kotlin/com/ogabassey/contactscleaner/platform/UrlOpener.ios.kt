@@ -18,6 +18,14 @@ actual object UrlOpener {
             Logger.e("UrlOpener", "Invalid URL: $url")
             return
         }
+
+        // 2026 Security: Validate scheme to prevent open redirect/malicious intents
+        val scheme = nsUrl.scheme?.lowercaseString
+        if (scheme != "http" && scheme != "https") {
+            Logger.e("UrlOpener", "Blocked unsafe URL scheme: $scheme in $url")
+            return
+        }
+
         dispatch_async(dispatch_get_main_queue()) {
             UIApplication.sharedApplication.openURL(
                 nsUrl,

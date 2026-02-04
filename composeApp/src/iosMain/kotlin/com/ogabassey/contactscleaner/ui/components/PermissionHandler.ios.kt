@@ -15,12 +15,24 @@ import platform.Contacts.CNAuthorizationStatusRestricted
 import platform.Contacts.CNContactStore
 import platform.Contacts.CNEntityType
 import platform.Foundation.NSURL
-import platform.Foundation.NSOperatingSystemVersion
 import platform.Foundation.NSProcessInfo
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 import platform.darwin.dispatch_async
 import platform.darwin.dispatch_get_main_queue
+
+/**
+ * CNAuthorizationStatusLimited value for iOS 18+ partial contact access.
+ *
+ * This constant represents the raw value of CNAuthorizationStatusLimited (4),
+ * which is not yet available in Kotlin/Native platform bindings as of 2026.
+ *
+ * Reference: Apple Documentation - CNAuthorizationStatus
+ * @see <a href="https://developer.apple.com/documentation/contacts/cnauthorizationstatus/limited">CNAuthorizationStatusLimited</a>
+ *
+ * TODO: Remove this constant when Kotlin/Native bindings include CNAuthorizationStatusLimited
+ */
+private const val CN_AUTHORIZATION_STATUS_LIMITED = 4L
 
 /**
  * iOS implementation using CNContactStore.
@@ -62,15 +74,19 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
     }
 }
 
+/**
+ * Check if running iOS 18+
+ */
 @OptIn(ExperimentalForeignApi::class)
 private fun isIOS18OrLater(): Boolean {
-    val currentVersion = NSProcessInfo.processInfo.operatingSystemVersion
-    return currentVersion.useContents { majorVersion >= 18L }
+    val version = NSProcessInfo.processInfo.operatingSystemVersion
+    return version.useContents { majorVersion >= 18L }
 }
 
 /**
  * Maps CNAuthorizationStatus to our cross-platform enum.
  * iOS 18+ adds CNAuthorizationStatusLimited for partial access.
+ * 2026 Fix: Use runtime check for iOS 18+ to safely handle LIMITED status.
  */
 private fun checkAuthorizationStatus(): ContactsAuthorizationStatus {
     val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
@@ -80,9 +96,8 @@ private fun checkAuthorizationStatus(): ContactsAuthorizationStatus {
         CNAuthorizationStatusRestricted -> ContactsAuthorizationStatus.DENIED // Parental controls or MDM
         CNAuthorizationStatusNotDetermined -> ContactsAuthorizationStatus.NOT_DETERMINED
         else -> {
-            // iOS 18+ returns CNAuthorizationStatusLimited (value 4) for partial access
-            // Note: CNAuthorizationStatusLimited constant not yet in Kotlin/Native bindings
-            if (isIOS18OrLater() && status == 4L) {
+            // iOS 18+ returns CNAuthorizationStatusLimited for partial access
+            if (isIOS18OrLater() && status == CN_AUTHORIZATION_STATUS_LIMITED) {
                 ContactsAuthorizationStatus.LIMITED
             } else {
                 ContactsAuthorizationStatus.NOT_DETERMINED

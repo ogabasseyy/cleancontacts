@@ -30,6 +30,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.ui.components.*
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -139,11 +140,24 @@ private fun LoadingContent(message: String = "Checking connection...") {
 @Composable
 private fun PhoneInputContent(onSubmit: (String) -> Unit) {
     var phoneNumber by remember { mutableStateOf("") }
+
+    // Auto-detect user's region for default country selection
+    val regionProvider = org.koin.compose.koinInject<com.ogabassey.contactscleaner.platform.RegionProvider>()
+    var selectedCountry by remember {
+        val regionIso = regionProvider.getRegionIso()
+        mutableStateOf(CountryResources.getDefaultCountry(regionIso))
+    }
+
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val isValid = remember(phoneNumber) {
-        val digits = phoneNumber.filter { it.isDigit() }
+    val isValid = remember(selectedCountry, phoneNumber) {
+        val fullNumber = selectedCountry.code + phoneNumber
+        val digits = fullNumber.filter { it.isDigit() }
         digits.length in 8..15
+    }
+
+    val fullPhoneNumber = remember(selectedCountry, phoneNumber) {
+        selectedCountry.code + phoneNumber
     }
 
     Column(
@@ -187,11 +201,17 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         // Phone input
         OutlinedTextField(
             value = phoneNumber,
-            onValueChange = { phoneNumber = it.filter { c -> c.isDigit() || c == '+' } },
+            onValueChange = { 
+                // Only allow digits in the main field now
+                phoneNumber = it.filter { c -> c.isDigit() } 
+            },
             label = { Text("Phone Number") },
-            placeholder = { Text("+1234567890") },
+            placeholder = { Text("812 345 6789") },
             leadingIcon = {
-                Icon(Icons.Default.Phone, contentDescription = "Phone number input", tint = TextMedium)
+                CountryCodePicker(
+                    selectedCountry = selectedCountry,
+                    onCountrySelected = { selectedCountry = it }
+                )
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
@@ -201,7 +221,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
                 onDone = { 
                     if (isValid) {
                         keyboardController?.hide()
-                        onSubmit(phoneNumber)
+                        onSubmit(fullPhoneNumber)
                     }
                 }
             ),
@@ -221,7 +241,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            "Include country code (e.g., +1 for US)",
+            "Select your country and enter your local number",
             style = MaterialTheme.typography.labelSmall,
             color = TextLow
         )
@@ -231,7 +251,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Button(
             onClick = { 
                 keyboardController?.hide()
-                onSubmit(phoneNumber) 
+                onSubmit(fullPhoneNumber) 
             },
             enabled = isValid,
             colors = ButtonDefaults.buttonColors(

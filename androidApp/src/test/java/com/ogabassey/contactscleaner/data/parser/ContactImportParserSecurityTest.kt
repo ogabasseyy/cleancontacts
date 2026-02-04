@@ -32,6 +32,20 @@ class ContactImportParserSecurityTest {
     }
 
     @Test
+    fun `parseFile boundary test for 2000 char limit`() {
+        // Test exact boundary: 2000 chars should be accepted, 2001 should be skipped
+        val exactlyAtLimit = "0".repeat(2000)
+        val oneOverLimit = "0".repeat(2001)
+        val content = "$exactlyAtLimit\n$oneOverLimit"
+
+        val result = parser.parseFile(content, "boundary.txt")
+
+        // Only the 2000-char line should be accepted (condition is > not >=)
+        assertEquals(1, result.validContacts.size)
+        assertEquals(exactlyAtLimit, result.validContacts[0].numbers[0])
+    }
+
+    @Test
     fun `parsePlainTextLine works without regex`() {
         // Ensure that removing regex doesn't break functionality
         val content = """

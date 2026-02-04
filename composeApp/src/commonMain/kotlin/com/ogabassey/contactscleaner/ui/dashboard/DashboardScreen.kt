@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalUriHandler
 import com.ogabassey.contactscleaner.ui.components.ContactsPermissionState
+import com.ogabassey.contactscleaner.ui.components.ContactsAuthorizationStatus
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.components.rememberContactsPermissionState
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -59,7 +60,8 @@ fun DashboardScreen(
     onNavigateToResults: () -> Unit = {},
     onNavigateToRecentActions: () -> Unit = {},
     onNavigateToSafeList: () -> Unit = {},
-    onNavigateToReviewSensitive: () -> Unit = {}
+    onNavigateToReviewSensitive: () -> Unit = {},
+    onNavigateToLimitedAccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val permissionsState = rememberContactsPermissionState()
@@ -77,11 +79,23 @@ fun DashboardScreen(
         }
     }
 
-    // Auto-start scan if permission granted after request
-    LaunchedEffect(permissionsState.allPermissionsGranted) {
-        if (permissionsState.allPermissionsGranted && scanRequested) {
+    // 2026 Fix: Consolidated LaunchedEffect for permission handling
+    // When scanRequested and status is determined, take action immediately
+    LaunchedEffect(permissionsState.authorizationStatus, scanRequested) {
+        if (scanRequested && permissionsState.authorizationStatus != ContactsAuthorizationStatus.NOT_DETERMINED) {
             scanRequested = false
-            viewModel.startScan()
+            when (permissionsState.authorizationStatus) {
+                ContactsAuthorizationStatus.AUTHORIZED,
+                ContactsAuthorizationStatus.LIMITED -> {
+                    // Can scan with full or limited access
+                    viewModel.startScan()
+                }
+                ContactsAuthorizationStatus.DENIED -> {
+                    // Apple Guideline 5.1.1: Navigate to limited access screen
+                    onNavigateToLimitedAccess()
+                }
+                else -> { /* NOT_DETERMINED handled by outer condition */ }
+            }
         }
     }
 
@@ -197,11 +211,22 @@ fun DashboardScreen(
                                 indication = null
                             ) {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                if (permissionsState.allPermissionsGranted) {
-                                    viewModel.startScan()
-                                } else {
-                                    scanRequested = true
-                                    permissionsState.launchRequest()
+                                val status = permissionsState.authorizationStatus
+                                when (status) {
+                                    ContactsAuthorizationStatus.AUTHORIZED,
+                                    ContactsAuthorizationStatus.LIMITED -> {
+                                        // Can scan with full or limited access
+                                        viewModel.startScan()
+                                    }
+                                    ContactsAuthorizationStatus.DENIED -> {
+                                        // Already denied - go to limited access screen
+                                        onNavigateToLimitedAccess()
+                                    }
+                                    ContactsAuthorizationStatus.NOT_DETERMINED -> {
+                                        // Request permission
+                                        scanRequested = true
+                                        permissionsState.launchRequest()
+                                    }
                                 }
                             },
                         contentAlignment = Alignment.Center

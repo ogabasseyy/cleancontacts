@@ -283,46 +283,44 @@ fun ResultsScreen(
 
 
                         // Dynamic Sorted List of Issues
-                        val sortedIssues = remember(scanResult) {
-                            listOfNotNull(
-                                if (scanResult.junkCount > 0) ResultItem(
-                                    "Junk Contacts", scanResult.junkCount, Icons.Default.Error, ErrorNeon, "Contacts with missing or invalid data", ContactType.JUNK
-                                ) else null,
-                                if (scanResult.noNameCount > 0) ResultItem(
-                                    "Missing Names", scanResult.noNameCount, Icons.Default.Person, ErrorNeon, "Contacts without a display name", ContactType.JUNK_NO_NAME
-                                ) else null,
-                                if (scanResult.noNumberCount > 0) ResultItem(
-                                    "Missing Numbers", scanResult.noNumberCount, Icons.Default.Phone, ErrorNeon, "Contacts without any phone numbers", ContactType.JUNK_NO_NUMBER
-                                ) else null,
-                                if (scanResult.duplicateCount > 0) ResultItem(
-                                    "Duplicates", scanResult.duplicateCount, Icons.Default.Person, WarningNeon, "Contacts that appear multiple times", ContactType.DUPLICATE
-                                ) else null,
-                                if (scanResult.invalidCharCount > 0) ResultItem(
-                                    "Invalid Characters", scanResult.invalidCharCount, Icons.Default.Warning, ErrorNeon, "Contacts with unusual characters", ContactType.JUNK_INVALID_CHAR
-                                ) else null,
-                                if (scanResult.repetitiveNumberCount > 0) ResultItem(
-                                    "Repetitive Numbers", scanResult.repetitiveNumberCount, Icons.Default.Refresh, ErrorNeon, "Numbers with repeating sequences", ContactType.JUNK_REPETITIVE
-                                ) else null,
-                                if (scanResult.symbolNameCount > 0) ResultItem(
-                                    "Symbol-only Names", scanResult.symbolNameCount, Icons.Default.Edit, ErrorNeon, "Names consisting only of symbols", ContactType.JUNK_SYMBOL
-                                ) else null,
-                                if (scanResult.numericalNameCount > 0) ResultItem(
-                                    "Numerical Names", scanResult.numericalNameCount, Icons.AutoMirrored.Filled.List, ErrorNeon, "Names consisting only of digits", ContactType.JUNK_NUMERICAL_NAME
-                                ) else null,
-                                if (scanResult.emojiNameCount > 0) ResultItem(
-                                    "Emoji-only Names", scanResult.emojiNameCount, Icons.Default.Face, ErrorNeon, "Names consisting only of emojis", ContactType.JUNK_EMOJI_NAME
-                                ) else null,
-                                if (scanResult.fancyFontCount > 0) ResultItem(
-                                    "Fancy Fonts", scanResult.fancyFontCount, Icons.Default.FontDownload, ErrorNeon, "Stylized or mathematical scripts", ContactType.JUNK_FANCY_FONT
-                                ) else null,
-                                if (scanResult.longNumberCount > 0) ResultItem(
-                                    "Long Numbers", scanResult.longNumberCount, Icons.Default.Info, WarningNeon, "Numbers that are unusually long", ContactType.JUNK_LONG_NUMBER
-                                ) else null,
-                                if (scanResult.shortNumberCount > 0) ResultItem(
-                                    "Short Numbers", scanResult.shortNumberCount, Icons.Default.Info, WarningNeon, "Numbers that are unusually short", ContactType.JUNK_SHORT_NUMBER
-                                ) else null
-                            ).sortedBy { it.title }
-                        }
+                        val sortedIssues = listOfNotNull(
+                            if (scanResult.junkCount > 0) ResultItem(
+                                "Junk Contacts", scanResult.junkCount, Icons.Default.Error, ErrorNeon, "Contacts with missing or invalid data", ContactType.JUNK
+                            ) else null,
+                            if (scanResult.noNameCount > 0) ResultItem(
+                                "Missing Names", scanResult.noNameCount, Icons.Default.Person, ErrorNeon, "Contacts without a display name", ContactType.JUNK_NO_NAME
+                            ) else null,
+                            if (scanResult.noNumberCount > 0) ResultItem(
+                                "Missing Numbers", scanResult.noNumberCount, Icons.Default.Phone, ErrorNeon, "Contacts without any phone numbers", ContactType.JUNK_NO_NUMBER
+                            ) else null,
+                            if (scanResult.duplicateCount > 0) ResultItem(
+                                "Duplicates", scanResult.duplicateCount, Icons.Default.Person, WarningNeon, "Contacts that appear multiple times", ContactType.DUPLICATE
+                            ) else null,
+                            if (scanResult.invalidCharCount > 0) ResultItem(
+                                "Invalid Characters", scanResult.invalidCharCount, Icons.Default.Warning, ErrorNeon, "Contacts with unusual characters", ContactType.JUNK_INVALID_CHAR
+                            ) else null,
+                            if (scanResult.repetitiveNumberCount > 0) ResultItem(
+                                "Repetitive Numbers", scanResult.repetitiveNumberCount, Icons.Default.Refresh, ErrorNeon, "Numbers with repeating sequences", ContactType.JUNK_REPETITIVE
+                            ) else null,
+                            if (scanResult.symbolNameCount > 0) ResultItem(
+                                "Symbol-only Names", scanResult.symbolNameCount, Icons.Default.Edit, ErrorNeon, "Names consisting only of symbols", ContactType.JUNK_SYMBOL
+                            ) else null,
+                            if (scanResult.numericalNameCount > 0) ResultItem(
+                                "Numerical Names", scanResult.numericalNameCount, Icons.AutoMirrored.Filled.List, ErrorNeon, "Names consisting only of digits", ContactType.JUNK_NUMERICAL_NAME
+                            ) else null,
+                            if (scanResult.emojiNameCount > 0) ResultItem(
+                                "Emoji-only Names", scanResult.emojiNameCount, Icons.Default.Face, ErrorNeon, "Names consisting only of emojis", ContactType.JUNK_EMOJI_NAME
+                            ) else null,
+                            if (scanResult.fancyFontCount > 0) ResultItem(
+                                "Fancy Fonts", scanResult.fancyFontCount, Icons.Default.FontDownload, ErrorNeon, "Stylized or mathematical scripts", ContactType.JUNK_FANCY_FONT
+                            ) else null,
+                            if (scanResult.longNumberCount > 0) ResultItem(
+                                "Long Numbers", scanResult.longNumberCount, Icons.Default.Info, WarningNeon, "Numbers that are unusually long", ContactType.JUNK_LONG_NUMBER
+                            ) else null,
+                            if (scanResult.shortNumberCount > 0) ResultItem(
+                                "Short Numbers", scanResult.shortNumberCount, Icons.Default.Info, WarningNeon, "Numbers that are unusually short", ContactType.JUNK_SHORT_NUMBER
+                            ) else null
+                        ).sortedBy { it.title }
 
                         items(
                             items = sortedIssues,

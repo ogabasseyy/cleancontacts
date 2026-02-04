@@ -94,7 +94,9 @@ fun DashboardScreen(
                     // Apple Guideline 5.1.1: Navigate to limited access screen
                     onNavigateToLimitedAccess()
                 }
-                else -> { /* NOT_DETERMINED handled by outer condition */ }
+                // NOT_DETERMINED is excluded by outer condition - no else branch needed
+                // 2026 Best Practice: Exhaustive when without else ensures compile-time safety
+                ContactsAuthorizationStatus.NOT_DETERMINED -> Unit
             }
         }
     }

@@ -5,8 +5,11 @@ import com.ogabassey.contactscleaner.domain.model.ImportResult
 
 class ContactImportParser {
 
-    private companion object {
-        // 2026 Security: Limit line length to prevent DoS/memory exhaustion
+    companion object {
+        /**
+         * Maximum allowed line length to prevent DoS/memory exhaustion attacks.
+         * Lines exceeding this length are silently skipped during parsing.
+         */
         const val MAX_LINE_LENGTH = 2000
     }
 
@@ -81,7 +84,7 @@ class ContactImportParser {
 
     private fun parsePlainTextLine(line: String, id: Long): Contact? {
         // Assume each line is a phone number
-        // 2026 Optimization: Use manual check instead of Regex(".*\\d+.*") to prevent ReDoS
+        // Simple digit check: .any {} is more efficient than regex for single-character validation
         return if (line.any { it.isDigit() }) {
             Contact(
                 id = id,

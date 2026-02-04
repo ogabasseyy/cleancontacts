@@ -51,15 +51,21 @@ class CleanContactsApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
 
-        // Configure RevenueCat KMP SDK
-        RevenueCatInitializer.initialize(
-            appUserId = null,
-            debugMode = BuildConfig.DEBUG
-        )
+        try {
+            // Configure RevenueCat KMP SDK (API key read from RevenueCatConfig)
+            RevenueCatInitializer.initialize(
+                appUserId = null,
+                debugMode = BuildConfig.DEBUG
+            )
 
-        // Force refresh billing repository
-        billingRepository.refresh()
-        billingRepository.packages.value
+            // Force refresh billing repository
+            // 2026 Fix: Add guard for potential startup race conditions or network errors
+            billingRepository.refresh()
+            billingRepository.packages.value
+        } catch (e: Exception) {
+            // Log the error but don't crash the entire app if billing setup fails
+            android.util.Log.e("CleanContactsApp", "Startup initialization failed", e)
+        }
     }
 
     override val workManagerConfiguration: Configuration

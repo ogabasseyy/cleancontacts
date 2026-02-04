@@ -30,8 +30,8 @@ android {
         applicationId = "com.ogabassey.contactscleaner"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -69,6 +69,8 @@ android {
             // Optimization for App Store
             ndk {
                 debugSymbolLevel = "FULL"
+                // 2026 Best Practice: Exclude emulator architectures from release to reduce size
+                abiFilters += listOf("armeabi-v7a", "arm64-v8a")
             }
         }
         debug {
@@ -157,11 +159,11 @@ dependencies {
     // Generative AI (ML Kit 2026 Best Practice)
     implementation(libs.mlkit.genai)
 
-    // Room Persistence
+    // Room Persistence - runtime only, KSP is handled by :shared module
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
-    ksp(libs.androidx.room.compiler)
+    // Note: Room compiler KSP removed - :shared generates DAO implementations
 
     // Paging 3
     implementation(libs.androidx.paging.runtime)

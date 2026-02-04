@@ -17,7 +17,16 @@ actual object UrlOpener : KoinComponent {
 
     actual fun openUrl(url: String) {
         try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            val uri = Uri.parse(url)
+            val scheme = uri.scheme?.lowercase()
+
+            // 2026 Security: Validate scheme to prevent open redirect/malicious intents
+            if (scheme != "http" && scheme != "https") {
+                Logger.e("UrlOpener", "Blocked unsafe URL scheme: $scheme in $url")
+                return
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)

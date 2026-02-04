@@ -47,7 +47,6 @@ private fun initRevenueCat() {
     if (revenueCatInitialized) return
     // 2026 Best Practice: Initialize RevenueCat after Koin
     RevenueCatInitializer.initialize(
-        apiKey = com.ogabassey.contactscleaner.platform.RevenueCatConfig.apiKey,
         appUserId = null, // Anonymous user, RevenueCat generates ID
         debugMode = false // Production ready
     )

@@ -34,6 +34,10 @@ import com.ogabassey.contactscleaner.ui.duplicates.DuplicateSubGroupsScreen
 import com.ogabassey.contactscleaner.ui.duplicates.CrossAccountDetailScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkScreen
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsScreen
+import com.ogabassey.contactscleaner.ui.limitedaccess.LimitedAccessScreen
+import com.ogabassey.contactscleaner.data.DemoDataProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import kotlinx.serialization.Serializable
 
 /**
@@ -50,6 +54,8 @@ import kotlinx.serialization.Serializable
 @Serializable object HistoryRoute
 @Serializable object WhatsAppLinkRoute
 @Serializable object WhatsAppContactsRoute
+@Serializable object LimitedAccessRoute
+@Serializable object DemoModeRoute
 @Serializable data class CategoryDetailRoute(val typeName: String)
 
 /**
@@ -70,7 +76,8 @@ fun AppNavigation(
                     onNavigateToResults = { navController.navigate(ResultsRoute()) },
                     onNavigateToRecentActions = { navController.navigate(RecentActionsRoute) },
                     onNavigateToSafeList = { navController.navigate(SafeListRoute) },
-                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) }
+                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) },
+                    onNavigateToLimitedAccess = { navController.navigate(LimitedAccessRoute) }
                 )
             }
 
@@ -173,6 +180,40 @@ fun AppNavigation(
             composable<CrossAccountRoute> {
                 CrossAccountDetailScreen(
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable<LimitedAccessRoute> {
+                // 2026 Fix: Removed unused onPickContacts parameter
+                LimitedAccessScreen(
+                    onDemoMode = {
+                        navController.navigate(DemoModeRoute) {
+                            popUpTo(LimitedAccessRoute) { inclusive = true }
+                        }
+                    },
+                    onOpenSettings = {
+                        // Settings opening handled by the screen's permissionState.openSettings()
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable<DemoModeRoute> {
+                // 2026 Fix: Enable/disable demo mode properly
+                LaunchedEffect(Unit) {
+                    DemoDataProvider.enableDemoMode()
+                }
+                DisposableEffect(Unit) {
+                    onDispose { DemoDataProvider.disableDemoMode() }
+                }
+
+                // Demo mode uses the same DashboardScreen but with demo data
+                DashboardScreen(
+                    onNavigateToResults = { navController.navigate(ResultsRoute()) },
+                    onNavigateToRecentActions = { navController.navigate(RecentActionsRoute) },
+                    onNavigateToSafeList = { navController.navigate(SafeListRoute) },
+                    onNavigateToReviewSensitive = { navController.navigate(ReviewSensitiveRoute) },
+                    onNavigateToLimitedAccess = { navController.navigate(LimitedAccessRoute) }
                 )
             }
         }

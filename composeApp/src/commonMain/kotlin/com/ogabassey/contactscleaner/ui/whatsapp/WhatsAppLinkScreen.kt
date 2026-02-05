@@ -29,7 +29,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ogabassey.contactscleaner.platform.RegionProvider
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.ui.components.*
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -139,11 +142,37 @@ private fun LoadingContent(message: String = "Checking connection...") {
 @Composable
 private fun PhoneInputContent(onSubmit: (String) -> Unit) {
     var phoneNumber by remember { mutableStateOf("") }
+
+    // Auto-detect user's region for default country selection
+    val regionProvider = koinInject<RegionProvider>()
+    var selectedCountry by remember {
+        val regionIso = regionProvider.getRegionIso()
+        mutableStateOf(CountryResources.getDefaultCountry(regionIso))
+    }
+
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    val isValid = remember(phoneNumber) {
-        val digits = phoneNumber.filter { it.isDigit() }
-        digits.length in 8..15
+    // Use country-specific local digit count for validation
+    val expectedDigits = selectedCountry.localDigits
+
+    // 2026 Best Practice: Use LaunchedEffect to synchronize related state when a value changes.
+    // When selectedCountry changes, truncate phoneNumber to the new country's localDigits.
+    // This is a side effect (mutating state in response to another state change), not a derived value,
+    // so LaunchedEffect is the correct choice over derivedStateOf.
+    // See: https://developer.android.com/develop/ui/compose/side-effects
+    LaunchedEffect(selectedCountry) {
+        if (phoneNumber.length > expectedDigits) {
+            phoneNumber = phoneNumber.take(expectedDigits)
+        }
+    }
+
+    // Exact validation: phone number must match expected local digit count
+    val isValid = remember(selectedCountry, phoneNumber) {
+        phoneNumber.length == expectedDigits
+    }
+
+    val fullPhoneNumber = remember(selectedCountry, phoneNumber) {
+        selectedCountry.code + phoneNumber
     }
 
     Column(
@@ -184,14 +213,22 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Phone input
+        // Phone input - limit to country-specific digit count
         OutlinedTextField(
             value = phoneNumber,
-            onValueChange = { phoneNumber = it.filter { c -> c.isDigit() || c == '+' } },
+            onValueChange = { newValue ->
+                val digitsOnly = newValue.filter { c -> c.isDigit() }
+                if (digitsOnly.length <= expectedDigits) {
+                    phoneNumber = digitsOnly
+                }
+            },
             label = { Text("Phone Number") },
-            placeholder = { Text("+1234567890") },
+            placeholder = { Text("812 345 6789") },
             leadingIcon = {
-                Icon(Icons.Default.Phone, contentDescription = "Phone number input", tint = TextMedium)
+                CountryCodePicker(
+                    selectedCountry = selectedCountry,
+                    onCountrySelected = { selectedCountry = it }
+                )
             },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Phone,
@@ -201,7 +238,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
                 onDone = { 
                     if (isValid) {
                         keyboardController?.hide()
-                        onSubmit(phoneNumber)
+                        onSubmit(fullPhoneNumber)
                     }
                 }
             ),
@@ -221,9 +258,9 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            "Include country code (e.g., +1 for US)",
+            "Enter $expectedDigits digits for ${selectedCountry.name} (${phoneNumber.length}/$expectedDigits)",
             style = MaterialTheme.typography.labelSmall,
-            color = TextLow
+            color = if (isValid) PrimaryNeon else TextLow
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -231,7 +268,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         Button(
             onClick = { 
                 keyboardController?.hide()
-                onSubmit(phoneNumber) 
+                onSubmit(fullPhoneNumber) 
             },
             enabled = isValid,
             colors = ButtonDefaults.buttonColors(

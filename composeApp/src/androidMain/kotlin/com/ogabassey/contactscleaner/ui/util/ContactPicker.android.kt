@@ -3,6 +3,7 @@ package com.ogabassey.contactscleaner.ui.util
 import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -10,13 +11,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 /**
- * Android Contact Picker - Apple Guideline 5.1.1 Compliance
+ * Android Contact Picker - Minimal Permission Design
  *
- * Uses ActivityResultContracts.PickContact which DOES NOT require
- * READ_CONTACTS permission. The system shows all contacts, user picks one,
- * and only that contact's URI is returned. We can then read basic data
- * from the returned URI without full contacts permission.
+ * Uses ActivityResultContracts.PickContact which does not require
+ * READ_CONTACTS permission. The system presents all contacts, the user
+ * selects one, and only that contact's URI is returned. Basic contact
+ * data can then be read from the returned URI without requesting full
+ * contacts access, following the principle of minimal data collection.
  */
+private const val TAG = "ContactPicker"
 class AndroidContactPicker(
     private val context: Context,
     private val launcher: androidx.activity.result.ActivityResultLauncher<Void?>
@@ -97,8 +100,14 @@ private fun readContactFromUri(context: Context, uri: Uri): PickedContact? {
             )
         }
 
+    } catch (e: SecurityException) {
+        Log.e(TAG, "Permission denied reading contact from URI", e)
+        return null
+    } catch (e: IllegalArgumentException) {
+        Log.e(TAG, "Invalid contact URI or query parameters", e)
+        return null
     } catch (e: Exception) {
-        e.printStackTrace()
+        Log.e(TAG, "Unexpected error reading contact from URI", e)
         return null
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.ogabassey.contactscleaner.data.repository.RevenueCatInitializer
 import com.ogabassey.contactscleaner.di.KoinHelper
 import com.ogabassey.contactscleaner.di.viewModelModule
+import com.ogabassey.contactscleaner.platform.Logger
 import platform.UIKit.UIViewController
 
 /**
@@ -12,11 +13,17 @@ import platform.UIKit.UIViewController
  * 2026 KMP Best Practice: Uses real iOS Contacts implementation via CNContactStore.
  */
 fun MainViewController(): UIViewController {
-    // Initialize Koin for iOS
-    initKoinIos()
+    // Initialize RevenueCat BEFORE Koin to ensure BillingRepository
+    // can access Purchases.sharedInstance during its own initialization.
+    // Note: RevenueCat failure is non-fatal - billing features will be unavailable
+    try {
+        initRevenueCat()
+    } catch (e: IllegalStateException) {
+        Logger.e("MainViewController", "RevenueCat initialization failed: ${e.message}")
+    }
 
-    // Initialize RevenueCat for in-app purchases
-    initRevenueCat()
+    // Initialize Koin for iOS - critical for app functionality
+    initKoinIos()
 
     return ComposeUIViewController {
         App()

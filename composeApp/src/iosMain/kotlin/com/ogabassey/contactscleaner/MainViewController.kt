@@ -46,7 +46,7 @@ private fun initKoinIos() {
 
 private fun initRevenueCat() {
     if (revenueCatInitialized) return
-    // 2026 Best Practice: Initialize RevenueCat after Koin
+    // RevenueCat initialized before Koin so BillingRepository can access Purchases.sharedInstance
     RevenueCatInitializer.initialize(
         appUserId = null, // Anonymous user, RevenueCat generates ID
         debugMode = false // Production ready

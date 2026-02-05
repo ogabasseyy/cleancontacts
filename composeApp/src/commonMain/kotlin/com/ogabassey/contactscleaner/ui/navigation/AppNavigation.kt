@@ -192,8 +192,12 @@ fun AppNavigation(
                         }
                     },
                     onOpenSettings = {
-                        // Settings opening handled by the screen's permissionState.openSettings()
-                        navController.popBackStack()
+                        // 2026 Best Practice: Do NOT pop the back stack when opening settings.
+                        // The screen must remain visible so that:
+                        // 1. User returns to the same context after changing settings
+                        // 2. Permission state is automatically re-evaluated on resume
+                        // 3. App can react to permission changes (e.g., navigate to Dashboard if granted)
+                        // The actual settings opening is handled by permissionState.openSettings()
                     }
                 )
             }

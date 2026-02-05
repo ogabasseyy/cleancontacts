@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalUriHandler
+import kotlinx.coroutines.launch
 import com.ogabassey.contactscleaner.ui.components.ContactsPermissionState
 import com.ogabassey.contactscleaner.ui.components.ContactsAuthorizationStatus
 import com.ogabassey.contactscleaner.ui.components.glassy
@@ -490,68 +491,89 @@ fun SettingsContent(
     onNavigateToSafeList: () -> Unit = {}
 ) {
     val uriHandler = LocalUriHandler.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp)
-            .padding(bottom = 32.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+                .padding(bottom = 80.dp)
         ) {
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = PrimaryNeon
-            )
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Close Settings",
-                    tint = Color.White.copy(alpha = 0.6f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Settings",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryNeon
                 )
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close Settings",
+                        tint = Color.White.copy(alpha = 0.6f)
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SettingsItem(
+                icon = Icons.Default.Info,
+                title = "Version",
+                subtitle = versionName,
+                showChevron = false,
+                onClick = {
+                    scope.launch {
+                        snackbarHostState.showSnackbar("You are using the latest version 🚀")
+                    }
+                }
+            )
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
+
+            SettingsItem(
+                icon = Icons.Default.Lock,
+                title = "Safe List",
+                subtitle = "Managed protected contacts",
+                onClick = onNavigateToSafeList
+            )
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
+
+            SettingsItem(
+                icon = Icons.Default.Info,
+                title = "Privacy Policy",
+                subtitle = "How we handle your data",
+                onClick = { uriHandler.openUri("https://contactscleaner.tech/privacy") }
+            )
+
+            SettingsItem(
+                icon = Icons.AutoMirrored.Filled.List,
+                title = "Terms of Service",
+                subtitle = "Legal agreements",
+                onClick = { uriHandler.openUri("https://contactscleaner.tech/terms") }
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "Contacts Cleaner is built with privacy in mind. Your contacts are processed locally on your device and never uploaded to our servers.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.5f)
+            )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SettingsItem(icon = Icons.Default.Info, title = "Version", subtitle = versionName)
-
-        HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
-
-        SettingsItem(
-            icon = Icons.Default.Lock,
-            title = "Safe List",
-            subtitle = "Managed protected contacts",
-            onClick = onNavigateToSafeList
-        )
-
-        HorizontalDivider(color = Color.White.copy(alpha = 0.05f), modifier = Modifier.padding(vertical = 12.dp))
-
-        SettingsItem(
-            icon = Icons.Default.Info,
-            title = "Privacy Policy",
-            subtitle = "How we handle your data",
-            onClick = { uriHandler.openUri("https://contactscleaner.tech/privacy") }
-        )
-
-        SettingsItem(
-            icon = Icons.AutoMirrored.Filled.List,
-            title = "Terms of Service",
-            subtitle = "Legal agreements",
-            onClick = { uriHandler.openUri("https://contactscleaner.tech/terms") }
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Contacts Cleaner is built with privacy in mind. Your contacts are processed locally on your device and never uploaded to our servers.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.5f)
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp)
         )
     }
 }
@@ -561,6 +583,7 @@ fun SettingsItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
+    showChevron: Boolean = true,
     onClick: (() -> Unit)? = null
 ) {
     Row(
@@ -587,7 +610,7 @@ fun SettingsItem(
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
         }
         // 2026 UX: Visual affordance - chevron indicates item is clickable
-        if (onClick != null) {
+        if (onClick != null && showChevron) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,

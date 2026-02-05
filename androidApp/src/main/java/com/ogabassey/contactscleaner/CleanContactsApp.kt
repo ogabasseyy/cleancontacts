@@ -61,7 +61,6 @@ class CleanContactsApp : Application(), Configuration.Provider {
             // Force refresh billing repository
             // 2026 Fix: Add guard for potential startup race conditions or network errors
             billingRepository.refresh()
-            billingRepository.packages.value
         } catch (e: Exception) {
             // Log the error but don't crash the entire app if billing setup fails
             android.util.Log.e("CleanContactsApp", "Startup initialization failed", e)

@@ -5,8 +5,8 @@ plugins {
     // 2026 AGP 9.0: kotlin.android removed - AGP has built-in Kotlin support
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
     // 2026 AGP 9.0: Hilt removed - incompatible with AGP 9.0, migrated to Koin
+    // Note: KSP plugin removed - Room KSP processing is handled by :shared module
 }
 
 // Load local.properties

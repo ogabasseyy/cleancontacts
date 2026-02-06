@@ -14,12 +14,20 @@ object ExportUtils {
     /**
      * RFC 4180 compliant CSV escaping.
      * Wraps field in quotes if it contains special characters, and escapes internal quotes.
+     * 2026 Security Fix: Prevents CSV Injection (Formula Injection) by prepending single quote
+     * to values starting with =, +, -, or @.
      */
     fun escapeCsvValue(value: String): String {
-        return if (value.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
-            "\"${value.replace("\"", "\"\"")}\""
+        var finalValue = value
+        // Security: Prevent CSV Injection (Formula Injection)
+        if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") || value.startsWith("@")) {
+            finalValue = "'$value"
+        }
+
+        return if (finalValue.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
+            "\"${finalValue.replace("\"", "\"\"")}\""
         } else {
-            value
+            finalValue
         }
     }
 

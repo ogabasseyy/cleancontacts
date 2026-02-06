@@ -27,3 +27,8 @@
 **Vulnerability:** `UrlOpener` allowed opening any URI scheme (e.g., `file://`, `javascript:`, `custom-scheme://`) passed to it via `Intent.ACTION_VIEW` or `UIApplication.openURL`, potentially enabling open redirects or malicious intent triggers.
 **Learning:** Generic "open URL" utilities must strictly validate schemes to prevent intended web-only functions from being abused for system-level actions.
 **Prevention:** Whitelist allowed schemes (e.g., `http`, `https`) before passing URIs to system launchers.
+
+## 2026-02-04 - CSV Injection (Formula Injection) in Exports
+**Vulnerability:** `ExportUtils` sanitized quotes but failed to escape formula triggers (`=`, `+`, `-`, `@`), allowing malicious contact names to execute code in spreadsheet software.
+**Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection).
+**Prevention:** Explicitly prefix values starting with formula triggers with a single quote `'` to force text interpretation.

@@ -80,4 +80,24 @@ class DuplicateDetectorTest {
         assertEquals(2, result.size)
         assertTrue(result.all { it.contacts.size == 2 })
     }
+
+    @Test
+    fun `detect name duplicates correctly`() {
+        val contacts = listOf(
+            Contact(id = 1, name = "John Doe", numbers = listOf("+1"), normalizedNumber = null),
+            Contact(id = 2, name = "John Doe", numbers = listOf("+2"), normalizedNumber = null), // Exact match
+            Contact(id = 3, name = "john doe ", numbers = listOf("+3"), normalizedNumber = null), // Case/trim match
+            Contact(id = 4, name = "Jane Doe", numbers = listOf("+4"), normalizedNumber = null) // Unique
+        )
+
+        val result = duplicateDetector.detectDuplicates(contacts)
+
+        // Should find 1 group with 3 contacts
+        val nameGroup = result.find { it.matchingKey == "john doe" }
+        assertNotNull(nameGroup)
+        assertEquals(3, nameGroup?.contacts?.size)
+        assertTrue(nameGroup?.contacts?.any { it.id == 1L } == true)
+        assertTrue(nameGroup?.contacts?.any { it.id == 2L } == true)
+        assertTrue(nameGroup?.contacts?.any { it.id == 3L } == true)
+    }
 }

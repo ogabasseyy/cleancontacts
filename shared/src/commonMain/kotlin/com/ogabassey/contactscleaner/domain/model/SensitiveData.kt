@@ -23,4 +23,10 @@ data class SensitiveMatch(
     val type: SensitiveType,
     val confidence: Float, // 0.0 to 1.0
     val description: String
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    // The default data class toString() would include originalValue (e.g., SSN, Credit Card)
+    override fun toString(): String {
+        return "SensitiveMatch(type=$type, confidence=$confidence, description='$description', originalValue=***REDACTED***)"
+    }
+}

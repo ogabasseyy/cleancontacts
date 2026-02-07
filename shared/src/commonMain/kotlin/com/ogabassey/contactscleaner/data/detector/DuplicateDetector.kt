@@ -94,45 +94,54 @@ class DuplicateDetector(
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val groups = mutableListOf<DuplicateGroup>()
         val processedIds = mutableSetOf<Long>()
-        val sortedContacts = contacts.filter { !it.name.isNullOrEmpty() }.sortedBy { it.name }
+
+        // 2026 Optimization: Pre-calculate normalized names to avoid O(N * W) allocations
+        // W = Window Size (50). This reduces String allocations by ~50x in the hot loop.
+        val processedContacts = contacts
+            .filter { !it.name.isNullOrEmpty() }
+            .sortedBy { it.name }
+            .map { ProcessedContact(it, it.name!!.trim().lowercase()) }
 
         // Reuse buffers for Levenshtein distance to avoid frequent allocations
         val buffer1 = IntArray(MAX_NAME_LENGTH + 1)
         val buffer2 = IntArray(MAX_NAME_LENGTH + 1)
 
         // Limit comparison scope for performance
-        for (i in sortedContacts.indices) {
-            val contactA = sortedContacts[i]
+        for (i in processedContacts.indices) {
+            val pContactA = processedContacts[i]
+            val contactA = pContactA.contact
+
             if (contactA.id in processedIds) continue
 
             val currentGroup = mutableListOf(contactA)
-            // 2026 Best Practice: Avoid !! - use safe access with fallback
-            // Name is non-null here due to filter at line 97, but defensive coding is preferred
-            val nameA = contactA.name ?: continue
+            val nameA = contactA.name!! // Safe due to earlier filter
+            val cleanNameA = pContactA.cleanName
 
             // 2026 Security: Skip excessively long names to prevent algorithmic DoS
-            if (nameA.length > MAX_NAME_LENGTH) continue
+            if (cleanNameA.length > MAX_NAME_LENGTH) continue
 
             // Sliding window: Look ahead up to 50 items
-            val maxLookAhead = (i + 50).coerceAtMost(sortedContacts.size - 1)
+            val maxLookAhead = (i + 50).coerceAtMost(processedContacts.size - 1)
 
             for (j in i + 1..maxLookAhead) {
-                val contactB = sortedContacts[j]
+                val pContactB = processedContacts[j]
+                val contactB = pContactB.contact
+
                 if (contactB.id in processedIds) continue
 
-                // 2026 Best Practice: Avoid !! - defensive null handling
-                val nameB = contactB.name ?: continue
+                val cleanNameB = pContactB.cleanName
 
                 // 2026 Security: Skip excessively long names to prevent algorithmic DoS
-                if (nameB.length > MAX_NAME_LENGTH) continue
+                if (cleanNameB.length > MAX_NAME_LENGTH) continue
 
                 // If first character differs, we've passed similar names
-                if (!nameB.startsWith(nameA.take(1), ignoreCase = true)) break
+                // Using clean names for comparison is safe as they are lowercased
+                if (!cleanNameB.startsWith(cleanNameA.take(1))) break
 
                 // Length filter
-                if (abs(nameA.length - nameB.length) > 3) continue
+                if (abs(cleanNameA.length - cleanNameB.length) > 3) continue
 
-                if (isSimilar(nameA, nameB, buffer1, buffer2)) {
+                if (isSimilar(cleanNameA, cleanNameB, buffer1, buffer2)) {
                     currentGroup.add(contactB)
                     processedIds.add(contactB.id)
                 }
@@ -152,9 +161,8 @@ class DuplicateDetector(
         return groups
     }
 
-    private fun isSimilar(s1: String, s2: String, buffer1: IntArray? = null, buffer2: IntArray? = null): Boolean {
-        val d1 = s1.trim().lowercase()
-        val d2 = s2.trim().lowercase()
+    private fun isSimilar(d1: String, d2: String, buffer1: IntArray? = null, buffer2: IntArray? = null): Boolean {
+        // 2026 Optimization: Inputs are already normalized (trimmed & lowercased)
         if (d1 == d2) return false // Exact match is not "Similar"
 
         val dist = levenshteinDistance(d1, d2, buffer1, buffer2)
@@ -224,3 +232,8 @@ class DuplicateDetector(
         return phoneNumberHandler.normalizeToE164(number, region)
     }
 }
+
+private data class ProcessedContact(
+    val contact: Contact,
+    val cleanName: String
+)

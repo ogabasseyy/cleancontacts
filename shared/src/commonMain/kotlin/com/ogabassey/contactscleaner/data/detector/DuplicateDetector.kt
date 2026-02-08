@@ -34,86 +34,61 @@ class DuplicateDetector(
 
     private fun detectNumberDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val defaultRegion = regionProvider.getRegionIso()
+        val groups = mutableMapOf<String, MutableList<Contact>>()
 
-        // Flatten to (NormalizedNumber, Contact) pairs
-        val entries = contacts.flatMap { contact ->
-            contact.numbers.map { number ->
+        contacts.forEach { contact ->
+            contact.numbers.forEach { number ->
                 val normalized = phoneNumberHandler.normalizeToE164(number, defaultRegion)
-                normalized to contact
+                groups.getOrPut(normalized) { mutableListOf() }.add(contact)
             }
         }
 
-        return collectDuplicates(entries, DuplicateType.NUMBER_MATCH)
+        return groups.mapNotNull { (key, group) ->
+            val distinctContacts = group.distinctBy { it.id }
+            if (distinctContacts.size > 1) {
+                DuplicateGroup(
+                    matchingKey = key,
+                    duplicateType = DuplicateType.NUMBER_MATCH,
+                    contacts = distinctContacts.sortedBy { it.name }
+                )
+            } else null
+        }
     }
 
     private fun detectEmailDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        // Flatten to (NormalizedEmail, Contact) pairs
-        val entries = contacts.flatMap { contact ->
-            contact.emails.mapNotNull { email ->
+        val groups = mutableMapOf<String, MutableList<Contact>>()
+        contacts.forEach { contact ->
+            contact.emails.forEach { email ->
                 val normalized = email.trim().lowercase()
-                if (normalized.isNotBlank()) normalized to contact else null
+                if (normalized.isNotBlank()) {
+                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                }
             }
         }
 
-        return collectDuplicates(entries, DuplicateType.EMAIL_MATCH)
+        return groups.mapNotNull { (key, group) ->
+            val distinctContacts = group.distinctBy { it.id }
+            if (distinctContacts.size > 1) {
+                DuplicateGroup(
+                    matchingKey = key,
+                    duplicateType = DuplicateType.EMAIL_MATCH,
+                    contacts = distinctContacts.sortedBy { it.name }
+                )
+            } else null
+        }
     }
 
     private fun detectNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        // Map to (NormalizedName, Contact) pairs
-        val entries = contacts.mapNotNull { contact ->
-            val name = contact.name?.trim()?.lowercase()
-            if (!name.isNullOrEmpty()) name to contact else null
-        }
-
-        return collectDuplicates(entries, DuplicateType.NAME_MATCH)
-    }
-
-    /**
-     * Generic sort-and-sweep logic to find duplicates without massive Map allocations.
-     * Sorts O(N log N) and sweeps O(N).
-     */
-    private fun <K : Comparable<K>> collectDuplicates(
-        entries: List<Pair<K, Contact>>,
-        type: DuplicateType
-    ): List<DuplicateGroup> {
-        if (entries.isEmpty()) return emptyList()
-
-        // Sort by key
-        val sortedEntries = entries.sortedBy { it.first }
-        val groups = mutableListOf<DuplicateGroup>()
-
-        var i = 0
-        while (i < sortedEntries.size) {
-            val currentKey = sortedEntries[i].first
-            var j = i + 1
-            // Find end of current group
-            while (j < sortedEntries.size && sortedEntries[j].first == currentKey) {
-                j++
+        return contacts
+            .groupBy { it.name?.trim()?.lowercase() ?: "" }
+            .filter { it.key.isNotEmpty() && it.value.size > 1 }
+            .map { (name, duplicates) ->
+                DuplicateGroup(
+                    matchingKey = name,
+                    duplicateType = DuplicateType.NAME_MATCH,
+                    contacts = duplicates
+                )
             }
-
-            // Potential duplicate group found
-            if (j - i > 1) {
-                val groupContacts = ArrayList<Contact>(j - i)
-                for (k in i until j) {
-                    groupContacts.add(sortedEntries[k].second)
-                }
-
-                // Ensure distinct contacts (handle cases where same contact has same value twice)
-                val distinctContacts = groupContacts.distinctBy { it.id }
-
-                if (distinctContacts.size > 1) {
-                    groups.add(
-                        DuplicateGroup(
-                            matchingKey = currentKey.toString(),
-                            duplicateType = type,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
-                    )
-                }
-            }
-            i = j
-        }
-        return groups
     }
 
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
@@ -132,6 +107,7 @@ class DuplicateDetector(
 
             val currentGroup = mutableListOf(contactA)
             // 2026 Best Practice: Avoid !! - use safe access with fallback
+            // Name is non-null here due to filter at line 97, but defensive coding is preferred
             val nameA = contactA.name ?: continue
 
             // 2026 Security: Skip excessively long names to prevent algorithmic DoS
@@ -144,8 +120,10 @@ class DuplicateDetector(
                 val contactB = sortedContacts[j]
                 if (contactB.id in processedIds) continue
 
+                // 2026 Best Practice: Avoid !! - defensive null handling
                 val nameB = contactB.name ?: continue
 
+                // 2026 Security: Skip excessively long names to prevent algorithmic DoS
                 if (nameB.length > MAX_NAME_LENGTH) continue
 
                 // If first character differs, we've passed similar names
@@ -187,6 +165,7 @@ class DuplicateDetector(
 
     /**
      * Checks if the provided buffer pair is valid for reuse.
+     * Buffers must be non-null and large enough to hold s2.length + 1 elements.
      */
     private fun canReuseBuffers(buffer1: IntArray?, buffer2: IntArray?, requiredLength: Int): Boolean {
         return buffer1 != null && buffer2 != null &&

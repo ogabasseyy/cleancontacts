@@ -15,12 +15,15 @@ object ExportUtils {
      * RFC 4180 compliant CSV escaping.
      * Wraps field in quotes if it contains special characters, and escapes internal quotes.
      * 2026 Security Fix: Prevents CSV Injection (Formula Injection) by prepending single quote
-     * to values starting with =, +, -, or @.
+     * to values starting with = or @. Note: + and - are NOT escaped because they are common in
+     * phone numbers (e.g., +1234567890) and would corrupt exported contact data.
      */
     fun escapeCsvValue(value: String): String {
         var finalValue = value
         // Security: Prevent CSV Injection (Formula Injection)
-        if (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") || value.startsWith("@")) {
+        // Only escape = and @ which are formula triggers not found in legitimate contact data.
+        // + and - are intentionally excluded to preserve phone number formatting.
+        if (value.startsWith("=") || value.startsWith("@")) {
             finalValue = "'$value"
         }
 

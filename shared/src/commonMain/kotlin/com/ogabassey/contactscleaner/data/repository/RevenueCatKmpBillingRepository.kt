@@ -39,9 +39,26 @@ class RevenueCatKmpBillingRepository : BillingRepository {
 
     companion object {
         private const val TAG = "RevenueCatKmp"
+        private const val SDK_NOT_CONFIGURED = "RevenueCat SDK not configured. Billing features unavailable."
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    /**
+     * Safely get the Purchases singleton, or null if SDK was not configured.
+     */
+    private fun purchasesOrNull(): Purchases? {
+        return if (RevenueCatInitializer.isConfigured()) {
+            try {
+                Purchases.sharedInstance
+            } catch (e: Exception) {
+                Logger.e(TAG, "Failed to get Purchases instance: ${e.message}")
+                null
+            }
+        } else {
+            null
+        }
+    }
 
     private val _isPremium = MutableStateFlow(false)
     override val isPremium: StateFlow<Boolean> = _isPremium.asStateFlow()
@@ -74,8 +91,9 @@ class RevenueCatKmpBillingRepository : BillingRepository {
     }
 
     private suspend fun refreshEntitlements() {
+        val purchases = purchasesOrNull() ?: return
         try {
-            val customerInfo = Purchases.sharedInstance.awaitCustomerInfo()
+            val customerInfo = purchases.awaitCustomerInfo()
             val entitlement = customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
             val isActive = entitlement?.isActive == true
             Logger.d(TAG, "Premium entitlement active: $isActive")
@@ -86,8 +104,13 @@ class RevenueCatKmpBillingRepository : BillingRepository {
     }
 
     private suspend fun refreshOfferings() {
+        val purchases = purchasesOrNull()
+        if (purchases == null) {
+            _packages.value = Resource.Error(SDK_NOT_CONFIGURED)
+            return
+        }
         try {
-            val offerings = Purchases.sharedInstance.awaitOfferings()
+            val offerings = purchases.awaitOfferings()
             val current = offerings.current
             if (current == null) {
                 Logger.d(TAG, "No current offering available")
@@ -115,8 +138,11 @@ class RevenueCatKmpBillingRepository : BillingRepository {
     override suspend fun purchasePremium(packageId: String): Result<Unit> {
         Logger.d(TAG, "Starting purchase for package: $packageId")
 
+        val purchases = purchasesOrNull()
+            ?: return Result.failure(Exception(SDK_NOT_CONFIGURED))
+
         return try {
-            val offerings = Purchases.sharedInstance.awaitOfferings()
+            val offerings = purchases.awaitOfferings()
             val current = offerings.current
                 ?: throw BillingException.NoOfferingsAvailable()
 
@@ -128,7 +154,7 @@ class RevenueCatKmpBillingRepository : BillingRepository {
             } ?: throw BillingException.PackageNotFound(packageId)
 
             // Make the purchase using the store product
-            val purchaseResult = Purchases.sharedInstance.awaitPurchase(packageToBuy.storeProduct)
+            val purchaseResult = purchases.awaitPurchase(packageToBuy.storeProduct)
 
             // Update premium state
             val entitlement = purchaseResult.customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
@@ -146,8 +172,11 @@ class RevenueCatKmpBillingRepository : BillingRepository {
 
     override suspend fun restorePurchases(): Result<Unit> {
         Logger.d(TAG, "Restoring purchases...")
+        val purchases = purchasesOrNull()
+            ?: return Result.failure(Exception(SDK_NOT_CONFIGURED))
+
         return try {
-            val customerInfo = Purchases.sharedInstance.awaitRestore()
+            val customerInfo = purchases.awaitRestore()
             val entitlement = customerInfo.entitlements[RevenueCatConfig.premiumEntitlementId]
             val isActive = entitlement?.isActive == true
             Logger.d(TAG, "Restore successful, premium=$isActive")

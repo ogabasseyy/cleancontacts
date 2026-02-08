@@ -80,4 +80,20 @@ class DuplicateDetectorTest {
         assertEquals(2, result.size)
         assertTrue(result.all { it.contacts.size == 2 })
     }
+
+    @Test
+    fun `detect similar name duplicates`() {
+        val contacts = listOf(
+            Contact(id = 1, name = "Jonathan Doe", numbers = listOf("+111"), normalizedNumber = null),
+            Contact(id = 2, name = "Jonathon Doe", numbers = listOf("+222"), normalizedNumber = null), // 1 char diff
+            Contact(id = 3, name = "Jane Smith", numbers = listOf("+333"), normalizedNumber = null)
+        )
+
+        val result = duplicateDetector.detectSimilarNameDuplicates(contacts)
+
+        assertEquals(1, result.size)
+        assertEquals(2, result[0].contacts.size)
+        assertTrue(result[0].contacts.any { it.name == "Jonathan Doe" })
+        assertTrue(result[0].contacts.any { it.name == "Jonathon Doe" })
+    }
 }

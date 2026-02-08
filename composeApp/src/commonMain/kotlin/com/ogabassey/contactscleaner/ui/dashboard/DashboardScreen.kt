@@ -601,7 +601,12 @@ fun SettingsItem(
 
 @Composable
 fun ResultMiniStat(count: Int, label: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = "${count.formatWithCommas()} $label"
+        }
+    ) {
         Text(
             text = count.formatWithCommas(),
             style = MaterialTheme.typography.titleLarge,

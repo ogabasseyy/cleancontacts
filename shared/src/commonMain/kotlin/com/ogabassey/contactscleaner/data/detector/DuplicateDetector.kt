@@ -99,8 +99,8 @@ class DuplicateDetector(
         // W = Window Size (50). This reduces String allocations by ~50x in the hot loop.
         val processedContacts = contacts
             .filter { !it.name.isNullOrEmpty() }
-            .sortedBy { it.name }
             .map { ProcessedContact(it, it.name!!.trim().lowercase()) }
+            .sortedBy { it.cleanName }
 
         // Reuse buffers for Levenshtein distance to avoid frequent allocations
         val buffer1 = IntArray(MAX_NAME_LENGTH + 1)
@@ -120,6 +120,9 @@ class DuplicateDetector(
             // 2026 Security: Skip excessively long names to prevent algorithmic DoS
             if (cleanNameA.length > MAX_NAME_LENGTH) continue
 
+            // Hoist prefix outside inner loop to avoid String allocation per iteration
+            val cleanNameAPrefix = cleanNameA.take(1)
+
             // Sliding window: Look ahead up to 50 items
             val maxLookAhead = (i + 50).coerceAtMost(processedContacts.size - 1)
 
@@ -135,8 +138,7 @@ class DuplicateDetector(
                 if (cleanNameB.length > MAX_NAME_LENGTH) continue
 
                 // If first character differs, we've passed similar names
-                // Using clean names for comparison is safe as they are lowercased
-                if (!cleanNameB.startsWith(cleanNameA.take(1))) break
+                if (!cleanNameB.startsWith(cleanNameAPrefix)) break
 
                 // Length filter
                 if (abs(cleanNameA.length - cleanNameB.length) > 3) continue

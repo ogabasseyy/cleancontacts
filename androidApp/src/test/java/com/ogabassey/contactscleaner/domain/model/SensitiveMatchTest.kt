@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.domain.model
 
 import org.junit.Test
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 
 class SensitiveMatchTest {
 
@@ -16,11 +17,10 @@ class SensitiveMatchTest {
         )
 
         val stringRepresentation = match.toString()
-        println("SensitiveMatch.toString(): $stringRepresentation")
 
-        // This test confirms that PII is redacted in the toString() output
+        // This test confirms that PII is completely redacted in the toString() output
         // which prevents accidental leakage in logs.
-        assertTrue("PII should be redacted in toString()", !stringRepresentation.contains(sensitiveValue))
-        assertTrue("Should contain masked value", stringRepresentation.contains("***"))
+        assertFalse("PII should be redacted in toString()", stringRepresentation.contains(sensitiveValue))
+        assertTrue("Should contain redacted string", stringRepresentation.contains("***REDACTED***"))
     }
 }

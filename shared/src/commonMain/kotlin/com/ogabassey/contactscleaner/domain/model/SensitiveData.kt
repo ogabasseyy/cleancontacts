@@ -25,12 +25,7 @@ data class SensitiveMatch(
     val description: String
 ) {
     override fun toString(): String {
-        // 2026 Security Fix: Redact sensitive PII in logs
-        val redacted = if (originalValue.length > 4) {
-            "***" + originalValue.takeLast(4)
-        } else {
-            "***"
-        }
-        return "SensitiveMatch(originalValue=$redacted, type=$type, confidence=$confidence, description=$description)"
+        // 2026 Security Fix: Redact sensitive PII in logs completely
+        return "SensitiveMatch(originalValue=***REDACTED***, type=$type, confidence=$confidence, description=$description)"
     }
 }

@@ -94,45 +94,53 @@ class DuplicateDetector(
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val groups = mutableListOf<DuplicateGroup>()
         val processedIds = mutableSetOf<Long>()
-        val sortedContacts = contacts.filter { !it.name.isNullOrEmpty() }.sortedBy { it.name }
+
+        // 2026 Optimization: Pre-calculate normalized names to avoid repeated trim/lowercase in hot loop.
+        // Sort by normalized name to better group similar items (e.g. "Apple", "apple", "appla")
+        val processedContacts = contacts
+            .filter { !it.name.isNullOrEmpty() }
+            .map { ProcessedContact(it, it.name!!.trim().lowercase()) }
+            .sortedBy { it.normalizedName }
 
         // Reuse buffers for Levenshtein distance to avoid frequent allocations
         val buffer1 = IntArray(MAX_NAME_LENGTH + 1)
         val buffer2 = IntArray(MAX_NAME_LENGTH + 1)
 
         // Limit comparison scope for performance
-        for (i in sortedContacts.indices) {
-            val contactA = sortedContacts[i]
+        for (i in processedContacts.indices) {
+            val entryA = processedContacts[i]
+            val contactA = entryA.contact
             if (contactA.id in processedIds) continue
 
             val currentGroup = mutableListOf(contactA)
-            // 2026 Best Practice: Avoid !! - use safe access with fallback
-            // Name is non-null here due to filter at line 97, but defensive coding is preferred
-            val nameA = contactA.name ?: continue
+            val normNameA = entryA.normalizedName
+            val displayNameA = contactA.name ?: ""
 
             // 2026 Security: Skip excessively long names to prevent algorithmic DoS
-            if (nameA.length > MAX_NAME_LENGTH) continue
+            if (normNameA.length > MAX_NAME_LENGTH) continue
 
             // Sliding window: Look ahead up to 50 items
-            val maxLookAhead = (i + 50).coerceAtMost(sortedContacts.size - 1)
+            val maxLookAhead = (i + 50).coerceAtMost(processedContacts.size - 1)
 
             for (j in i + 1..maxLookAhead) {
-                val contactB = sortedContacts[j]
+                val entryB = processedContacts[j]
+                val contactB = entryB.contact
                 if (contactB.id in processedIds) continue
 
-                // 2026 Best Practice: Avoid !! - defensive null handling
-                val nameB = contactB.name ?: continue
+                val normNameB = entryB.normalizedName
 
                 // 2026 Security: Skip excessively long names to prevent algorithmic DoS
-                if (nameB.length > MAX_NAME_LENGTH) continue
+                if (normNameB.length > MAX_NAME_LENGTH) continue
 
                 // If first character differs, we've passed similar names
-                if (!nameB.startsWith(nameA.take(1), ignoreCase = true)) break
+                // 2026 Optimization: Check against normalized names directly
+                if (!normNameB.startsWith(normNameA.take(1))) break
 
                 // Length filter
-                if (abs(nameA.length - nameB.length) > 3) continue
+                if (abs(normNameA.length - normNameB.length) > 3) continue
 
-                if (isSimilar(nameA, nameB, buffer1, buffer2)) {
+                // Pass pre-normalized strings to avoid re-calculation
+                if (isSimilar(normNameA, normNameB, buffer1, buffer2)) {
                     currentGroup.add(contactB)
                     processedIds.add(contactB.id)
                 }
@@ -141,7 +149,7 @@ class DuplicateDetector(
             if (currentGroup.size > 1) {
                 groups.add(
                     DuplicateGroup(
-                        matchingKey = nameA,
+                        matchingKey = displayNameA,
                         duplicateType = DuplicateType.SIMILAR_NAME_MATCH,
                         contacts = currentGroup
                     )
@@ -152,9 +160,8 @@ class DuplicateDetector(
         return groups
     }
 
-    private fun isSimilar(s1: String, s2: String, buffer1: IntArray? = null, buffer2: IntArray? = null): Boolean {
-        val d1 = s1.trim().lowercase()
-        val d2 = s2.trim().lowercase()
+    // 2026 Optimization: Accepts pre-normalized strings
+    private fun isSimilar(d1: String, d2: String, buffer1: IntArray? = null, buffer2: IntArray? = null): Boolean {
         if (d1 == d2) return false // Exact match is not "Similar"
 
         val dist = levenshteinDistance(d1, d2, buffer1, buffer2)
@@ -162,6 +169,11 @@ class DuplicateDetector(
         val similarity = if (maxLength == 0) 0.0 else (1.0 - dist.toDouble() / maxLength)
         return similarity > 0.82 // 82% threshold
     }
+
+    private data class ProcessedContact(
+        val contact: Contact,
+        val normalizedName: String
+    )
 
     /**
      * Checks if the provided buffer pair is valid for reuse.

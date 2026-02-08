@@ -27,6 +27,12 @@ class SensitiveMatchTest {
             stringRepresentation.contains(sensitiveValue)
         )
 
+        // Verify redaction marker is present
+        assertTrue(
+            "toString should contain REDACTED marker",
+            stringRepresentation.contains("***REDACTED***")
+        )
+
         // Verify other fields are present
         assertTrue(stringRepresentation.contains("USA_SSN"))
         assertTrue(stringRepresentation.contains("USA Social Security Number"))

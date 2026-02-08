@@ -27,6 +27,6 @@ data class SensitiveMatch(
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     // The default data class toString() would include originalValue (e.g., SSN, Credit Card)
     override fun toString(): String {
-        return "SensitiveMatch(type=$type, confidence=$confidence, description='$description', originalValue=***REDACTED***)"
+        return "SensitiveMatch(type=$type, confidence=$confidence, description=$description, originalValue=***REDACTED***)"
     }
 }

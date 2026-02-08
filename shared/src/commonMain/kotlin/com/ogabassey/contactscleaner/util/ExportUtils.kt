@@ -12,14 +12,24 @@ object ExportUtils {
     private val CSV_SPECIAL_CHARS = charArrayOf(',', '"', '\n', '\r')
 
     /**
-     * RFC 4180 compliant CSV escaping.
+     * RFC 4180 compliant CSV escaping with Formula Injection prevention.
      * Wraps field in quotes if it contains special characters, and escapes internal quotes.
+     * Prepends a single quote if the value starts with formula triggers (=, +, -, @).
      */
     fun escapeCsvValue(value: String): String {
-        return if (value.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
-            "\"${value.replace("\"", "\"\"")}\""
+        // 2026 Security Fix: Prevent CSV Injection (Formula Injection)
+        // If a cell starts with =, +, -, or @, Excel interprets it as a formula.
+        // Prepending a single quote forces it to be treated as text.
+        val safeValue = if (value.isNotEmpty() && (value.startsWith("=") || value.startsWith("+") || value.startsWith("-") || value.startsWith("@"))) {
+            "'$value"
         } else {
             value
+        }
+
+        return if (safeValue.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
+            "\"${safeValue.replace("\"", "\"\"")}\""
+        } else {
+            safeValue
         }
     }
 

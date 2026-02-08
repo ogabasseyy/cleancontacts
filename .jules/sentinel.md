@@ -29,6 +29,6 @@
 **Prevention:** Whitelist allowed schemes (e.g., `http`, `https`) before passing URIs to system launchers.
 
 ## 2026-02-04 - CSV Injection (Formula Injection) in Exports
-**Vulnerability:** `ExportUtils` sanitized quotes but failed to escape formula triggers (`=`, `+`, `-`, `@`), allowing malicious contact names to execute code in spreadsheet software.
-**Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection).
-**Prevention:** Explicitly prefix values starting with formula triggers with a single quote `'` to force text interpretation.
+**Vulnerability:** `ExportUtils` sanitized quotes but failed to escape formula triggers (`=`, `@`), allowing malicious contact names to execute code in spreadsheet software.
+**Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection). Note: `+` and `-` must NOT be escaped in contact exports because phone numbers commonly start with `+`.
+**Prevention:** Prefix values starting with `=` or `@` with a single quote `'` to force text interpretation. Exclude `+` and `-` to preserve phone number data integrity.

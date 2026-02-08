@@ -18,7 +18,7 @@ fun MainViewController(): UIViewController {
     // Note: RevenueCat failure is non-fatal - billing features will be unavailable
     try {
         initRevenueCat()
-    } catch (e: IllegalStateException) {
+    } catch (e: Exception) {
         Logger.e("MainViewController", "RevenueCat initialization failed: ${e.message}")
     }
 

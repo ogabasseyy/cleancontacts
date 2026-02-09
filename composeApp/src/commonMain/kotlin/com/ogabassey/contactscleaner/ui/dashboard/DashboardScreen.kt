@@ -386,8 +386,10 @@ private fun ResultsSummaryCard(
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
             .glassy(radius = 16.dp)
+            // 2026 UX: Clickable area should include padding for better touch target
+            // 2026 Accessibility: Explicit role improves screen reader announcement
+            .clickable(role = Role.Button) { onViewDetails() }
             .padding(16.dp)
-            .clickable { onViewDetails() }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

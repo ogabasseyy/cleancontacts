@@ -13,3 +13,7 @@
 ## 2026-05-20 - [Local Feedback for Settings Items]
 **Learning:** Purely informational settings items (e.g., Version) create frustration when they appear interactive but do nothing. Adding micro-interactions (e.g., copy-to-clipboard with Snackbar) confirms system responsiveness and delights users.
 **Action:** Always make static settings items interactive if they contain copyable data, providing immediate local feedback (e.g. Snackbar) instead of navigation.
+
+## 2026-05-25 - [Clickable Card Padding]
+**Learning:** Applying `clickable` after inner padding creates unresponsive edges on cards. Users expect the entire visual container to be interactive.
+**Action:** For cards with inner padding, apply `clickable` *before* the padding modifier but after the visual shape/background (e.g. `glassy -> clickable -> padding`).

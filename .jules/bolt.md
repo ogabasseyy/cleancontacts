@@ -91,4 +91,20 @@ for (c in input) {
         // track repetition here...
     }
 }
+
+# 2026-03-01 - GroupBy vs Sort-and-Sweep
+
+**Learning:** `groupBy` creates a `Map.Entry` and `ArrayList` for every unique key, causing high GC pressure with large datasets of unique items (like contacts).
+
+**Action:** Replace `groupBy` with a "flatten, sort, and sweep" approach (`O(N log N)` time, `O(N)` space) to process groups sequentially without map overhead.
+
+```kotlin
+// ❌ Avoid: Allocates Map + ArrayLists
+items.groupBy { key(it) }
+
+// ✅ Prefer: Sort and iterate
+items.map { key(it) to it }
+     .sortedBy { it.first }
+     .forEach { // sequential group processing }
+```
 ```

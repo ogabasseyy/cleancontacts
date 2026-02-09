@@ -32,3 +32,8 @@
 **Vulnerability:** `ExportUtils` sanitized quotes but failed to escape formula triggers (`=`, `@`), allowing malicious contact names to execute code in spreadsheet software.
 **Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection). Note: `+` and `-` must NOT be escaped in contact exports because phone numbers commonly start with `+`.
 **Prevention:** Prefix values starting with `=` or `@` with a single quote `'` to force text interpretation. Exclude `+` and `-` to preserve phone number data integrity.
+
+## 2026-02-04 - Refined CSV Injection Protection (Context-Aware Escaping)
+**Vulnerability:** `ExportUtils` broadly exempted `+` and `-` from escaping to support phone numbers, but failed to distinguish between safe numeric strings and potential command payloads (e.g., `+cmd|...`) in non-numeric fields like names.
+**Learning:** Broad exemptions for specific characters can reintroduce the vulnerability they were meant to avoid if the context (numeric vs text) is ignored.
+**Prevention:** Refine exemptions to only allow `+` and `-` if the remaining string contains no letters (A-Z), effectively blocking command execution while preserving valid phone numbers.

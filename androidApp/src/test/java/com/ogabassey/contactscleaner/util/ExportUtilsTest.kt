@@ -14,10 +14,20 @@ class ExportUtilsTest {
     }
 
     @Test
-    fun escapeCsvValue_shouldNotEscapePlusAndMinus() {
-        // + and - must NOT be escaped because they appear in phone numbers
+    fun escapeCsvValue_shouldNotEscapePurePhoneNumbers() {
+        // + and - must NOT be escaped if they are just digits/symbols (phone numbers)
         assertEquals("+1234567890", ExportUtils.escapeCsvValue("+1234567890"))
+        // -1+1 contains no letters, so it's treated as safe (though it might be a math formula, it's not RCE)
         assertEquals("-1+1", ExportUtils.escapeCsvValue("-1+1"))
+    }
+
+    @Test
+    fun escapeCsvValue_shouldEscapeMaliciousPlusAndMinus() {
+        // + and - SHOULD be escaped if they contain letters (potential RCE)
+        assertEquals("'+cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("+cmd|' /C calc'!A0"))
+        assertEquals("'-cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("-cmd|' /C calc'!A0"))
+        // Mixed alphanumeric starting with +
+        assertEquals("'+123A", ExportUtils.escapeCsvValue("+123A"))
     }
 
     @Test

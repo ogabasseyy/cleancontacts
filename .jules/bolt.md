@@ -92,11 +92,11 @@ for (c in input) {
     }
 }
 
-# 2026-03-01 - GroupBy vs Sort-and-Sweep
+# 2026-03-01 - GroupBy vs Sort-and-Sweep (REJECTED)
 
-**Learning:** `groupBy` creates a `Map.Entry` and `ArrayList` for every unique key, causing high GC pressure with large datasets of unique items (like contacts).
+**Learning:** `groupBy` is the idiomatic Kotlin approach (O(N)) for grouping. Replacing it with a "flatten, sort, and sweep" approach (O(N log N)) to save memory adds complexity and is not justified unless profiling proves a critical bottleneck.
 
-**Action:** Replace `groupBy` with a "flatten, sort, and sweep" approach (`O(N log N)` time, `O(N)` space) to process groups sequentially without map overhead.
+**Action:** Prefer idiomatic `groupBy` unless profiling proves it's a critical memory bottleneck. Simplicity > Premature Optimization.
 
 ```kotlin
 // ❌ Avoid: Allocates Map + ArrayLists

@@ -16,16 +16,21 @@ object ExportUtils {
      * @param isPhoneField true for phone number fields where + and - are legitimate prefixes.
      */
     fun escapeCsvValue(value: String, isPhoneField: Boolean = false): String {
-        var finalValue = value
+        return quoteCsv(escapeInjection(value, isPhoneField))
+    }
 
+    /**
+     * Escapes multi-value CSV fields. Each element is injection-escaped individually,
+     * then joined and structurally quoted once.
+     */
+    fun escapeMultiValueCsv(values: List<String>, separator: String = ";", isPhoneField: Boolean = false): String {
+        return quoteCsv(values.joinToString(separator) { escapeInjection(it, isPhoneField) })
+    }
+
+    private fun escapeInjection(value: String, isPhoneField: Boolean = false): String {
         val needsEscape = value.startsWith("=") || value.startsWith("@") ||
             (!isPhoneField && (value.startsWith("+") || value.startsWith("-")))
-
-        if (needsEscape) {
-            finalValue = "'$value"
-        }
-
-        return quoteCsv(finalValue)
+        return if (needsEscape) "'$value" else value
     }
 
     private fun quoteCsv(value: String): String {
@@ -60,12 +65,12 @@ object ExportUtils {
 
         for (contact in contacts) {
             val name = escapeCsvValue(contact.name ?: "")
-            val numbers = quoteCsv(contact.numbers.joinToString(";") { escapeCsvValue(it, isPhoneField = true) })
-            val emails = quoteCsv(contact.emails.joinToString(";") { escapeCsvValue(it) })
+            val numbers = escapeMultiValueCsv(contact.numbers, isPhoneField = true)
+            val emails = escapeMultiValueCsv(contact.emails)
             val accountType = escapeCsvValue(contact.accountType ?: "")
             val accountName = escapeCsvValue(contact.accountName ?: "")
-            val junkType = contact.junkType?.name ?: ""
-            val duplicateType = contact.duplicateType?.name ?: ""
+            val junkType = escapeCsvValue(contact.junkType?.name ?: "")
+            val duplicateType = escapeCsvValue(contact.duplicateType?.name ?: "")
 
             sb.appendLine("$name,$numbers,$emails,$accountType,$accountName,${contact.isWhatsApp},${contact.isTelegram},$junkType,$duplicateType")
         }

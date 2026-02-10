@@ -57,4 +57,37 @@ class ExportUtilsTest {
         assertEquals("\"John \"\"The Duke\"\" Doe\"", ExportUtils.escapeCsvValue("John \"The Duke\" Doe"))
         assertEquals("\"Doe, John\"", ExportUtils.escapeCsvValue("Doe, John"))
     }
+
+    // Multi-value field tests
+
+    @Test
+    fun escapeMultiValueCsv_shouldEscapeEachValueIndividually() {
+        // Second value has injection marker — must be caught. Comma in value triggers CSV quoting.
+        val values = listOf("+1234567890", "=SUM(1,2)")
+        assertEquals("\"+1234567890;'=SUM(1,2)\"", ExportUtils.escapeMultiValueCsv(values, isPhoneField = true))
+    }
+
+    @Test
+    fun escapeMultiValueCsv_shouldNotDoubleQuote() {
+        // Phone number with comma should be quoted once, not double-quoted
+        val values = listOf("+1234,5678")
+        assertEquals("\"+1234,5678\"", ExportUtils.escapeMultiValueCsv(values, isPhoneField = true))
+    }
+
+    @Test
+    fun escapeMultiValueCsv_shouldHandleMultiplePhoneNumbers() {
+        val values = listOf("+1234567890", "+44 7911 123456")
+        assertEquals("+1234567890;+44 7911 123456", ExportUtils.escapeMultiValueCsv(values, isPhoneField = true))
+    }
+
+    @Test
+    fun escapeMultiValueCsv_shouldEscapePlusInTextMode() {
+        val values = listOf("safe@email.com", "+malicious")
+        assertEquals("safe@email.com;'+malicious", ExportUtils.escapeMultiValueCsv(values))
+    }
+
+    @Test
+    fun escapeMultiValueCsv_shouldHandleEmptyList() {
+        assertEquals("", ExportUtils.escapeMultiValueCsv(emptyList()))
+    }
 }

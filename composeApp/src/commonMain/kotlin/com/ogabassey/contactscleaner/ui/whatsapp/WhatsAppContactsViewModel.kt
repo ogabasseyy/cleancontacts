@@ -255,8 +255,8 @@ class WhatsAppContactsViewModel(
                 sb.appendLine("X-WHATSAPP-BUSINESS:TRUE")
                 contact.businessProfile?.let { profile ->
                     profile.category?.let { sb.appendLine("ORG:${ExportUtils.escapeVCardValue(it)}") }
-                    profile.email?.let { sb.appendLine("EMAIL:$it") }
-                    profile.website?.forEach { sb.appendLine("URL:$it") }
+                    profile.email?.let { sb.appendLine("EMAIL:${ExportUtils.escapeVCardValue(it)}") }
+                    profile.website?.forEach { sb.appendLine("URL:${ExportUtils.escapeVCardValue(it)}") }
                     profile.address?.let { sb.appendLine("ADR:;;${ExportUtils.escapeVCardValue(it)};;;;") }
                     profile.description?.let { sb.appendLine("NOTE:${ExportUtils.escapeVCardValue(it)}") }
                 }

@@ -5,44 +5,72 @@ package com.ogabassey.contactscleaner.platform
  */
 actual class TextAnalyzer actual constructor() {
 
-    private companion object {
-        // 2026 Optimization: Pre-compile regex patterns to avoid recompilation per call
-        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
-        // High surrogate: 0xD835
-        // Low surrogate: 0xDC00 to 0xDFFF (handled via containsMatchIn)
-        private val FANCY_FONT_REGEX = Regex("[\\uD835][\\uDC00-\\uDFFF]|[\\u2460-\\u24FF]")
-
-        // 2026 Best Practice: Only include Symbol,Other (\p{So}) for emoji detection.
-        // Excluded categories that are NOT emojis:
-        //   - \p{Cn} (Unassigned codepoints)
-        //   - \p{Sk} (Modifier symbols like ^, `, ¨)
-        //   - \p{Sm} (Math symbols like +, =, <, >)
-        //   - \p{Sc} (Currency symbols like $, €, £)
-        //   - \p{Pd/Pe/Pf/Pi/Po/Ps} (Punctuation categories)
-        // ZWJ (\u200D) and variation selectors (\uFE0F, \uFE0E) are included for emoji sequences.
-        // Note: Java 21's \p{IsEmoji} requires Android API 36+; we target API 26.
-        private val EMOJI_REGEX = Regex("^[\\p{So}\\u200D\\uFE0F\\uFE0E]+$")
-    }
-
     actual fun isEmojiOnly(text: String): Boolean {
         if (text.isBlank()) return false
 
-        // 2026 Optimization: Avoid regex for whitespace removal
-        val cleanedText = text.filter { !it.isWhitespace() }
-        if (cleanedText.isEmpty()) return false
+        var hasContent = false
+        var i = 0
+        while (i < text.length) {
+            val codePoint = text.codePointAt(i)
+            val charCount = Character.charCount(codePoint)
 
-        // Use Unicode-aware check to detect letters/digits in any script (e.g., "É", "ß", "١")
-        val hasAlphanumeric = cleanedText.any { it.isLetterOrDigit() }
-        if (hasAlphanumeric) return false
+            // Skip whitespace
+            if (Character.isWhitespace(codePoint)) {
+                i += charCount
+                continue
+            }
 
-        // If it's a fancy font, it's NOT an "emoji name"
-        if (hasFancyFonts(cleanedText)) return false
+            hasContent = true
 
-        return EMOJI_REGEX.matches(cleanedText)
+            // 1. Check for alphanumeric (fail fast)
+            // This covers letters (including some fancy fonts) and digits.
+            if (Character.isLetterOrDigit(codePoint)) return false
+
+            // 2. Check for Fancy Fonts
+            // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
+            // These might be categorized as Letter or Symbol depending on the exact char.
+            // If isLetterOrDigit missed them (e.g. if categorized as Symbol), catch them here.
+            if (codePoint in 0x1D400..0x1D7FF) return false
+
+            // Enclosed Alphanumerics (U+2460 to U+24FF)
+            if (codePoint in 0x2460..0x24FF) return false
+
+            // 3. Check for Emoji-ness
+            // Must be OTHER_SYMBOL (\p{So}) OR \u200D OR \uFE0F OR \uFE0E
+            // Note: Character.getType returns int, constants are bytes.
+            val type = Character.getType(codePoint).toByte()
+            if (type == Character.OTHER_SYMBOL ||
+                codePoint == 0x200D ||
+                codePoint == 0xFE0F ||
+                codePoint == 0xFE0E) {
+                // OK, it's an emoji part
+            } else {
+                // Not an emoji
+                return false
+            }
+
+            i += charCount
+        }
+
+        return hasContent
     }
 
     actual fun hasFancyFonts(text: String): Boolean {
         if (text.isBlank()) return false
-        return FANCY_FONT_REGEX.containsMatchIn(text)
+
+        var i = 0
+        while (i < text.length) {
+            val codePoint = text.codePointAt(i)
+            val charCount = Character.charCount(codePoint)
+
+            // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
+            if (codePoint in 0x1D400..0x1D7FF) return true
+
+            // Enclosed Alphanumerics (U+2460 to U+24FF)
+            if (codePoint in 0x2460..0x24FF) return true
+
+            i += charCount
+        }
+        return false
     }
 }

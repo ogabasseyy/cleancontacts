@@ -92,3 +92,9 @@ for (c in input) {
     }
 }
 ```
+
+# 2026-03-01 - Premature Optimization of Pre-compiled Regex
+
+**Learning:** Replacing `Regex` patterns stored in `companion object` with manual character loops (O(N)) for complex Unicode validation (like Emojis) is often a premature optimization. The complexity of handling surrogate pairs and combining marks (like Keycaps) manually outweighs the negligible performance gain over pre-compiled regex, and introduces regression risks.
+
+**Action:** Stick to `Regex` for complex text patterns unless profiling proves a specific bottleneck. Ensure regexes are pre-compiled (`private val REGEX = Regex(...)`) to avoid recompilation overhead.

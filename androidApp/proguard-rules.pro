@@ -11,9 +11,9 @@
 }
 
 # 3. KMP Infrastructure
-# Protect the bridge between Android and Common code
 -keep class com.ogabassey.contactscleaner.platform.Logger { *; }
--keep class com.ogabassey.contactscleaner.di.** { *; }
+# KoinWorkerFactory is instantiated by Koin for WorkManager integration
+-keep class com.ogabassey.contactscleaner.di.KoinWorkerFactory { *; }
 
 # 4. Room KMP (2026 Rules for BundledSQLiteDriver)
 # Keep RoomDatabase subclasses AND their members (DAO accessors called by name in _Impl)
@@ -25,7 +25,7 @@
 # 5. Kotlinx Serialization
 # Keep Companion objects and serializer() methods for @Serializable classes
 -keepattributes Signature, EnclosingMethod, InnerClasses, *Annotation*
--keepclassmembers class ** {
+-keepclassmembers class com.ogabassey.contactscleaner.** {
     @kotlinx.serialization.SerialName <fields>;
 }
 -keepclassmembers class kotlinx.serialization.json.** {
@@ -39,8 +39,5 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-# 6. RevenueCat Core
--keep class com.revenuecat.purchases.** { *; }
-
-# 7. Compose Stability
+# 6. Compose Stability
 -keep class androidx.compose.runtime.Recomposer { *; }

@@ -701,6 +701,8 @@ class IosContactRepository(
                     if (snapshot is CacheSnapshot.Valid) {
                         whatsAppPhoneNumbers = snapshot.numbers
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     println("Note: Could not load WhatsApp cache for refresh: ${e.message}")
                 }

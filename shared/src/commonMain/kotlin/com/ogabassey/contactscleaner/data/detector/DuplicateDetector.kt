@@ -39,7 +39,9 @@ class DuplicateDetector(
         contacts.forEach { contact ->
             contact.numbers.forEach { number ->
                 val normalized = phoneNumberHandler.normalizeToE164(number, defaultRegion)
-                groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                if (normalized.isNotBlank()) {
+                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                }
             }
         }
 

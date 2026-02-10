@@ -28,7 +28,8 @@ object ExportUtils {
     }
 
     private fun escapeInjection(value: String, isPhoneField: Boolean = false): String {
-        val needsEscape = value.startsWith("=") || value.startsWith("@") || value.startsWith("\t") ||
+        val needsEscape = value.startsWith("=") || value.startsWith("@") ||
+            value.startsWith("\t") || value.startsWith("\r") ||
             (!isPhoneField && (value.startsWith("+") || value.startsWith("-")))
         return if (needsEscape) "'$value" else value
     }

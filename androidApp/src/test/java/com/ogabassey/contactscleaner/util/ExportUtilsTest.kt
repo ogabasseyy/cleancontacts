@@ -98,8 +98,10 @@ class ExportUtilsTest {
     }
 
     @Test
-    fun escapeCsvValue_shouldEscapeTabPrefix() {
+    fun escapeCsvValue_shouldEscapeTabAndCrPrefixes() {
         assertEquals("'\t=cmd", ExportUtils.escapeCsvValue("\t=cmd"))
         assertEquals("'\tdata", ExportUtils.escapeCsvValue("\tdata"))
+        assertEquals("\"'\r=cmd\"", ExportUtils.escapeCsvValue("\r=cmd"))
+        assertEquals("\"'\rdata\"", ExportUtils.escapeCsvValue("\rdata"))
     }
 }

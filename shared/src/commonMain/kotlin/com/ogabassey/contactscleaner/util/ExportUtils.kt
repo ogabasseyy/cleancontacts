@@ -25,10 +25,14 @@ object ExportUtils {
             finalValue = "'$value"
         }
 
-        return if (finalValue.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
-            "\"${finalValue.replace("\"", "\"\"")}\""
+        return quoteCsv(finalValue)
+    }
+
+    private fun quoteCsv(value: String): String {
+        return if (value.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
+            "\"${value.replace("\"", "\"\"")}\""
         } else {
-            finalValue
+            value
         }
     }
 
@@ -56,8 +60,8 @@ object ExportUtils {
 
         for (contact in contacts) {
             val name = escapeCsvValue(contact.name ?: "")
-            val numbers = escapeCsvValue(contact.numbers.joinToString(";"), isPhoneField = true)
-            val emails = escapeCsvValue(contact.emails.joinToString(";"))
+            val numbers = quoteCsv(contact.numbers.joinToString(";") { escapeCsvValue(it, isPhoneField = true) })
+            val emails = quoteCsv(contact.emails.joinToString(";") { escapeCsvValue(it) })
             val accountType = escapeCsvValue(contact.accountType ?: "")
             val accountName = escapeCsvValue(contact.accountName ?: "")
             val junkType = contact.junkType?.name ?: ""

@@ -33,6 +33,15 @@ class ExportUtilsTest {
     }
 
     @Test
+    fun escapeCsvValue_shouldHandleEdgeCases() {
+        assertEquals("", ExportUtils.escapeCsvValue(""))
+        assertEquals("'+", ExportUtils.escapeCsvValue("+"))
+        assertEquals("'-", ExportUtils.escapeCsvValue("-"))
+        assertEquals("+", ExportUtils.escapeCsvValue("+", isPhoneField = true))
+        assertEquals("-", ExportUtils.escapeCsvValue("-", isPhoneField = true))
+    }
+
+    @Test
     fun escapeCsvValue_shouldHandleQuotesAndFormulas() {
         assertEquals("\"'=SUM(1,2)\"", ExportUtils.escapeCsvValue("=SUM(1,2)"))
     }

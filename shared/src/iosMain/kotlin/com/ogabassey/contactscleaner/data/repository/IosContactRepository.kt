@@ -50,6 +50,10 @@ class IosContactRepository(
 
     companion object {
         private const val KEY_DEVICE_ID = "whatsapp_device_id"
+
+        /** Returns true if the number is a candidate for format normalization. */
+        fun isNormalizable(number: String): Boolean =
+            number.isNotBlank() && !number.startsWith("+") && !number.startsWith("*") && !number.startsWith("#")
     }
 
     /**
@@ -107,7 +111,7 @@ class IosContactRepository(
 
         if (junkType == null && !isSensitive) {
             for (number in contact.numbers) {
-                if (number.isNotBlank() && !number.startsWith("+") && !number.startsWith("*") && !number.startsWith("#")) {
+                if (isNormalizable(number)) {
                     formatDetector.analyze(number)?.let { issue ->
                         isFormatIssue = true
                         // Keep the first normalized number for matching key
@@ -535,9 +539,7 @@ class IosContactRepository(
 
             // Normalize ALL numbers on the contact, not just the first
             val updated = contactsSource.normalizeAllNumbers(platformUid) { rawNumber ->
-                if (rawNumber.isNotBlank() && !rawNumber.startsWith("+") && !rawNumber.startsWith("*") && !rawNumber.startsWith("#")) {
-                    formatDetector.analyze(rawNumber)?.normalizedNumber
-                } else null
+                if (isNormalizable(rawNumber)) formatDetector.analyze(rawNumber)?.normalizedNumber else null
             }
             if (updated) {
                 successfulIds.add(entity.id)

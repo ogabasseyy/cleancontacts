@@ -10,9 +10,8 @@
     public <init>(...);
 }
 
-# 3. KMP Infrastructure
--keep class com.ogabassey.contactscleaner.platform.Logger { *; }
-# KoinWorkerFactory is instantiated by Koin for WorkManager integration
+# 3. WorkManager integration
+# KoinWorkerFactory is instantiated by Koin for WorkManager
 -keep class com.ogabassey.contactscleaner.di.KoinWorkerFactory { *; }
 
 # 4. Room KMP (2026 Rules for BundledSQLiteDriver)

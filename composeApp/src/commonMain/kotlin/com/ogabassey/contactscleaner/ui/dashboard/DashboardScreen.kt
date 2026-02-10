@@ -386,8 +386,8 @@ private fun ResultsSummaryCard(
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
             .glassy(radius = 16.dp)
+            .clickable(role = Role.Button) { onViewDetails() }
             .padding(16.dp)
-            .clickable { onViewDetails() }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -212,7 +212,7 @@ class WhatsAppContactsViewModel(
         sb.appendLine("Phone Number,Name,Push Name,Is Business,Category,Email,Website,Address")
 
         for (contact in contacts) {
-            val phoneNumber = ExportUtils.escapeCsvValue(contact.phoneNumber)
+            val phoneNumber = ExportUtils.escapeCsvValue(contact.phoneNumber, isPhoneField = true)
             val name = ExportUtils.escapeCsvValue(contact.name ?: "")
             val pushName = ExportUtils.escapeCsvValue(contact.pushName ?: "")
             val category = ExportUtils.escapeCsvValue(contact.businessProfile?.category ?: "")

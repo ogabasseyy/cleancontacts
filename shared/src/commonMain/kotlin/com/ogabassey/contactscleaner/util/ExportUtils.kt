@@ -12,18 +12,16 @@ object ExportUtils {
     private val CSV_SPECIAL_CHARS = charArrayOf(',', '"', '\n', '\r')
 
     /**
-     * RFC 4180 compliant CSV escaping.
-     * Wraps field in quotes if it contains special characters, and escapes internal quotes.
-     * 2026 Security Fix: Prevents CSV Injection (Formula Injection) by prepending single quote
-     * to values starting with = or @. Note: + and - are NOT escaped because they are common in
-     * phone numbers (e.g., +1234567890) and would corrupt exported contact data.
+     * RFC 4180 compliant CSV escaping with CSV Injection prevention.
+     * @param isPhoneField true for phone number fields where + and - are legitimate prefixes.
      */
-    fun escapeCsvValue(value: String): String {
+    fun escapeCsvValue(value: String, isPhoneField: Boolean = false): String {
         var finalValue = value
-        // Security: Prevent CSV Injection (Formula Injection)
-        // Only escape = and @ which are formula triggers not found in legitimate contact data.
-        // + and - are intentionally excluded to preserve phone number formatting.
-        if (value.startsWith("=") || value.startsWith("@")) {
+
+        val needsEscape = value.startsWith("=") || value.startsWith("@") ||
+            (!isPhoneField && (value.startsWith("+") || value.startsWith("-")))
+
+        if (needsEscape) {
             finalValue = "'$value"
         }
 
@@ -58,7 +56,7 @@ object ExportUtils {
 
         for (contact in contacts) {
             val name = escapeCsvValue(contact.name ?: "")
-            val numbers = escapeCsvValue(contact.numbers.joinToString(";"))
+            val numbers = escapeCsvValue(contact.numbers.joinToString(";"), isPhoneField = true)
             val emails = escapeCsvValue(contact.emails.joinToString(";"))
             val accountType = escapeCsvValue(contact.accountType ?: "")
             val accountName = escapeCsvValue(contact.accountName ?: "")

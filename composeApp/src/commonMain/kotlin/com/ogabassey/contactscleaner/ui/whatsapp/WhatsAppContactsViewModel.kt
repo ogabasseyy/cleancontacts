@@ -212,12 +212,12 @@ class WhatsAppContactsViewModel(
         sb.appendLine("Phone Number,Name,Push Name,Is Business,Category,Email,Website,Address")
 
         for (contact in contacts) {
-            val phoneNumber = ExportUtils.escapeCsvValue(contact.phoneNumber)
+            val phoneNumber = ExportUtils.escapeCsvValue(contact.phoneNumber, isPhoneField = true)
             val name = ExportUtils.escapeCsvValue(contact.name ?: "")
             val pushName = ExportUtils.escapeCsvValue(contact.pushName ?: "")
             val category = ExportUtils.escapeCsvValue(contact.businessProfile?.category ?: "")
             val email = ExportUtils.escapeCsvValue(contact.businessProfile?.email ?: "")
-            val website = ExportUtils.escapeCsvValue(contact.businessProfile?.website?.joinToString(";") ?: "")
+            val website = ExportUtils.escapeMultiValueCsv(contact.businessProfile?.website ?: emptyList())
             val address = ExportUtils.escapeCsvValue(contact.businessProfile?.address ?: "")
 
             sb.appendLine("$phoneNumber,$name,$pushName,${contact.isBusiness},$category,$email,$website,$address")
@@ -249,14 +249,14 @@ class WhatsAppContactsViewModel(
                 sb.appendLine("N:;${ExportUtils.escapeVCardValue(contactName)};;;")
             }
 
-            sb.appendLine("TEL;TYPE=CELL:${contact.phoneNumber}")
+            sb.appendLine("TEL;TYPE=CELL:${ExportUtils.escapeVCardValue(contact.phoneNumber)}")
 
             if (contact.isBusiness) {
                 sb.appendLine("X-WHATSAPP-BUSINESS:TRUE")
                 contact.businessProfile?.let { profile ->
                     profile.category?.let { sb.appendLine("ORG:${ExportUtils.escapeVCardValue(it)}") }
-                    profile.email?.let { sb.appendLine("EMAIL:$it") }
-                    profile.website?.forEach { sb.appendLine("URL:$it") }
+                    profile.email?.let { sb.appendLine("EMAIL:${ExportUtils.escapeVCardValue(it)}") }
+                    profile.website?.forEach { sb.appendLine("URL:${ExportUtils.escapeVCardValue(it)}") }
                     profile.address?.let { sb.appendLine("ADR:;;${ExportUtils.escapeVCardValue(it)};;;;") }
                     profile.description?.let { sb.appendLine("NOTE:${ExportUtils.escapeVCardValue(it)}") }
                 }

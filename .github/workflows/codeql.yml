@@ -32,16 +32,34 @@ jobs:
       matrix:
         include:
         - language: actions
+          build-mode: none
+        - language: java-kotlin
+          build-mode: autobuild
+        - language: javascript-typescript
+          build-mode: none
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+    - name: Setup Java (for Kotlin analysis)
+      if: matrix.language == 'java-kotlin'
+      uses: actions/setup-java@99b8a73c60d0fd582045a0edeb2860e608293d3b # v4.0.0
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'gradle'
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
       with:
         languages: ${{ matrix.language }}
         queries: security-extended,security-and-quality
+        config-file: ./.github/codeql/codeql-config.yml
+
+    - name: Autobuild
+      if: matrix.build-mode == 'autobuild'
+      uses: github/codeql-action/autobuild@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11

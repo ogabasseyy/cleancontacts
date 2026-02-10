@@ -249,7 +249,7 @@ class WhatsAppContactsViewModel(
                 sb.appendLine("N:;${ExportUtils.escapeVCardValue(contactName)};;;")
             }
 
-            sb.appendLine("TEL;TYPE=CELL:${contact.phoneNumber}")
+            sb.appendLine("TEL;TYPE=CELL:${ExportUtils.escapeVCardValue(contact.phoneNumber)}")
 
             if (contact.isBusiness) {
                 sb.appendLine("X-WHATSAPP-BUSINESS:TRUE")

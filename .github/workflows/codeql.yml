@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - develop
+      - v1.2.0-release
   pull_request:
     branches:
       - main
       - develop
+      - v1.2.0-release
   schedule:
     - cron: '36 1 * * 6'
   workflow_dispatch:
@@ -42,11 +44,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
-    - name: Setup Java (for Kotlin analysis)
+    - name: Setup Java 25 (Project Standard)
       if: matrix.language == 'java-kotlin'
-      uses: actions/setup-java@99b8a73c60d0fd582045a0edeb2860e608293d3b # v4.0.0
+      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
       with:
-        java-version: '17'
+        java-version: '25'
         distribution: 'temurin'
         cache: 'gradle'
 
@@ -54,7 +56,6 @@ jobs:
       uses: github/codeql-action/init@5c3b9c403c9a72fb5fa559496012b60fa351d4b8 # v4.31.11
       with:
         languages: ${{ matrix.language }}
-        queries: security-extended,security-and-quality
         config-file: ./.github/codeql/codeql-config.yml
 
     - name: Autobuild

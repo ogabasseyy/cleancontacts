@@ -593,9 +593,7 @@ class IosContactRepository(
                 val platformUid = entity.platformUid ?: continue
 
                 val updated = contactsSource.normalizeAllNumbers(platformUid) { rawNumber ->
-                    if (rawNumber.isNotBlank() && !rawNumber.startsWith("+") && !rawNumber.startsWith("*") && !rawNumber.startsWith("#")) {
-                        formatDetector.analyze(rawNumber)?.normalizedNumber
-                    } else null
+                    if (isNormalizable(rawNumber)) formatDetector.analyze(rawNumber)?.normalizedNumber else null
                 }
                 if (updated) {
                     batchSuccessful.add(entity.id)

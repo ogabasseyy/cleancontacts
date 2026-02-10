@@ -7,39 +7,51 @@ class ExportUtilsTest {
 
     @Test
     fun escapeCsvValue_shouldEscapeFormulaTriggers() {
-        // = and @ are formula triggers and should be escaped
-        assertEquals("'=1+1", ExportUtils.escapeCsvValue("=1+1"))
+        // = and @ are formula triggers and should be escaped regardless of field type
+        assertEquals("'=1+1", ExportUtils.escapeCsvValue("=1+1", isPhoneNumber = false))
+        assertEquals("'=1+1", ExportUtils.escapeCsvValue("=1+1", isPhoneNumber = true))
+
         // Contains comma, so it also gets quoted
-        assertEquals("\"'@SUM(1,1)\"", ExportUtils.escapeCsvValue("@SUM(1,1)"))
+        assertEquals("\"'@SUM(1,1)\"", ExportUtils.escapeCsvValue("@SUM(1,1)", isPhoneNumber = false))
     }
 
     @Test
-    fun escapeCsvValue_shouldNotEscapePurePhoneNumbers() {
-        // + and - must NOT be escaped if they are just digits/symbols (phone numbers)
-        assertEquals("+1234567890", ExportUtils.escapeCsvValue("+1234567890"))
-        // -1+1 contains no letters, so it's treated as safe (though it might be a math formula, it's not RCE)
-        assertEquals("-1+1", ExportUtils.escapeCsvValue("-1+1"))
+    fun escapeCsvValue_shouldPreservePhoneNumbers_WhenDeclared() {
+        // When isPhoneNumber = true, + and - are allowed
+        assertEquals("+1234567890", ExportUtils.escapeCsvValue("+1234567890", isPhoneNumber = true))
+        assertEquals("-1+1", ExportUtils.escapeCsvValue("-1+1", isPhoneNumber = true))
+
+        // Even weird "phone numbers" are allowed if the caller explicitly says it's a phone number
+        // The responsibility is on the caller (contactsToCsv) to only use this for phone columns.
+        assertEquals("+Cmd|Calc", ExportUtils.escapeCsvValue("+Cmd|Calc", isPhoneNumber = true))
     }
 
     @Test
-    fun escapeCsvValue_shouldEscapeMaliciousPlusAndMinus() {
-        // + and - SHOULD be escaped if they contain letters (potential RCE)
-        assertEquals("'+cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("+cmd|' /C calc'!A0"))
-        assertEquals("'-cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("-cmd|' /C calc'!A0"))
-        // Mixed alphanumeric starting with +
-        assertEquals("'+123A", ExportUtils.escapeCsvValue("+123A"))
+    fun escapeCsvValue_shouldEscapePlusAndMinus_WhenNotPhoneNumber() {
+        // When isPhoneNumber = false (default), + and - are treated as unsafe (potential formulas)
+
+        // Malicious payloads
+        assertEquals("'+cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("+cmd|' /C calc'!A0", isPhoneNumber = false))
+        assertEquals("'-cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("-cmd|' /C calc'!A0", isPhoneNumber = false))
+
+        // Even "innocent" looking strings starting with + in a name field get escaped to be safe
+        assertEquals("'+1234567890", ExportUtils.escapeCsvValue("+1234567890", isPhoneNumber = false))
+        assertEquals("'-123", ExportUtils.escapeCsvValue("-123", isPhoneNumber = false))
+
+        // Mixed alphanumeric
+        assertEquals("'+123A", ExportUtils.escapeCsvValue("+123A", isPhoneNumber = false))
     }
 
     @Test
     fun escapeCsvValue_shouldHandleQuotesAndFormulas() {
         // Input: =SUM(1,2) -> prepend ' then CSV-quote due to comma
-        assertEquals("\"'=SUM(1,2)\"", ExportUtils.escapeCsvValue("=SUM(1,2)"))
+        assertEquals("\"'=SUM(1,2)\"", ExportUtils.escapeCsvValue("=SUM(1,2)", isPhoneNumber = false))
     }
 
     @Test
     fun escapeCsvValue_shouldLeaveSafeValuesAlone() {
-        assertEquals("John Doe", ExportUtils.escapeCsvValue("John Doe"))
-        assertEquals("1234567890", ExportUtils.escapeCsvValue("1234567890"))
+        assertEquals("John Doe", ExportUtils.escapeCsvValue("John Doe", isPhoneNumber = false))
+        assertEquals("1234567890", ExportUtils.escapeCsvValue("1234567890", isPhoneNumber = false))
     }
 
     @Test

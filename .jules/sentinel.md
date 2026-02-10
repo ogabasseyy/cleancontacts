@@ -33,7 +33,7 @@
 **Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection). Note: `+` and `-` must NOT be escaped in contact exports because phone numbers commonly start with `+`.
 **Prevention:** Prefix values starting with `=` or `@` with a single quote `'` to force text interpretation. Exclude `+` and `-` to preserve phone number data integrity.
 
-## 2026-02-04 - Refined CSV Injection Protection (Context-Aware Escaping)
-**Vulnerability:** `ExportUtils` broadly exempted `+` and `-` from escaping to support phone numbers, but failed to distinguish between safe numeric strings and potential command payloads (e.g., `+cmd|...`) in non-numeric fields like names.
-**Learning:** Broad exemptions for specific characters can reintroduce the vulnerability they were meant to avoid if the context (numeric vs text) is ignored.
-**Prevention:** Refine exemptions to only allow `+` and `-` if the remaining string contains no letters (A-Z), effectively blocking command execution while preserving valid phone numbers.
+## 2026-02-04 - Refined CSV Injection Protection (Explicit Field Typing)
+**Vulnerability:** `ExportUtils` initially used a heuristic (checking for letters) to decide if `+` and `-` should be escaped. This was fragile and could fail on edge cases or evolving attack patterns.
+**Learning:** Security controls based on content sniffing are often bypassed. Explicitly declaring the semantic type of data (e.g., `isPhoneNumber = true`) allows for robust, context-aware security policies without guessing.
+**Prevention:** Refactored `ExportUtils` to require an explicit `isPhoneNumber` boolean. Only fields declared as phone numbers allow `+` and `-` prefixes unescaped; all other fields strictly escape them.

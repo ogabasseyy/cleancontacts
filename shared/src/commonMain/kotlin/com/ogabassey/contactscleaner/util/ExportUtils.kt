@@ -12,25 +12,30 @@ object ExportUtils {
     private val CSV_SPECIAL_CHARS = charArrayOf(',', '"', '\n', '\r')
 
     /**
-     * RFC 4180 compliant CSV escaping.
-     * Wraps field in quotes if it contains special characters, and escapes internal quotes.
-     * 2026 Security Fix: Prevents CSV Injection (Formula Injection) by prepending single quote
-     * to values starting with = or @. Note: + and - are checked for letters to determine if
-     * they are phone numbers (safe) or potential formulas (unsafe).
+     * RFC 4180 compliant CSV escaping with strict formula injection protection.
+     *
+     * @param value The raw string to escape.
+     * @param isPhoneNumber If true, allows leading '+' and '-' which are valid in phone numbers.
+     *                      If false (default), escapes '+' and '-' to prevent formula injection.
      */
-    fun escapeCsvValue(value: String): String {
+    fun escapeCsvValue(value: String, isPhoneNumber: Boolean = false): String {
         var finalValue = value
-        // Security: Prevent CSV Injection (Formula Injection)
-        // 1. Always escape = and @ which are formula triggers not found in legitimate contact data.
+
+        // 2026 Security Fix: Prevent CSV Injection (Formula Injection)
+        // 1. Always escape '=' and '@' (standard formula triggers).
         if (value.startsWith("=") || value.startsWith("@")) {
             finalValue = "'$value"
         }
-        // 2. For + and -, check if it contains letters (indicating a command/formula)
-        // vs just digits/symbols (indicating a phone number).
-        else if ((value.startsWith("+") || value.startsWith("-")) && value.any { it.isLetter() }) {
-             finalValue = "'$value"
+        // 2. Strict Field Typing:
+        // Only allow '+' and '-' if the caller explicitly declares this is a phone number field.
+        // Otherwise, treat '+' and '-' as potential formula triggers and escape them.
+        else if (value.startsWith("+") || value.startsWith("-")) {
+            if (!isPhoneNumber) {
+                finalValue = "'$value"
+            }
         }
 
+        // Standard CSV escaping: handle quotes, commas, newlines
         return if (finalValue.indexOfAny(CSV_SPECIAL_CHARS) >= 0) {
             "\"${finalValue.replace("\"", "\"\"")}\""
         } else {
@@ -61,11 +66,14 @@ object ExportUtils {
         sb.appendLine("Name,Phone Numbers,Emails,Account Type,Account Name,Is WhatsApp,Is Telegram,Junk Type,Duplicate Type")
 
         for (contact in contacts) {
-            val name = escapeCsvValue(contact.name ?: "")
-            val numbers = escapeCsvValue(contact.numbers.joinToString(";"))
-            val emails = escapeCsvValue(contact.emails.joinToString(";"))
-            val accountType = escapeCsvValue(contact.accountType ?: "")
-            val accountName = escapeCsvValue(contact.accountName ?: "")
+            // Only 'numbers' field is marked as a phone number field
+            val name = escapeCsvValue(contact.name ?: "", isPhoneNumber = false)
+            val numbers = escapeCsvValue(contact.numbers.joinToString(";"), isPhoneNumber = true)
+            val emails = escapeCsvValue(contact.emails.joinToString(";"), isPhoneNumber = false)
+            val accountType = escapeCsvValue(contact.accountType ?: "", isPhoneNumber = false)
+            val accountName = escapeCsvValue(contact.accountName ?: "", isPhoneNumber = false)
+
+            // Enum names and booleans are safe by definition (limited charset), but we escape for consistency
             val junkType = contact.junkType?.name ?: ""
             val duplicateType = contact.duplicateType?.name ?: ""
 

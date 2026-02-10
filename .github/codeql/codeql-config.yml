@@ -1,4 +1,5 @@
-name: "CodeQL Security Scanning Configuration"
+queries:
+  - uses: security-and-quality
 
 # Suppress false positive alerts for properly sanitized content
 # All dangerouslySetInnerHTML usage in this codebase is properly sanitized

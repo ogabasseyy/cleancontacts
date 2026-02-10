@@ -15,12 +15,11 @@ import platform.UIKit.UIViewController
  * Exported so Swift can call: MainViewControllerKt.InitializeRevenueCat()
  */
 fun InitializeRevenueCat() {
-    if (revenueCatInitialized) return
+    if (RevenueCatInitializer.isConfigured()) return
     RevenueCatInitializer.initialize(
         appUserId = null, // Anonymous user, RevenueCat generates ID
         debugMode = false // Production ready
     )
-    revenueCatInitialized = true
 }
 
 /**
@@ -42,7 +41,6 @@ fun MainViewController(): UIViewController {
 }
 
 private var koinInitialized = false
-private var revenueCatInitialized = false
 
 private fun initKoinIos() {
     if (!koinInitialized) {

@@ -9,6 +9,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -616,6 +617,8 @@ class IosContactsSource {
                 saveErrorPtr.value == null
             }
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             println("Error normalizing contact numbers: ${e.message}")
             false

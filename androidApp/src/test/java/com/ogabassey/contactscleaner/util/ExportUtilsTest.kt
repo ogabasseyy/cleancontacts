@@ -87,7 +87,19 @@ class ExportUtilsTest {
     }
 
     @Test
+    fun escapeMultiValueCsv_shouldDoubleInternalQuotes() {
+        val values = listOf("value\"with\"quotes")
+        assertEquals("\"value\"\"with\"\"quotes\"", ExportUtils.escapeMultiValueCsv(values))
+    }
+
+    @Test
     fun escapeMultiValueCsv_shouldHandleEmptyList() {
         assertEquals("", ExportUtils.escapeMultiValueCsv(emptyList()))
+    }
+
+    @Test
+    fun escapeCsvValue_shouldEscapeTabPrefix() {
+        assertEquals("'\t=cmd", ExportUtils.escapeCsvValue("\t=cmd"))
+        assertEquals("'\tdata", ExportUtils.escapeCsvValue("\tdata"))
     }
 }

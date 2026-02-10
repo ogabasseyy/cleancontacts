@@ -584,7 +584,7 @@ class IosContactsSource {
 
                 @Suppress("UNCHECKED_CAST")
                 val existingNumbers = cnContact.phoneNumbers as? List<CNLabeledValue> ?: emptyList()
-                if (existingNumbers.isEmpty()) return@memScoped false
+                if (existingNumbers.isEmpty()) return@memScoped true // No numbers = no-op success
 
                 var anyChanged = false
                 val updatedNumbers = existingNumbers.map { labeledValue ->

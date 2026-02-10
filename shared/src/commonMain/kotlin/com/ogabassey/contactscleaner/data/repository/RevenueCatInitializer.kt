@@ -43,7 +43,6 @@ object RevenueCatInitializer {
             Logger.d(TAG, "RevenueCat SDK initialized successfully")
         } catch (e: Exception) {
             Logger.e(TAG, "Failed to initialize RevenueCat: ${e.message}")
-            throw e // Re-throw to fail fast
         }
     }
 

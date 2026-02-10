@@ -6,11 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -41,9 +37,14 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
 
-    // Track if we've ever requested permissions (persisted across app restarts)
-    var hasEverRequestedPermission by remember {
-        mutableStateOf(prefs.getBoolean(KEY_CONTACTS_PERMISSION_REQUESTED, false))
+    // Re-read from SharedPreferences only when permission result actually changes.
+    // This prevents a race condition where setting hasEverRequested before the dialog
+    // appears would cause the state machine to evaluate as DENIED prematurely.
+    val hasEverRequestedPermission = remember(
+        permissionsState.allPermissionsGranted,
+        permissionsState.shouldShowRationale
+    ) {
+        prefs.getBoolean(KEY_CONTACTS_PERMISSION_REQUESTED, false)
     }
 
     return remember(
@@ -81,9 +82,9 @@ actual fun rememberContactsPermissionState(): ContactsPermissionState {
             authorizationStatus = authStatus,
             shouldShowRationale = permissionsState.shouldShowRationale,
             launchRequest = {
-                // Mark that we've requested permission before launching
+                // Persist to SharedPreferences for next app launch, but don't trigger
+                // recomposition — the value is re-read when the permission result arrives
                 prefs.edit().putBoolean(KEY_CONTACTS_PERMISSION_REQUESTED, true).apply()
-                hasEverRequestedPermission = true
                 permissionsState.launchMultiplePermissionRequest()
             },
             openSettings = {

@@ -6,9 +6,9 @@
 
 # 2. Koin Constructor Preservation
 # Scoped to app packages so R8 can still shrink third-party dependencies
--keepclassmembers class com.ogabassey.contactscleaner.** {
-    public <init>(...);
-}
+-keepclassmembers class com.ogabassey.contactscleaner.di.** { public <init>(...); }
+-keepclassmembers class com.ogabassey.contactscleaner.data.** { public <init>(...); }
+-keepclassmembers class com.ogabassey.contactscleaner.domain.** { public <init>(...); }
 
 # 3. WorkManager integration
 # KoinWorkerFactory is instantiated by Koin for WorkManager
@@ -17,7 +17,7 @@
 # 4. Room KMP (2026 Rules for BundledSQLiteDriver)
 # Keep RoomDatabase subclasses AND their members (DAO accessors called by name in _Impl)
 -keep class * extends androidx.room.RoomDatabase { *; }
--keep class androidx.room.paging.LimitOffsetPagingSource {*;}
+-keep class androidx.room.paging.LimitOffsetPagingSource { *; }
 -keep interface com.ogabassey.contactscleaner.data.db.dao.** { *; }
 -keep @androidx.room.Entity class * { *; }
 

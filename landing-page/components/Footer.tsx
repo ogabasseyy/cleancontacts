@@ -13,8 +13,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
       <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
 
         <div className="flex items-center gap-2">
-          <img src="/logo.png" alt="CleanContacts" className="w-8 h-8 rounded-lg" />
-          <span className="font-semibold text-gray-300">Contacts Cleaner</span>
+          <img src="/logo.png" alt="ContactsCleaner" className="w-8 h-8 rounded-lg" />
+          <span className="font-semibold text-gray-300">ContactsCleaner</span>
         </div>
 
         <div className="flex flex-col items-center md:items-end gap-4">

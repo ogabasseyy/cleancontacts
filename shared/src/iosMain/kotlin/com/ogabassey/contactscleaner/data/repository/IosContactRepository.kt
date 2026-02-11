@@ -53,7 +53,12 @@ class IosContactRepository(
 
         /** Returns true if the number is a candidate for format normalization. */
         fun isNormalizable(number: String): Boolean =
-            number.isNotBlank() && !number.startsWith("+") && !number.startsWith("*") && !number.startsWith("#")
+            number.isNotBlank() && 
+            !number.startsWith("+") && 
+            !number.startsWith("*") && 
+            !number.startsWith("#") && 
+            !number.startsWith("00") && 
+            number.length >= 7
     }
 
     /**

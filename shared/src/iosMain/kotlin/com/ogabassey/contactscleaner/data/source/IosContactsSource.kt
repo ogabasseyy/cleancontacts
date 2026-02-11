@@ -50,11 +50,15 @@ class IosContactsSource {
      * Returns false if permission not granted, preventing silent failures.
      */
     private suspend fun ensureWritePermission(): Boolean {
-        val hasPermission = requestContactsPermission()
-        if (!hasPermission) {
-            println("Contacts write permission not granted")
+        val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
+        return when (status) {
+            CNAuthorizationStatusAuthorized -> true
+            CNAuthorizationStatusNotDetermined -> requestContactsPermission()
+            else -> {
+                println("Contacts write permission not granted (status: $status)")
+                false
+            }
         }
-        return hasPermission
     }
 
     /**
@@ -586,23 +590,7 @@ class IosContactsSource {
                 val existingNumbers = cnContact.phoneNumbers as? List<CNLabeledValue> ?: emptyList()
                 if (existingNumbers.isEmpty()) return@memScoped true // No numbers = no-op success
 
-                var anyChanged = false
-                val updatedNumbers = existingNumbers.map { labeledValue ->
-                    val phoneNumber = labeledValue.value as? CNPhoneNumber
-                    val rawValue = phoneNumber?.stringValue ?: ""
-                    val normalized = normalizer(rawValue)
-
-                    if (normalized != null && normalized != rawValue) {
-                        anyChanged = true
-                        // Preserve the original label (e.g. Mobile, Home, Work)
-                        CNLabeledValue.labeledValueWithLabel(
-                            label = labeledValue.label,
-                            value = CNPhoneNumber.phoneNumberWithStringValue(stringValue = normalized)
-                        )
-                    } else {
-                        labeledValue
-                    }
-                }
+                val (updatedNumbers, anyChanged) = mapNormalizedNumbers(existingNumbers, normalizer)
 
                 if (!anyChanged) return@memScoped true // Nothing to update
 
@@ -623,6 +611,34 @@ class IosContactsSource {
             println("Error normalizing contact numbers: ${e.message}")
             false
         }
+    }
+
+    /**
+     * Helper to map and track changes during phone number normalization.
+     * Reduces cognitive complexity of [normalizeAllNumbers].
+     */
+    private fun mapNormalizedNumbers(
+        existingNumbers: List<CNLabeledValue>,
+        normalizer: (String) -> String?
+    ): Pair<List<CNLabeledValue>, Boolean> {
+        var anyChanged = false
+        val updatedNumbers = existingNumbers.map { labeledValue ->
+            val phoneNumber = labeledValue.value as? CNPhoneNumber
+            val rawValue = phoneNumber?.stringValue ?: ""
+            val normalized = normalizer(rawValue)
+
+            if (normalized != null && normalized != rawValue) {
+                anyChanged = true
+                // Preserve the original label (e.g. Mobile, Home, Work)
+                CNLabeledValue.labeledValueWithLabel(
+                    label = labeledValue.label,
+                    value = CNPhoneNumber.phoneNumberWithStringValue(stringValue = normalized)
+                )
+            } else {
+                labeledValue
+            }
+        }
+        return updatedNumbers to anyChanged
     }
 
     /**

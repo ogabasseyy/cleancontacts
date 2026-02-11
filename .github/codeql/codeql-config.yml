@@ -5,9 +5,6 @@ queries:
 # All dangerouslySetInnerHTML usage in this codebase is properly sanitized
 # with DOMPurify or safeJsonLdStringify functions
 
-queries:
-  - uses: security-and-quality
-
 # Note: These paths contain properly sanitized HTML rendering
 # landing-page uses Sanitized values for React components
 paths-ignore:
@@ -15,7 +12,7 @@ paths-ignore:
   - "scripts/**"
   - "*.sh"
   - ".jules/**"
-  
+
   # Generated assets and build logs
   - "**/build/**"
   - "*.txt"
@@ -23,7 +20,7 @@ paths-ignore:
 
   # Landing page (React specific patterns)
   - "landing-page/public/**"
-  
+
   # KMP platform abstractions (often reported as dead code incorrectly)
   - "shared/src/iosMain/**"
   - "shared/src/androidMain/**"

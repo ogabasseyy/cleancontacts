@@ -5,12 +5,12 @@ on:
     branches:
       - main
       - develop
-      - v1.2.0-release
+      - "v*-release"
   pull_request:
     branches:
       - main
       - develop
-      - v1.2.0-release
+      - "v*-release"
   schedule:
     - cron: '36 1 * * 6'
   workflow_dispatch:

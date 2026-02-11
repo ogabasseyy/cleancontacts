@@ -10,23 +10,30 @@ queries:
 paths-ignore:
   # Internal scripts - dev tooling, not production code
   - "scripts/**"
-  - "*.sh"
+  - "**/*.sh"
   - ".jules/**"
 
   # Generated assets and build logs
   - "**/build/**"
-  - "*.txt"
-  - "*.png"
+  - "**/*.txt"
+  - "**/*.png"
 
   # Landing page (React specific patterns)
   - "landing-page/public/**"
 
-  # KMP platform abstractions (often reported as dead code incorrectly)
-  - "shared/src/iosMain/**"
-  - "shared/src/androidMain/**"
-
-  # False positive: HMAC-SHA256 for local detector (not sensitive)
-  - "local-whatsapp-detector/**"
+query-filters:
+  - exclude:
+      id:
+        - java/unused-reference-type
+        - java/unused-parameter
+      paths:
+        - "shared/src/iosMain/**"
+        - "shared/src/androidMain/**"
+  - exclude:
+      id:
+        - js/weak-cryptographic-algorithm
+      paths:
+        - "local-whatsapp-detector/**"
 
 # For detailed security documentation, see:
 # - /SECURITY.md

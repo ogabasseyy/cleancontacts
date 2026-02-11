@@ -5,44 +5,73 @@ package com.ogabassey.contactscleaner.platform
  */
 actual class TextAnalyzer actual constructor() {
 
-    private companion object {
-        // 2026 Optimization: Pre-compile regex patterns to avoid recompilation per call
-        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
-        // High surrogate: 0xD835
-        // Low surrogate: 0xDC00 to 0xDFFF (handled via containsMatchIn)
-        private val FANCY_FONT_REGEX = Regex("[\\uD835][\\uDC00-\\uDFFF]|[\\u2460-\\u24FF]")
-
-        // 2026 Best Practice: Only include Symbol,Other (\p{So}) for emoji detection.
-        // Excluded categories that are NOT emojis:
-        //   - \p{Cn} (Unassigned codepoints)
-        //   - \p{Sk} (Modifier symbols like ^, `, ¨)
-        //   - \p{Sm} (Math symbols like +, =, <, >)
-        //   - \p{Sc} (Currency symbols like $, €, £)
-        //   - \p{Pd/Pe/Pf/Pi/Po/Ps} (Punctuation categories)
-        // ZWJ (\u200D) and variation selectors (\uFE0F, \uFE0E) are included for emoji sequences.
-        // Note: Java 21's \p{IsEmoji} requires Android API 36+; we target API 26.
-        private val EMOJI_REGEX = Regex("^[\\p{So}\\u200D\\uFE0F\\uFE0E]+$")
-    }
+    // 2026 Optimization: Removed Regex constants to eliminate compilation overhead and allocation.
+    // Replaced with O(N) manual character iteration loops.
 
     actual fun isEmojiOnly(text: String): Boolean {
         if (text.isBlank()) return false
 
-        // 2026 Optimization: Avoid regex for whitespace removal
-        val cleanedText = text.filter { !it.isWhitespace() }
-        if (cleanedText.isEmpty()) return false
+        var hasContent = false
+        var i = 0
+        val length = text.length
 
-        // Use Unicode-aware check to detect letters/digits in any script (e.g., "É", "ß", "١")
-        val hasAlphanumeric = cleanedText.any { it.isLetterOrDigit() }
-        if (hasAlphanumeric) return false
+        while (i < length) {
+            val codePoint = text.codePointAt(i)
+            val charCount = Character.charCount(codePoint)
 
-        // If it's a fancy font, it's NOT an "emoji name"
-        if (hasFancyFonts(cleanedText)) return false
+            // Skip whitespace
+            if (Character.isWhitespace(codePoint)) {
+                i += charCount
+                continue
+            }
 
-        return EMOJI_REGEX.matches(cleanedText)
+            hasContent = true
+
+            // 1. Fail if it's a standard letter or digit (e.g. 'A', '1', 'ß')
+            if (Character.isLetterOrDigit(codePoint)) {
+                return false
+            }
+
+            // 2. Fail if it's a fancy font symbol (e.g. 𝐀, ①)
+            // Even if it's technically a symbol (So), we don't want it as an "emoji name".
+            if (isFancyFont(codePoint)) {
+                return false
+            }
+
+            // 3. Must be a valid emoji component
+            // Valid: Symbol Other (So), Zero Width Joiner, or Variation Selectors
+            val type = Character.getType(codePoint).toByte()
+            val isSymbolOther = type == Character.OTHER_SYMBOL
+            val isSpecial = codePoint == 0x200D || codePoint == 0xFE0F || codePoint == 0xFE0E
+
+            if (!isSymbolOther && !isSpecial) {
+                return false
+            }
+
+            i += charCount
+        }
+
+        return hasContent
     }
 
     actual fun hasFancyFonts(text: String): Boolean {
         if (text.isBlank()) return false
-        return FANCY_FONT_REGEX.containsMatchIn(text)
+        var i = 0
+        val length = text.length
+        while (i < length) {
+            val codePoint = text.codePointAt(i)
+            if (isFancyFont(codePoint)) return true
+            i += Character.charCount(codePoint)
+        }
+        return false
+    }
+
+    // 2026 Optimization: Helper to check fancy font ranges directly
+    private fun isFancyFont(codePoint: Int): Boolean {
+        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
+        if (codePoint in 0x1D400..0x1D7FF) return true
+        // Enclosed Alphanumerics (U+2460 to U+24FF)
+        if (codePoint in 0x2460..0x24FF) return true
+        return false
     }
 }

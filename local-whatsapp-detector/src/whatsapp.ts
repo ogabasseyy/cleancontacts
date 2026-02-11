@@ -11,12 +11,10 @@ import makeWASocket, {
   Browsers
 } from 'baileys'
 import { Boom } from '@hapi/boom'
-import pino from 'pino'
 import { SocksProxyAgent } from 'socks-proxy-agent'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 import type { WebSocketManager } from './websocket.js'
-
-const logger = pino({ level: 'silent' })
+import { logger, maskPII } from './logger.js'
 
 // Proxy configuration from environment
 const PROXY_URL = process.env.PROXY_URL // e.g., socks5://user:pass@host:port
@@ -44,23 +42,22 @@ export class WhatsAppManager {
 
   setWebSocketManager(wsManager: WebSocketManager) {
     this.wsManager = wsManager
-    console.log('🔗 WebSocket manager linked to WhatsAppManager')
+    logger.info('🔗 WebSocket manager linked to WhatsAppManager')
   }
 
   async initialize(): Promise<void> {
-    console.log('📱 Initializing WhatsApp connection...')
+    logger.info('📱 Initializing WhatsApp connection...')
     if (PROXY_URL) {
-      console.log('🌐 Proxy configured: ' + PROXY_URL.replace(/:[^:@]+@/, ':****@'))
+      logger.info('🌐 Proxy configured: ' + PROXY_URL.replace(/:[^:@]+@/, ':****@'))
     } else {
-      console.log('⚠️ No proxy configured - using direct connection')
-      console.log('   Set PROXY_URL env var for residential proxy (recommended)')
+      logger.warn('⚠️ No proxy configured - using direct connection')
     }
     await this.connect()
   }
 
   private getProxyAgent(): any {
     if (!PROXY_URL) return undefined
-    
+
     if (PROXY_URL.startsWith('socks')) {
       return new SocksProxyAgent(PROXY_URL)
     } else {
@@ -72,18 +69,16 @@ export class WhatsAppManager {
     const { state, saveCreds } = await useMultiFileAuthState(this.authPath)
     const { version } = await fetchLatestBaileysVersion()
 
-    console.log(`🌐 Using WhatsApp Web v${version.join('.')}`)
+    logger.info(`🌐 Using WhatsApp Web v${version.join('.')}`)
 
     const needsPairing = pairingPhoneNumber || !state.creds.registered
-    const browserConfig = needsPairing 
+    const browserConfig = needsPairing
       ? Browsers.macOS('Chrome')
       : Browsers.ubuntu('Chrome')
 
-    console.log(`🖥️ Browser config: ${JSON.stringify(browserConfig)}`)
-
     const agent = this.getProxyAgent()
     if (agent) {
-      console.log('🔒 Using proxy agent for connection')
+      logger.info('🔒 Using proxy agent for connection')
     }
 
     this.sock = makeWASocket({
@@ -105,23 +100,23 @@ export class WhatsAppManager {
     })
 
     if (needsPairing && pairingPhoneNumber) {
-      console.log(`📲 Requesting pairing code for ${pairingPhoneNumber}...`)
+      logger.info({ phoneNumber: maskPII(pairingPhoneNumber) }, '📲 Requesting pairing code...')
       try {
         await new Promise(resolve => setTimeout(resolve, 1500))
         const code = await this.sock.requestPairingCode(pairingPhoneNumber)
-        console.log(`🔑 Pairing code generated: ${code}`)
-        
+        // Redacted pairing code log - only sending via WS
+
         if (this.wsManager) {
           this.wsManager.notifyPairingCode(pairingPhoneNumber, code)
         }
-        
+
         if (this.pendingPairingResolve) {
           this.pendingPairingResolve(code)
           this.pendingPairingResolve = null
           this.pendingPairingReject = null
         }
       } catch (error: any) {
-        console.error('❌ Error requesting pairing code:', error)
+        logger.error({ error: error.message, phoneNumber: maskPII(pairingPhoneNumber) }, '❌ Error requesting pairing code')
         if (this.pendingPairingReject) {
           this.pendingPairingReject(error)
           this.pendingPairingResolve = null
@@ -139,19 +134,19 @@ export class WhatsAppManager {
       if (connection === 'close') {
         const reason = (lastDisconnect?.error as Boom)?.output?.statusCode
         const reasonMessage = (lastDisconnect?.error as Boom)?.message || 'Unknown error'
-        console.log(`❌ Connection closed: ${DisconnectReason[reason] || reason} (${reasonMessage})`)
-        
+        logger.info({ reason, error: reasonMessage }, '❌ Connection closed')
+
         this.status.connected = false
 
         if (reason !== DisconnectReason.loggedOut && !this.currentPairingPhone) {
-          console.log('🔄 Reconnecting...')
+          logger.info('🔄 Reconnecting...')
           setTimeout(() => this.connect(), 5000)
         } else if (reason === DisconnectReason.loggedOut) {
-          console.log('⚠️ Session logged out. Ready for new pairing.')
+          logger.warn('⚠️ Session logged out. Ready for new pairing.')
         }
-          
+
       } else if (connection === 'open') {
-        console.log('✅ WhatsApp connected!')
+        logger.info('✅ WhatsApp connected!')
         this.status.connected = true
         this.status.lastConnected = Date.now()
         this.status.phoneNumber = this.sock?.user?.id?.split(':')[0]
@@ -168,7 +163,7 @@ export class WhatsAppManager {
 
   async requestPairingCode(phoneNumber: string): Promise<string> {
     const formattedNumber = phoneNumber.replace(/[^0-9]/g, '')
-    
+
     if (formattedNumber.length < 10) {
       throw new Error('Invalid phone number format')
     }
@@ -178,14 +173,14 @@ export class WhatsAppManager {
     return new Promise((resolve, reject) => {
       this.pendingPairingResolve = resolve
       this.pendingPairingReject = reject
-      
+
       if (this.sock) {
         this.sock.end(undefined)
         this.sock = null
       }
-      
+
       this.connect(formattedNumber).catch(reject)
-      
+
       setTimeout(() => {
         if (this.pendingPairingReject) {
           this.pendingPairingReject(new Error('Pairing code request timed out'))
@@ -200,11 +195,11 @@ export class WhatsAppManager {
     if (this.sock) {
       try {
         await this.sock.logout()
-      } catch (err) {}
+      } catch (err) { }
       this.sock = null
       this.status = { connected: false }
       this.currentPairingPhone = null
-      console.log('👋 Disconnected from WhatsApp')
+      logger.info('👋 Disconnected from WhatsApp')
     }
   }
 
@@ -230,15 +225,15 @@ export class WhatsAppManager {
 
     try {
       const waResults = await this.sock.onWhatsApp(...formattedNumbers)
-      
+
       for (let i = 0; i < formattedNumbers.length; i++) {
         const original = numbers[i]
         const formatted = formattedNumbers[i]
-        
-        const waResult = waResults?.find(r => 
+
+        const waResult = waResults?.find(r =>
           r.jid?.startsWith(formatted) || r.jid?.includes(formatted)
         )
-        
+
         results.push({
           number: original,
           hasWhatsApp: waResult?.exists === true,
@@ -254,29 +249,32 @@ export class WhatsAppManager {
   }
 
   async checkNumbersBatch(
-    numbers: string[], 
+    numbers: string[],
     batchSize: number = 50,
     delayMs: number = 1000
   ): Promise<CheckResult[]> {
     const results: CheckResult[] = []
-    
+
     for (let i = 0; i < numbers.length; i += batchSize) {
       const batch = numbers.slice(i, i + batchSize)
-      console.log(`📊 Checking batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(numbers.length/batchSize)}...`)
-      
+      logger.info({
+        currentBatch: Math.floor(i / batchSize) + 1,
+        totalBatches: Math.ceil(numbers.length / batchSize)
+      }, '📊 Checking batch...')
+
       try {
         const batchResults = await this.checkNumbers(batch)
         results.push(...batchResults)
-      } catch (err) {
-        console.error('Batch error:', err)
+      } catch (err: any) {
+        logger.error({ error: err.message }, 'Batch error')
         throw err
       }
-      
+
       if (i + batchSize < numbers.length) {
         await new Promise(resolve => setTimeout(resolve, delayMs))
       }
     }
-    
+
     return results
   }
 }

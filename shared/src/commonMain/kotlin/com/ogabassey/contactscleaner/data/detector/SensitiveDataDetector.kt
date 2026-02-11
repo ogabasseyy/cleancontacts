@@ -19,22 +19,22 @@ class SensitiveDataDetector(
         // --- Global ID Patterns (Strict Regex to minimize False Positives) ---
 
         // USA SSN: XXX-XX-XXXX (Strict formatting)
-        private val US_SSN_REGEX = Regex("\\b(?!000|666|9\\d{2})\\d{3}-(?!00)\\d{2}-(?!0000)\\d{4}\\b")
+        private val US_SSN_REGEX = Regex("\\b(?!000|666|9\\d{2})\\d{3}+-(?!00)\\d{2}+-(?!0000)\\d{4}+\\b")
 
         // UK National Insurance: 2 letters, 6 digits, 1 letter
-        private val UK_NINO_REGEX = Regex("\\b[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\\d{6}[A-D\\s]?\\b", RegexOption.IGNORE_CASE)
+        private val UK_NINO_REGEX = Regex("\\b[A-CEGHJ-PR-TW-Z][A-CEGHJ-NPR-TW-Z]\\d{6}++[A-D\\s]?+\\b", RegexOption.IGNORE_CASE)
 
         // India Passport: 1 Letter + 7 Digits (e.g., A1234567)
-        private val INDIA_PASSPORT_REGEX = Regex("\\b[A-Z]\\d{7}\\b")
+        private val INDIA_PASSPORT_REGEX = Regex("\\b[A-Z]\\d{7}++\\b")
 
         // China Resident ID (18 digits)
-        private val CHINA_ID_REGEX = Regex("\\b\\d{17}[0-9Xx]\\b")
+        private val CHINA_ID_REGEX = Regex("\\b\\d{17}++[0-9Xx]\\b")
 
         // Credit Card (Luhn-validatable candidates: 13-19 digits)
-        private val CREDIT_CARD_REGEX = Regex("\\b(?:4\\d{12}(?:\\d{3})?|5[1-5]\\d{14}|3[47]\\d{13}|6(?:011|5\\d{2})\\d{12})\\b")
+        private val CREDIT_CARD_REGEX = Regex("\\b(?:4\\d{12}+(?:\\d{3})?+|5[1-5]\\d{14}+|3[47]\\d{13}+|6(?:011|5\\d{2})\\d{12}+)\\b")
 
         // Nigeria NIN/BVN (11 Digits)
-        private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}$")
+        private val NIGERIA_11_DIGIT_REGEX = Regex("^\\d{11}++$")
     }
 
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {

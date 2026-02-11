@@ -10,6 +10,12 @@
     "rootDir": ".",
     "resolveJsonModule": true
   },
-  "include": ["index.ts", "session-manager.ts"],
-  "exclude": ["node_modules", "src"]
+  "include": [
+    "src/**/*",
+    "index.ts",
+    "session-manager.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

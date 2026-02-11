@@ -45,6 +45,10 @@ class WhatsAppDetectorApi(
             connectTimeoutMillis = 10_000
             socketTimeoutMillis = 30_000
         }
+        // 2026 Security: API Key Authentication
+        defaultRequest {
+            header("X-API-Key", "replace-with-your-secure-api-key-2026")
+        }
     }
 
     private val wsUrl = baseUrl.replace("https://", "wss://").replace("http://", "ws://")

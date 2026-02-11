@@ -39,7 +39,7 @@ class RevenueCatKmpBillingRepository : BillingRepository {
 
     companion object {
         private const val TAG = "RevenueCatKmp"
-        private const val SDK_NOT_CONFIGURED = "Unable to connect to the store. Please try again later."
+        private const val SDK_NOT_CONFIGURED = "Store services are temporarily unavailable. Please try again later."
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)

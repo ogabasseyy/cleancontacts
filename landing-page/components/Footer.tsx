@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { APP_STORE_LINK, PLAY_STORE_LINK } from '../constants';
 
 type ViewState = 'home' | 'privacy' | 'terms' | 'support';
 
@@ -20,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="flex flex-col items-center md:items-end gap-4">
           <div className="flex gap-6 text-gray-500 mb-2">
             <a
-              href="https://apps.apple.com/app/id6758563652"
+              href={APP_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-brand transition-colors"
@@ -28,7 +29,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               App Store
             </a>
             <a
-              href="https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner"
+              href={PLAY_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-brand transition-colors"

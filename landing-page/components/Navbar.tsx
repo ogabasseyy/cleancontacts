@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_STORE_LINK } from '../constants';
 
 type ViewState = 'home' | 'privacy' | 'terms' | 'support';
 
@@ -89,9 +90,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
                 Back to Home
              </button>
           )}
-          <button type="button" className="hidden md:flex px-5 py-2 rounded-full bg-white/10 hover:bg-brand hover:text-black border border-white/10 transition-all duration-300 text-sm font-semibold">
+          <a href={APP_STORE_LINK} target="_blank" rel="noopener noreferrer" className="hidden md:flex px-5 py-2 rounded-full bg-white/10 hover:bg-brand hover:text-black border border-white/10 transition-all duration-300 text-sm font-semibold">
             Get App
-          </button>
+          </a>
         </div>
       </div>
     </nav>

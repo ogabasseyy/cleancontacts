@@ -624,7 +624,8 @@ class IosContactsSource {
         var anyChanged = false
         val updatedNumbers = existingNumbers.map { labeledValue ->
             val phoneNumber = labeledValue.value as? CNPhoneNumber
-            val rawValue = phoneNumber?.stringValue ?: ""
+            val rawValue = phoneNumber?.stringValue
+            if (rawValue.isNullOrEmpty()) return@map labeledValue
             val normalized = normalizer(rawValue)
 
             if (normalized != null && normalized != rawValue) {

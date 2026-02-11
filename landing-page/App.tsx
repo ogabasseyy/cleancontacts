@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
@@ -69,6 +69,8 @@ const AppContent: React.FC = () => {
                 <SupportCard />
               </div>
             } />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 

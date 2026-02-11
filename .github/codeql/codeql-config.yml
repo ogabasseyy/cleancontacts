@@ -15,8 +15,8 @@ paths-ignore:
 
   # Generated assets and build logs
   - "**/build/**"
-  - "**/*.txt"
-  - "**/*.png"
+  - "**/build/**/*.txt"
+  - "**/assets/**/*.png"
 
   # Landing page (React specific patterns)
   - "landing-page/public/**"
@@ -29,12 +29,6 @@ query-filters:
       paths:
         - "shared/src/iosMain/**"
         - "shared/src/androidMain/**"
-  - exclude:
-      id:
-        - js/weak-cryptographic-algorithm
-      paths:
-        - "local-whatsapp-detector/**"
-
 # For detailed security documentation, see:
 # - /SECURITY.md
 # - /src/lib/sanitize.ts (DOMPurify configuration)

@@ -256,7 +256,10 @@ class WhatsAppDetectorApi(
             return@callbackFlow
         }
         try {
-            client.webSocket("$wsUrl/ws/pairing?apiKey=$apiKey") {
+            client.webSocket(
+                urlString = "$wsUrl/ws/pairing",
+                request = { header("X-API-Key", apiKey) }
+            ) {
                 // Send start_pairing message with userId
                 val startMessage = json.encodeToString(
                     WebSocketMessage.serializer(),

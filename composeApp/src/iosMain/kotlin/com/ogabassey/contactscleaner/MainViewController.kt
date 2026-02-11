@@ -16,10 +16,14 @@ import platform.UIKit.UIViewController
  */
 fun InitializeRevenueCat() {
     if (RevenueCatInitializer.isConfigured()) return
-    RevenueCatInitializer.initialize(
-        appUserId = null, // Anonymous user, RevenueCat generates ID
-        debugMode = false // Production ready
-    )
+    try {
+        RevenueCatInitializer.initialize(
+            appUserId = null, // Anonymous user, RevenueCat generates ID
+            debugMode = false // Production ready
+        )
+    } catch (e: Exception) {
+        Logger.e("RevenueCat", "Failed to initialize: ${e.message}")
+    }
 }
 
 /**

@@ -16,7 +16,7 @@
 
 # 4. Room KMP (2026 Rules for BundledSQLiteDriver)
 # Keep RoomDatabase subclasses AND their members (DAO accessors called by name in _Impl)
--keep class * extends androidx.room.RoomDatabase { *; }
+-keep class com.ogabassey.contactscleaner.data.db.** extends androidx.room.RoomDatabase { *; }
 -keep class androidx.room.paging.LimitOffsetPagingSource { *; }
 -keep interface com.ogabassey.contactscleaner.data.db.dao.** { *; }
 -keep @androidx.room.Entity class * { *; }

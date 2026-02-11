@@ -27,7 +27,8 @@ import kotlinx.serialization.json.Json
  * accounts independently without conflicts.
  */
 class WhatsAppDetectorApi(
-    private val baseUrl: String = "https://api.contactscleaner.tech"
+    private val baseUrl: String = "https://api.contactscleaner.tech",
+    private val apiKey: String = "ROTATED_KEY_REDACTED"
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -47,7 +48,7 @@ class WhatsAppDetectorApi(
         }
         // 2026 Security: API Key Authentication
         defaultRequest {
-            header("X-API-Key", "replace-with-your-secure-api-key-2026")
+            header("X-API-Key", apiKey)
         }
     }
 
@@ -255,7 +256,7 @@ class WhatsAppDetectorApi(
             return@callbackFlow
         }
         try {
-            client.webSocket("$wsUrl/ws/pairing") {
+            client.webSocket("$wsUrl/ws/pairing?apiKey=$apiKey") {
                 // Send start_pairing message with userId
                 val startMessage = json.encodeToString(
                     WebSocketMessage.serializer(),

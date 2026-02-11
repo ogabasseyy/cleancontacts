@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -533,6 +534,7 @@ fun SettingsContent(
                 title = "Version",
                 subtitle = versionName,
                 showChevron = false,
+                actionIcon = Icons.Default.ContentCopy,
                 onClick = {
                     clipboardManager.setText(AnnotatedString(versionName))
                     scope.launch {
@@ -562,6 +564,7 @@ fun SettingsContent(
                 icon = Icons.Default.Info,
                 title = "Privacy Policy",
                 subtitle = "How we handle your data",
+                actionIcon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = { uriHandler.openUri("https://contactscleaner.tech/privacy") }
             )
 
@@ -569,6 +572,7 @@ fun SettingsContent(
                 icon = Icons.AutoMirrored.Filled.List,
                 title = "Terms of Service",
                 subtitle = "Legal agreements",
+                actionIcon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = { uriHandler.openUri("https://contactscleaner.tech/terms") }
             )
 
@@ -596,12 +600,14 @@ fun SettingsItem(
     title: String,
     subtitle: String,
     showChevron: Boolean = true,
+    actionIcon: ImageVector? = null,
     onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             // 2026 Accessibility: Add semantic role for screen readers
+            .semantics(mergeDescendants = true) {}
             .clickable(
                 enabled = onClick != null,
                 role = if (onClick != null) Role.Button else null
@@ -621,10 +627,12 @@ fun SettingsItem(
             Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color.White)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
         }
-        // 2026 UX: Visual affordance - chevron indicates item is clickable
-        if (onClick != null && showChevron) {
+        // 2026 UX: Visual affordance - chevron indicates item is clickable, or specific action icon
+        val trailingIcon = actionIcon ?: if (onClick != null && showChevron) Icons.AutoMirrored.Filled.KeyboardArrowRight else null
+
+        if (trailingIcon != null) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                imageVector = trailingIcon,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = 0.5f)
             )

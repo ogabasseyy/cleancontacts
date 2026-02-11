@@ -22,8 +22,29 @@ class ExportUtilsTest {
     @Test
     fun escapeCsvValue_shouldPreservePlusAndMinusInPhoneFields() {
         assertEquals("+1234567890", ExportUtils.escapeCsvValue("+1234567890", isPhoneField = true))
+        // -1+1 is technically a formula but safe from execution. Allowed by current strict rules.
         assertEquals("-1+1", ExportUtils.escapeCsvValue("-1+1", isPhoneField = true))
         assertEquals("+44 7911 123456", ExportUtils.escapeCsvValue("+44 7911 123456", isPhoneField = true))
+        // Standard separators should be allowed
+        assertEquals("+1 (555) 123-4567", ExportUtils.escapeCsvValue("+1 (555) 123-4567", isPhoneField = true))
+        assertEquals("+1.555.123.4567", ExportUtils.escapeCsvValue("+1.555.123.4567", isPhoneField = true))
+        assertEquals("+123*456#", ExportUtils.escapeCsvValue("+123*456#", isPhoneField = true))
+    }
+
+    @Test
+    fun escapeCsvValue_shouldEscapeMaliciousPhoneFields() {
+        // Malicious payloads (containing letters or other unsafe chars) must be escaped
+        assertEquals("'+cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("+cmd|' /C calc'!A0", isPhoneField = true))
+        assertEquals("'-cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("-cmd|' /C calc'!A0", isPhoneField = true))
+        assertEquals("'+HYPERLINK(\"http://evil.com\")", ExportUtils.escapeCsvValue("+HYPERLINK(\"http://evil.com\")", isPhoneField = true))
+    }
+
+    @Test
+    fun escapeCsvValue_shouldEscapeUnsafeCharactersInPhoneFields() {
+        // Even if it looks like a phone number but has a letter (e.g. vanity number),
+        // if it starts with +/-, we escape it to be safe against defined names/references.
+        assertEquals("'+1-800-FLOWERS", ExportUtils.escapeCsvValue("+1-800-FLOWERS", isPhoneField = true))
+        assertEquals("'+123?456", ExportUtils.escapeCsvValue("+123?456", isPhoneField = true))
     }
 
     @Test

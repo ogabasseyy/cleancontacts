@@ -28,9 +28,19 @@ object ExportUtils {
     }
 
     private fun escapeInjection(value: String, isPhoneField: Boolean = false): String {
-        val needsEscape = value.startsWith("=") || value.startsWith("@") ||
-            value.startsWith("\t") || value.startsWith("\r") ||
-            (!isPhoneField && (value.startsWith("+") || value.startsWith("-")))
+        var needsEscape = value.startsWith("=") || value.startsWith("@") ||
+            value.startsWith("\t") || value.startsWith("\r")
+
+        if (!needsEscape && (value.startsWith("+") || value.startsWith("-"))) {
+            if (isPhoneField) {
+                // For phone fields, only allow if all characters are safe.
+                // This prevents malicious payloads (e.g. +cmd...) while allowing valid phone formats.
+                val safeChars = "0123456789 +-.(),;*#"
+                needsEscape = value.any { it !in safeChars }
+            } else {
+                needsEscape = true
+            }
+        }
         return if (needsEscape) "'$value" else value
     }
 

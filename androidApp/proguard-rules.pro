@@ -1,34 +1,42 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# 2026 R8 "Gold Standard" Rules
+# Focus: Surgical protection to maximize binary shrinking and startup speed.
 
-# Keep generic signature of Call, Response (R8 full mode strips signatures from non-kept items).
--keep,allowobfuscation,allowshrinking interface retrofit2.Call
--keep,allowobfuscation,allowshrinking class retrofit2.Response
+# 1. Annotation-based Protection
+-keep @androidx.annotation.Keep class * { *; }
 
-# JetPack Compose
--keep class androidx.compose.** { *; }
-
-# Hilt
--keep class dagger.hilt.** { *; }
--keep class javax.inject.** { *; }
-
-# Keep data classes used in Compose
--keep class com.ogabassey.contactscleaner.domain.model.** { *; }
-
-# RevenueCat
--keep class com.revenuecat.purchases.** { *; }
-
-# Kotlinx Serialization
--keepattributes *Annotation*, EnclosingMethod, Signature
--keepclassmembers class ** {
-    @kotlinx.serialization.SerialName <fields>;
+# 2. Koin Constructor Preservation
+# Scoped to app packages so R8 can still shrink third-party dependencies
+-keepclassmembers class com.ogabassey.contactscleaner.** {
+    public <init>(...);
 }
 
-# Room
--keep class * extends androidx.room.RoomDatabase
--keep class androidx.room.paging.LimitOffsetPagingSource {*;}
+# 3. WorkManager integration
+# KoinWorkerFactory is instantiated by Koin for WorkManager
+-keep class com.ogabassey.contactscleaner.di.KoinWorkerFactory { *; }
 
+# 4. Room KMP (2026 Rules for BundledSQLiteDriver)
+# Keep RoomDatabase subclasses AND their members (DAO accessors called by name in _Impl)
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep class androidx.room.paging.LimitOffsetPagingSource {*;}
+-keep interface com.ogabassey.contactscleaner.data.db.dao.** { *; }
+-keep @androidx.room.Entity class * { *; }
+
+# 5. Kotlinx Serialization
+# Keep Companion objects and serializer() methods for @Serializable classes
+-keepattributes Signature, EnclosingMethod, InnerClasses, *Annotation*
+-keepclassmembers class com.ogabassey.contactscleaner.** {
+    @kotlinx.serialization.SerialName <fields>;
+}
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keep,includedescriptorclasses class com.ogabassey.contactscleaner.**$$serializer { *; }
+-keepclassmembers class com.ogabassey.contactscleaner.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.ogabassey.contactscleaner.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# 6. Compose Stability
+-keep class androidx.compose.runtime.Recomposer { *; }

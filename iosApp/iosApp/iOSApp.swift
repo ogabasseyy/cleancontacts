@@ -1,4 +1,5 @@
 import SwiftUI
+import composeApp
 
 /**
  * iOS Application entry point for Contacts Cleaner.
@@ -20,6 +21,10 @@ class CrashListener {
 struct iOSApp: App {
     init() {
         CrashListener.install()
+
+        // Per RevenueCat docs: configure Purchases early in app lifecycle.
+        // App.init() is the earliest point for SwiftUI apps.
+        MainViewControllerKt.InitializeRevenueCat()
     }
 
     var body: some Scene {

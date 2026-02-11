@@ -50,6 +50,10 @@ class IosContactRepository(
 
     companion object {
         private const val KEY_DEVICE_ID = "whatsapp_device_id"
+
+        /** Returns true if the number is a candidate for format normalization. */
+        fun isNormalizable(number: String): Boolean =
+            number.isNotBlank() && !number.startsWith("+") && !number.startsWith("*") && !number.startsWith("#")
     }
 
     /**
@@ -101,15 +105,20 @@ class IosContactRepository(
             junkDetector.getJunkType(contact.name, contact.normalizedNumber ?: primaryNumber)
         } else null
 
-        // Format issue detection
+        // Format issue detection — check ALL numbers, not just the first
         var isFormatIssue = false
         var detectedNormalized = contact.normalizedNumber
 
-        if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
-            if (!primaryNumber.startsWith("+") && !primaryNumber.startsWith("*") && !primaryNumber.startsWith("#")) {
-                formatDetector.analyze(primaryNumber)?.let { issue ->
-                    isFormatIssue = true
-                    detectedNormalized = issue.normalizedNumber
+        if (junkType == null && !isSensitive) {
+            for (number in contact.numbers) {
+                if (isNormalizable(number)) {
+                    formatDetector.analyze(number)?.let { issue ->
+                        isFormatIssue = true
+                        // Keep the first normalized number for matching key
+                        if (detectedNormalized == contact.normalizedNumber) {
+                            detectedNormalized = issue.normalizedNumber
+                        }
+                    }
                 }
             }
         }
@@ -526,10 +535,12 @@ class IosContactRepository(
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
 
         for (entity in contacts) {
-            val normalizedNumber = entity.normalizedNumber ?: continue
             val platformUid = entity.platformUid ?: continue  // Skip if no platform_uid
 
-            val updated = contactsSource.updateContactNumber(platformUid, normalizedNumber)
+            // Normalize ALL numbers on the contact, not just the first
+            val updated = contactsSource.normalizeAllNumbers(platformUid) { rawNumber ->
+                if (isNormalizable(rawNumber)) formatDetector.analyze(rawNumber)?.normalizedNumber else null
+            }
             if (updated) {
                 successfulIds.add(entity.id)
             } else {
@@ -576,13 +587,14 @@ class IosContactRepository(
         formatIssues.chunked(25).forEachIndexed { batchIndex, batch ->
             val batchIds = batch.map { it.id }
 
-            // Process this batch
+            // Process this batch — normalize ALL numbers on each contact
             val batchSuccessful = mutableListOf<Long>()
             for (entity in batch) {
-                val normalizedNumber = entity.normalizedNumber ?: continue
                 val platformUid = entity.platformUid ?: continue
 
-                val updated = contactsSource.updateContactNumber(platformUid, normalizedNumber)
+                val updated = contactsSource.normalizeAllNumbers(platformUid) { rawNumber ->
+                    if (isNormalizable(rawNumber)) formatDetector.analyze(rawNumber)?.normalizedNumber else null
+                }
                 if (updated) {
                     batchSuccessful.add(entity.id)
                     successCount++
@@ -687,6 +699,8 @@ class IosContactRepository(
                     if (snapshot is CacheSnapshot.Valid) {
                         whatsAppPhoneNumbers = snapshot.numbers
                     }
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     println("Note: Could not load WhatsApp cache for refresh: ${e.message}")
                 }

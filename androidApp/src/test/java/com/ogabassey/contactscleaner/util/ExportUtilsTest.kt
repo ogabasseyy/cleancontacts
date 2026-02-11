@@ -36,7 +36,8 @@ class ExportUtilsTest {
         // Malicious payloads (containing letters or other unsafe chars) must be escaped
         assertEquals("'+cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("+cmd|' /C calc'!A0", isPhoneField = true))
         assertEquals("'-cmd|' /C calc'!A0", ExportUtils.escapeCsvValue("-cmd|' /C calc'!A0", isPhoneField = true))
-        assertEquals("'+HYPERLINK(\"http://evil.com\")", ExportUtils.escapeCsvValue("+HYPERLINK(\"http://evil.com\")", isPhoneField = true))
+        // This payload contains quotes, so it gets both injection-escaped AND CSV-quoted
+        assertEquals("\"'+HYPERLINK(\"\"http://evil.com\"\")\"", ExportUtils.escapeCsvValue("+HYPERLINK(\"http://evil.com\")", isPhoneField = true))
     }
 
     @Test

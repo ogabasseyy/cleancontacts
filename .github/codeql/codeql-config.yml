@@ -15,8 +15,6 @@ paths-ignore:
 
   # Generated assets and build logs
   - "**/build/**"
-  - "**/build/**/*.txt"
-  - "**/assets/**/*.png"
 
   # Landing page (React specific patterns)
   - "landing-page/public/**"

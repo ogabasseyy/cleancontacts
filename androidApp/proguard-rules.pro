@@ -37,6 +37,3 @@
 -keepclasseswithmembers class com.ogabassey.contactscleaner.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
-
-# 6. Compose Stability
--keep class androidx.compose.runtime.Recomposer { *; }

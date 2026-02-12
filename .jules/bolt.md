@@ -92,3 +92,24 @@ for (c in input) {
     }
 }
 ```
+
+# 2026-03-01 - Regex vs Manual Unicode Iteration
+
+**Learning:** `Regex` matching for specific Unicode ranges (like Surrogate Pairs for Fancy Fonts) can be unreliable in some Android test environments or less efficient than manual code point iteration. Manual iteration avoids regex compilation and object allocation completely.
+
+**Action:** For performance-critical text analysis involving specific Unicode ranges (e.g. Emoji detection, Mathematical Symbols), prefer `String.codePointAt(i)` loop over `Regex`.
+
+```kotlin
+// ❌ Avoid: Regex for surrogate ranges
+private val FANCY_FONT_REGEX = Regex("[\\uD835][\\uDC00-\\uDFFF]")
+return FANCY_FONT_REGEX.containsMatchIn(text)
+
+// ✅ Prefer: Manual code point iteration (O(N) no allocation)
+val len = text.length
+var i = 0
+while (i < len) {
+    val codePoint = text.codePointAt(i)
+    if (codePoint in 0x1D400..0x1D7FF) return true
+    i += Character.charCount(codePoint)
+}
+```

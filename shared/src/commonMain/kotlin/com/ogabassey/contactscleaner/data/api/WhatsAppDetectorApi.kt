@@ -61,7 +61,10 @@ class WhatsAppDetectorApi(
      */
     suspend fun checkHealth(): HealthResponse {
         return try {
-            client.get("$baseUrl/health").body()
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("health")
+            }.body()
         } catch (e: Exception) {
             HealthResponse(status = "error", timestamp = 0L)
         }
@@ -78,7 +81,10 @@ class WhatsAppDetectorApi(
             return SessionStatus(connected = false, error = "Invalid user ID")
         }
         return try {
-            client.get("$baseUrl/session/$userId/status").body()
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "status")
+            }.body()
         } catch (e: Exception) {
             SessionStatus(connected = false, error = e.message)
         }
@@ -101,7 +107,9 @@ class WhatsAppDetectorApi(
             return PairingResponse(success = false, error = "Invalid phone number")
         }
         return try {
-            client.post("$baseUrl/session/$userId/pair") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "pair")
                 contentType(ContentType.Application.Json)
                 setBody(PairingRequest(phoneNumber = phoneNumber))
             }.body()
@@ -121,7 +129,10 @@ class WhatsAppDetectorApi(
             return DisconnectResponse(success = false, error = "Invalid user ID")
         }
         return try {
-            client.delete("$baseUrl/session/$userId").body()
+            client.delete {
+                url(baseUrl)
+                url.appendPathSegments("session", userId)
+            }.body()
         } catch (e: Exception) {
             DisconnectResponse(success = false, error = e.message)
         }
@@ -143,7 +154,9 @@ class WhatsAppDetectorApi(
             return CheckNumbersResponse(success = false, results = emptyList(), error = "Batch size exceeds limit")
         }
         return try {
-            client.post("$baseUrl/session/$userId/check") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "check")
                 contentType(ContentType.Application.Json)
                 setBody(CheckNumbersRequest(numbers = numbers))
             }.body()
@@ -179,7 +192,9 @@ class WhatsAppDetectorApi(
         // Note: Batch checking uses regular check endpoint with client-side batching
         // Server handles batching internally when using the per-user check endpoint
         return try {
-            client.post("$baseUrl/session/$userId/check") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "check")
                 contentType(ContentType.Application.Json)
                 setBody(CheckNumbersRequest(numbers = numbers))
             }.body<CheckNumbersResponse>().let { response ->
@@ -222,7 +237,9 @@ class WhatsAppDetectorApi(
         offset: Int = 0
     ): WhatsAppContactsResponse {
         return try {
-            client.get("$baseUrl/session/$userId/contacts") {
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "contacts")
                 parameter("limit", limit)
                 parameter("offset", offset)
             }.body()
@@ -251,7 +268,10 @@ class WhatsAppDetectorApi(
             return@callbackFlow
         }
         try {
-            client.webSocket("$wsUrl/ws/pairing") {
+            client.webSocket({
+                url(wsUrl)
+                url.appendPathSegments("ws", "pairing")
+            }) {
                 // Send start_pairing message with userId
                 val startMessage = json.encodeToString(
                     WebSocketMessage.serializer(),

@@ -853,6 +853,12 @@ fun AccountDialogItem(
                 fontWeight = FontWeight.Black,
                 style = MaterialTheme.typography.titleMedium
             )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = TextLow
+            )
         }
     }
 }

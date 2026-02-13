@@ -54,6 +54,16 @@ class WhatsAppDetectorApi(
         const val MAX_PHONE_NUMBER_LENGTH = 50
         const val MAX_USER_ID_LENGTH = 100
         const val MAX_BATCH_SIZE = 5000
+
+        // 2026 Security: Whitelist allowed characters for userId to prevent injection
+        val USER_ID_REGEX = Regex("^[a-zA-Z0-9_-]+$")
+    }
+
+    /**
+     * Validate userId to prevent Path Traversal and Injection attacks.
+     */
+    private fun isValidUserId(userId: String): Boolean {
+        return userId.length <= MAX_USER_ID_LENGTH && USER_ID_REGEX.matches(userId)
     }
 
     /**
@@ -61,7 +71,10 @@ class WhatsAppDetectorApi(
      */
     suspend fun checkHealth(): HealthResponse {
         return try {
-            client.get("$baseUrl/health").body()
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("health")
+            }.body()
         } catch (e: Exception) {
             HealthResponse(status = "error", timestamp = 0L)
         }
@@ -73,12 +86,15 @@ class WhatsAppDetectorApi(
      * @param userId Unique identifier for the user's session
      */
     suspend fun getSessionStatus(userId: String): SessionStatus {
-        // 2026 Security: Validate input length
-        if (userId.length > MAX_USER_ID_LENGTH) {
-            return SessionStatus(connected = false, error = "Invalid user ID")
+        // 2026 Security: Validate input format
+        if (!isValidUserId(userId)) {
+            return SessionStatus(connected = false, error = "Invalid user ID format")
         }
         return try {
-            client.get("$baseUrl/session/$userId/status").body()
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "status")
+            }.body()
         } catch (e: Exception) {
             SessionStatus(connected = false, error = e.message)
         }
@@ -93,15 +109,17 @@ class WhatsAppDetectorApi(
      * @return PairingResponse with the 8-digit code or error
      */
     suspend fun requestPairingCode(userId: String, phoneNumber: String): PairingResponse {
-        // 2026 Security: Validate input lengths
-        if (userId.length > MAX_USER_ID_LENGTH) {
-            return PairingResponse(success = false, error = "Invalid user ID")
+        // 2026 Security: Validate inputs
+        if (!isValidUserId(userId)) {
+            return PairingResponse(success = false, error = "Invalid user ID format")
         }
         if (phoneNumber.length > MAX_PHONE_NUMBER_LENGTH) {
             return PairingResponse(success = false, error = "Invalid phone number")
         }
         return try {
-            client.post("$baseUrl/session/$userId/pair") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "pair")
                 contentType(ContentType.Application.Json)
                 setBody(PairingRequest(phoneNumber = phoneNumber))
             }.body()
@@ -116,12 +134,15 @@ class WhatsAppDetectorApi(
      * @param userId Unique identifier for the user's session
      */
     suspend fun disconnect(userId: String): DisconnectResponse {
-        // 2026 Security: Validate input length
-        if (userId.length > MAX_USER_ID_LENGTH) {
-            return DisconnectResponse(success = false, error = "Invalid user ID")
+        // 2026 Security: Validate input
+        if (!isValidUserId(userId)) {
+            return DisconnectResponse(success = false, error = "Invalid user ID format")
         }
         return try {
-            client.delete("$baseUrl/session/$userId").body()
+            client.delete {
+                url(baseUrl)
+                url.appendPathSegments("session", userId)
+            }.body()
         } catch (e: Exception) {
             DisconnectResponse(success = false, error = e.message)
         }
@@ -135,15 +156,17 @@ class WhatsAppDetectorApi(
      * @return CheckNumbersResponse with results for each number
      */
     suspend fun checkNumbers(userId: String, numbers: List<String>): CheckNumbersResponse {
-        // 2026 Security: Validate input lengths and batch size
-        if (userId.length > MAX_USER_ID_LENGTH) {
-            return CheckNumbersResponse(success = false, results = emptyList(), error = "Invalid user ID")
+        // 2026 Security: Validate inputs and batch size
+        if (!isValidUserId(userId)) {
+            return CheckNumbersResponse(success = false, results = emptyList(), error = "Invalid user ID format")
         }
         if (numbers.size > MAX_BATCH_SIZE) {
             return CheckNumbersResponse(success = false, results = emptyList(), error = "Batch size exceeds limit")
         }
         return try {
-            client.post("$baseUrl/session/$userId/check") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "check")
                 contentType(ContentType.Application.Json)
                 setBody(CheckNumbersRequest(numbers = numbers))
             }.body()
@@ -169,9 +192,9 @@ class WhatsAppDetectorApi(
         numbers: List<String>,
         batchSize: Int = 50
     ): BatchCheckResponse {
-        // 2026 Security: Validate input lengths and batch size
-        if (userId.length > MAX_USER_ID_LENGTH) {
-            return BatchCheckResponse(success = false, total = 0, checked = 0, whatsappCount = 0, results = emptyList(), error = "Invalid user ID")
+        // 2026 Security: Validate inputs and batch size
+        if (!isValidUserId(userId)) {
+            return BatchCheckResponse(success = false, total = 0, checked = 0, whatsappCount = 0, results = emptyList(), error = "Invalid user ID format")
         }
         if (numbers.size > MAX_BATCH_SIZE) {
             return BatchCheckResponse(success = false, total = 0, checked = 0, whatsappCount = 0, results = emptyList(), error = "Batch size exceeds limit")
@@ -179,7 +202,9 @@ class WhatsAppDetectorApi(
         // Note: Batch checking uses regular check endpoint with client-side batching
         // Server handles batching internally when using the per-user check endpoint
         return try {
-            client.post("$baseUrl/session/$userId/check") {
+            client.post {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "check")
                 contentType(ContentType.Application.Json)
                 setBody(CheckNumbersRequest(numbers = numbers))
             }.body<CheckNumbersResponse>().let { response ->
@@ -221,8 +246,13 @@ class WhatsAppDetectorApi(
         limit: Int = 500,
         offset: Int = 0
     ): WhatsAppContactsResponse {
+        if (!isValidUserId(userId)) {
+             return WhatsAppContactsResponse(success = false, error = "Invalid user ID format")
+        }
         return try {
-            client.get("$baseUrl/session/$userId/contacts") {
+            client.get {
+                url(baseUrl)
+                url.appendPathSegments("session", userId, "contacts")
                 parameter("limit", limit)
                 parameter("offset", offset)
             }.body()
@@ -245,7 +275,7 @@ class WhatsAppDetectorApi(
      */
     fun connectForPairing(userId: String, phoneNumber: String): Flow<PairingEvent> = callbackFlow {
         // 2026 Security: Validate input lengths early
-        if (userId.length > MAX_USER_ID_LENGTH || phoneNumber.length > MAX_PHONE_NUMBER_LENGTH) {
+        if (!isValidUserId(userId) || phoneNumber.length > MAX_PHONE_NUMBER_LENGTH) {
             trySend(PairingEvent.Error("Invalid input parameters"))
             channel.close()
             return@callbackFlow

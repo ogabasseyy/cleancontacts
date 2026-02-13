@@ -17,3 +17,7 @@
 ## 2026-05-25 - [Clickable Card Padding]
 **Learning:** Applying `clickable` after inner padding creates unresponsive edges on cards. Users expect the entire visual container to be interactive.
 **Action:** For cards with inner padding, apply `clickable` *before* the padding modifier but after the visual shape/background (e.g. `glassy -> clickable -> padding`).
+
+## 2026-06-03 - [Action-Specific Icons in Settings]
+**Learning:** Using a generic chevron for all interactive settings items hides the nature of the interaction (e.g., copying vs. external link vs. internal navigation). Specific icons (ContentCopy, OpenInNew) set better user expectations.
+**Action:** Replace boolean `showChevron` flags with an `actionIcon` parameter in list item components to allow semantic icons that match the interaction type.

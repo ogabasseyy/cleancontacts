@@ -371,7 +371,15 @@ export class SessionManager {
     }
   }
 
+  private validateUserId(userId: string): void {
+    if (!/^[a-zA-Z0-9_-]+$/.test(userId)) {
+      throw new Error('Invalid userId: only alphanumeric characters, underscores, and dashes are allowed')
+    }
+  }
+
   async getOrCreateSession(userId: string): Promise<Session> {
+    this.validateUserId(userId)
+
     // Check if session exists
     let session = this.sessions.get(userId)
     if (session) {
@@ -416,6 +424,8 @@ export class SessionManager {
   }
 
   async connectSession(userId: string, pairingPhoneNumber?: string): Promise<void> {
+    this.validateUserId(userId)
+
     const session = await this.getOrCreateSession(userId)
 
     // Close existing socket if any
@@ -583,6 +593,8 @@ export class SessionManager {
   }
 
   async requestPairingCode(userId: string, phoneNumber: string): Promise<string> {
+    this.validateUserId(userId)
+
     const formattedNumber = phoneNumber.replace(/[^0-9]/g, '')
 
     if (formattedNumber.length < 10) {
@@ -612,6 +624,8 @@ export class SessionManager {
   }
 
   async checkNumbers(userId: string, numbers: string[]): Promise<CheckResult[]> {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
 
     if (!session || !session.sock || !session.status.connected) {
@@ -655,6 +669,8 @@ export class SessionManager {
     offset: number = 0,
     detectBusiness: boolean = true
   ): Promise<WhatsAppContact[]> {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
 
     if (!session || !session.sock || !session.status.connected) {
@@ -695,12 +711,16 @@ export class SessionManager {
   }
 
   getContactsCount(userId: string): number {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (!session) return 0
     return session.contacts.size
   }
 
   getBusinessDetectionStatus(userId: string): { done: boolean; inProgress: boolean; checked: number; total: number; businessCount: number } | null {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (!session) return null
 
@@ -718,6 +738,8 @@ export class SessionManager {
   }
 
   async clearSessionAuth(userId: string): Promise<void> {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (session) {
       try {
@@ -730,6 +752,8 @@ export class SessionManager {
   }
 
   async disconnectSession(userId: string): Promise<void> {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (session) {
       if (session.sock) {
@@ -745,6 +769,8 @@ export class SessionManager {
   }
 
   async destroySession(userId: string): Promise<void> {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (session) {
       if (session.sock) {
@@ -760,6 +786,8 @@ export class SessionManager {
   }
 
   getSessionStatus(userId: string): SessionStatus | null {
+    this.validateUserId(userId)
+
     const session = this.sessions.get(userId)
     if (!session) return null
 

@@ -45,6 +45,28 @@ class SensitiveDataDetector(
         if (cleanValue.length > MAX_INPUT_LENGTH) {
             return null
         }
+
+        // --- ⚡ Bolt Optimization: Single Pass Character Analysis ---
+        // Instead of running multiple heavy regexes and phone validation on every input,
+        // we first scan the string once to count digits, letters, and key symbols.
+        // This allows us to skip impossible matches (e.g. no digits = not a phone number).
+        var digitCount = 0
+        var letterCount = 0
+        var hasHyphen = false
+        var otherCount = 0 // Count non-digit, non-letter, non-hyphen, non-space
+
+        for (i in 0 until cleanValue.length) {
+            val c = cleanValue[i]
+            if (c.isDigit()) digitCount++
+            else if (c.isLetter()) letterCount++
+            else if (c == '-') hasHyphen = true
+            else if (!c.isWhitespace()) otherCount++
+        }
+
+        // Optimization: If fewer than 6 digits, it cannot be a valid phone number
+        // (min 7 usually) or any supported sensitive ID (UK NINO is min 6 digits).
+        if (digitCount < 6) return null
+
         // State of the Art Fix 2026: whitelist ALL valid phone numbers.
         // If libphonenumber says it's valid, it's not a sensitive ID.
         // This handles international formats (+234) and local formats robustly.
@@ -81,42 +103,47 @@ class SensitiveDataDetector(
         }
 
         // 1. Check for USA SSN
-        if (US_SSN_REGEX.containsMatchIn(cleanValue)) {
+        if (digitCount >= 9 && hasHyphen && US_SSN_REGEX.containsMatchIn(cleanValue)) {
             return SensitiveMatch(cleanValue, SensitiveType.USA_SSN, 1.0f, "USA Social Security Number")
         }
 
         // 2. Check for UK National Insurance Number
-        if (UK_NINO_REGEX.containsMatchIn(cleanValue)) {
+        if (letterCount >= 2 && UK_NINO_REGEX.containsMatchIn(cleanValue)) {
             return SensitiveMatch(cleanValue, SensitiveType.UK_NINO, 1.0f, "UK National Insurance Number")
         }
 
         // 3. Indian Passport
-        if (INDIA_PASSPORT_REGEX.containsMatchIn(cleanValue)) {
+        if (digitCount >= 7 && letterCount >= 1 && INDIA_PASSPORT_REGEX.containsMatchIn(cleanValue)) {
             return SensitiveMatch(cleanValue, SensitiveType.UNKNOWN_PII, 0.9f, "Potential Passport Number (India Format)")
         }
 
         // 4. China ID
-        if (CHINA_ID_REGEX.containsMatchIn(cleanValue)) {
+        if (digitCount >= 17 && CHINA_ID_REGEX.containsMatchIn(cleanValue)) {
             return SensitiveMatch(cleanValue, SensitiveType.UNKNOWN_PII, 0.9f, "Potential Resident ID (China Format)")
         }
 
         // 5. Check for Credit Card
-        val cleanedForCC = cleanValue.replace("-", "").replace(" ", "")
-        if (CREDIT_CARD_REGEX.containsMatchIn(cleanedForCC)) {
-            return SensitiveMatch(cleanValue, SensitiveType.CREDIT_CARD, 0.8f, "Possible Credit Card Number")
+        if (digitCount >= 13) {
+            val cleanedForCC = cleanValue.replace("-", "").replace(" ", "")
+            if (CREDIT_CARD_REGEX.containsMatchIn(cleanedForCC)) {
+                return SensitiveMatch(cleanValue, SensitiveType.CREDIT_CARD, 0.8f, "Possible Credit Card Number")
+            }
         }
 
         // 6. Check for Nigeria NIN / BVN (The Tricky One)
         // 2026 Fix: Redundant phone validation removed - already checked at line 62
-        val cleanedForNIN = cleanValue.replace(" ", "")
-        if (NIGERIA_11_DIGIT_REGEX.matches(cleanedForNIN)) {
-            // It's 11 digits but NOT a valid phone number - high probability of NIN/BVN
-            return SensitiveMatch(
-                cleanValue,
-                SensitiveType.NIGERIA_NIN_BVN,
-                0.9f,
-                "Potential Nigeria NIN/BVN (11-digit non-phone number)"
-            )
+        // Bolt Optimization: NIN must be exactly 11 digits and strictly numeric
+        if (digitCount == 11 && letterCount == 0 && otherCount == 0) {
+            val cleanedForNIN = cleanValue.replace(" ", "")
+            if (NIGERIA_11_DIGIT_REGEX.matches(cleanedForNIN)) {
+                // It's 11 digits but NOT a valid phone number - high probability of NIN/BVN
+                return SensitiveMatch(
+                    cleanValue,
+                    SensitiveType.NIGERIA_NIN_BVN,
+                    0.9f,
+                    "Potential Nigeria NIN/BVN (11-digit non-phone number)"
+                )
+            }
         }
 
         return null

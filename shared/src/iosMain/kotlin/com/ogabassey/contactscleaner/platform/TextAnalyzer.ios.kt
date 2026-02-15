@@ -61,19 +61,22 @@ actual class TextAnalyzer actual constructor() {
     }
 
     private fun isFancyFontCharacter(s: String): Boolean {
-        if (s.length < 2) return false
-        val high = s[0].code
-        val low = s[1].code
-        
-        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
-        // High surrogate: 0xD835
-        // Low surrogate: 0xDC00 to 0xDFFF
-        if (high == 0xD835 && low in 0xDC00..0xDFFF) return true
-        
-        // Enclosed Alphanumerics (U+2460 to U+24FF) - Often single char, but handled here
+        if (s.isEmpty()) return false
         val code = s[0].code
+
+        // Enclosed Alphanumerics (U+2460 to U+24FF)
         if (code in 0x2460..0x24FF) return true
-        
+        // Fullwidth Latin letters (A-Z: U+FF21–U+FF3A, a-z: U+FF41–U+FF5A)
+        if (code in 0xFF21..0xFF3A || code in 0xFF41..0xFF5A) return true
+
+        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF) - surrogate pairs
+        if (s.length >= 2 && s[0].isHighSurrogate()) {
+            val high = s[0].code
+            val low = s[1].code
+            // High surrogate: 0xD835, Low surrogate: 0xDC00 to 0xDFFF
+            if (high == 0xD835 && low in 0xDC00..0xDFFF) return true
+        }
+
         return false
     }
 

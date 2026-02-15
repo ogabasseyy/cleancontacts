@@ -32,12 +32,22 @@ actual class TextAnalyzer actual constructor() {
             // Fail on fancy font symbols (e.g. 𝐀, ①)
             if (isFancyFont(codePoint)) return false
 
-            // Must be a valid emoji component: Symbol Other, ZWJ, or variation selectors
+            // Must be a valid emoji component
             val type = Character.getType(codePoint).toByte()
             val isSymbolOther = type == Character.OTHER_SYMBOL
-            val isSpecial = codePoint == 0x200D || codePoint == 0xFE0F || codePoint == 0xFE0E
+            val isModifierSymbol = type == Character.MODIFIER_SYMBOL
+            val isEnclosingMark = type == Character.ENCLOSING_MARK
+            val isFormat = type == Character.FORMAT
 
-            if (!isSymbolOther && !isSpecial) return false
+            // ZWJ, variation selectors, skin tone modifiers, keycap combiner, tag characters
+            val isSpecial = codePoint == 0x200D ||
+                            codePoint == 0xFE0F ||
+                            codePoint == 0xFE0E ||
+                            codePoint in 0x1F3FB..0x1F3FF ||
+                            codePoint == 0x20E3 ||
+                            codePoint in 0xE0020..0xE007F
+
+            if (!isSymbolOther && !isModifierSymbol && !isEnclosingMark && !isFormat && !isSpecial) return false
 
             i += charCount
         }
@@ -62,6 +72,8 @@ actual class TextAnalyzer actual constructor() {
         if (codePoint in 0x1D400..0x1D7FF) return true
         // Enclosed Alphanumerics (U+2460 to U+24FF)
         if (codePoint in 0x2460..0x24FF) return true
+        // Fullwidth Latin letters (A-Z: U+FF21–U+FF3A, a-z: U+FF41–U+FF5A)
+        if (codePoint in 0xFF21..0xFF3A || codePoint in 0xFF41..0xFF5A) return true
         return false
     }
 }

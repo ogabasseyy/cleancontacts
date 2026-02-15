@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
@@ -647,7 +648,7 @@ private fun SummaryCard(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onAccountsClick() }
+                        .clickable(role = Role.Button) { onAccountsClick() }
                 ) {
                     Text(
                         text = accountsCount.formatWithCommas(),
@@ -851,6 +852,12 @@ fun AccountDialogItem(
                 color = PrimaryNeon,
                 fontWeight = FontWeight.Black,
                 style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = TextLow
             )
         }
     }

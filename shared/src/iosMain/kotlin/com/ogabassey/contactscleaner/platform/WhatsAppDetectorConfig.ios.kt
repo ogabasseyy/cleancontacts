@@ -12,7 +12,7 @@ actual object WhatsAppDetectorConfig {
     actual val apiKey: String = run {
         val plistKey = NSBundle.mainBundle.objectForInfoDictionaryKey("WHATSAPP_DETECTOR_API_KEY") as? String
         plistKey?.takeIf { it.isNotEmpty() }
-            ?: "ROTATED_KEY_REDACTED"
+            ?: "e59ec0ca77c64b123d56e683c92e7009c0cbaf0d393dc916b1856ead3b063332"
     }
 
     actual val baseUrl: String = run {

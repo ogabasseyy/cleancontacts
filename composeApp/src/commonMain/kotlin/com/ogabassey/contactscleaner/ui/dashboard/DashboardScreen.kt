@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -533,7 +532,7 @@ fun SettingsContent(
                 icon = Icons.Default.Info,
                 title = "Version",
                 subtitle = versionName,
-                actionIcon = Icons.Default.ContentCopy,
+                showChevron = false,
                 onClick = {
                     clipboardManager.setText(AnnotatedString(versionName))
                     scope.launch {
@@ -563,7 +562,6 @@ fun SettingsContent(
                 icon = Icons.Default.Info,
                 title = "Privacy Policy",
                 subtitle = "How we handle your data",
-                actionIcon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = { uriHandler.openUri("https://contactscleaner.tech/privacy") }
             )
 
@@ -571,7 +569,6 @@ fun SettingsContent(
                 icon = Icons.AutoMirrored.Filled.List,
                 title = "Terms of Service",
                 subtitle = "Legal agreements",
-                actionIcon = Icons.AutoMirrored.Filled.OpenInNew,
                 onClick = { uriHandler.openUri("https://contactscleaner.tech/terms") }
             )
 
@@ -598,7 +595,7 @@ fun SettingsItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    actionIcon: ImageVector? = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+    showChevron: Boolean = true,
     onClick: (() -> Unit)? = null
 ) {
     Row(
@@ -624,10 +621,10 @@ fun SettingsItem(
             Text(text = title, style = MaterialTheme.typography.titleMedium, color = Color.White)
             Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.6f))
         }
-        // 2026 UX: Visual affordance - action icon indicates interactivity type
-        if (onClick != null && actionIcon != null) {
+        // 2026 UX: Visual affordance - chevron indicates item is clickable
+        if (onClick != null && showChevron) {
             Icon(
-                imageVector = actionIcon,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = 0.5f)
             )

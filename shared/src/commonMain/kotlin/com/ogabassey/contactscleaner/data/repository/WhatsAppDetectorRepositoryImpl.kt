@@ -24,7 +24,7 @@ import kotlin.time.Clock
  * Local Caching: WhatsApp contacts are cached locally for instant lookups.
  */
 class WhatsAppDetectorRepositoryImpl(
-    private val api: WhatsAppDetectorApi = WhatsAppDetectorApi(),
+    private val api: WhatsAppDetectorApi,
     private val cacheDao: WhatsAppCacheDao? = null
 ) : WhatsAppDetectorRepository {
 

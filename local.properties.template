@@ -1,6 +1,10 @@
 # RevenueCat API Key
 REVENUECAT_API_KEY="your_revenuecat_api_key_here"
 
+# WhatsApp Detector API Configuration (optional - defaults are embedded)
+WHATSAPP_DETECTOR_API_KEY="your_whatsapp_detector_api_key_here"
+WHATSAPP_DETECTOR_BASE_URL="https://api.contactscleaner.tech"
+
 # Release Signing Configuration
 RELEASE_STORE_FILE=path/to/your/release-key.jks
 RELEASE_STORE_PASSWORD=your_store_password

@@ -150,7 +150,42 @@ fun ResultsScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No scan results available", color = TextMedium)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = TextMedium,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No scan results available",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Start a new scan from the dashboard",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextMedium
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = onNavigateBack,
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryNeon),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = "GO TO DASHBOARD",
+                            color = SpaceBlack,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         } else {
             val scanResult = currentResult // Local shadow for smart cast

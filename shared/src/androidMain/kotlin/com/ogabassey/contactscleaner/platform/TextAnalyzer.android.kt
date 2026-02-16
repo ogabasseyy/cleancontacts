@@ -26,6 +26,16 @@ actual class TextAnalyzer actual constructor() {
 
             hasContent = true
 
+            // Keycap sequences: (digit/#/*) + [U+FE0F] + U+20E3
+            // Must check before digit rejection since digits are valid keycap bases
+            if (isKeycapBase(codePoint)) {
+                val skip = consumeKeycapTail(text, i + charCount, length)
+                if (skip > 0) {
+                    i += charCount + skip
+                    continue
+                }
+            }
+
             // Fail on letters/digits (e.g. 'A', '1', 'ß', '١')
             if (Character.isLetterOrDigit(codePoint)) return false
 
@@ -65,6 +75,22 @@ actual class TextAnalyzer actual constructor() {
             i += Character.charCount(codePoint)
         }
         return false
+    }
+
+    /** Keycap base characters: digits 0-9, #, * */
+    private fun isKeycapBase(codePoint: Int): Boolean =
+        codePoint in 0x0030..0x0039 || codePoint == 0x0023 || codePoint == 0x002A
+
+    /** If text[from..] starts with [FE0F] + 20E3, return chars consumed. 0 = no keycap tail. */
+    private fun consumeKeycapTail(text: String, from: Int, length: Int): Int {
+        if (from >= length) return 0
+        var pos = from
+        val next = text.codePointAt(pos)
+        if (next == 0xFE0F) pos += Character.charCount(next)
+        if (pos < length && text.codePointAt(pos) == 0x20E3) {
+            return pos + Character.charCount(0x20E3) - from
+        }
+        return 0
     }
 
     private fun isFancyFont(codePoint: Int): Boolean {

@@ -13,6 +13,27 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.ui.theme.withPlatformAlpha
 
+// ⚡ Bolt Optimization: Pre-calculate constant resources to avoid allocation on every recomposition.
+private val ShadowColor = Color.Black.copy(alpha = 0.8f)
+
+private val GlassBackgroundBrush by lazy {
+    Brush.verticalGradient(
+        colors = listOf(
+            Color.White.withPlatformAlpha(0.12f),
+            Color.White.withPlatformAlpha(0.04f)
+        )
+    )
+}
+
+private val GlassBorderBrush by lazy {
+    Brush.linearGradient(
+        colors = listOf(
+            Color.White.withPlatformAlpha(0.3f),
+            Color.White.withPlatformAlpha(0.05f)
+        )
+    )
+}
+
 /**
  * Glassmorphism effect modifier.
  *
@@ -26,37 +47,27 @@ fun Modifier.glassy(
     strokeColor: Color = Color.Transparent
 ): Modifier {
     val showCustomBorder = strokeColor != Color.Transparent
+    // ⚡ Bolt Optimization: Reuse shape instance
+    val shape = RoundedCornerShape(radius)
 
     return this
         .shadow(
             elevation = 12.dp,
-            shape = RoundedCornerShape(radius),
+            shape = shape,
             clip = false,
-            ambientColor = Color.Black.copy(alpha = 0.8f),
-            spotColor = Color.Black.copy(alpha = 0.8f)
+            ambientColor = ShadowColor,
+            spotColor = ShadowColor
         )
-        .clip(RoundedCornerShape(radius))
+        .clip(shape)
         .background(color) // Apply base tint
-        .background(
-            Brush.verticalGradient(
-                colors = listOf(
-                    Color.White.withPlatformAlpha(0.12f),
-                    Color.White.withPlatformAlpha(0.04f)
-                )
-            )
-        )
+        .background(GlassBackgroundBrush)
         .border(
             width = borderWidth,
             brush = if (showCustomBorder) {
                 SolidColor(strokeColor)
             } else {
-                Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.withPlatformAlpha(0.3f),
-                        Color.White.withPlatformAlpha(0.05f)
-                    )
-                )
+                GlassBorderBrush
             },
-            shape = RoundedCornerShape(radius)
+            shape = shape
         )
 }

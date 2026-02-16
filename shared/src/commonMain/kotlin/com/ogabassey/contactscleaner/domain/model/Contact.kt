@@ -21,7 +21,11 @@ data class Contact(
     val isSensitive: Boolean = false,
     val sensitiveDescription: String? = null,
     val formatIssue: FormatIssue? = null
-)
+) {
+    override fun toString(): String {
+        return "Contact(id=$id, isWhatsApp=$isWhatsApp, isTelegram=$isTelegram, isJunk=$isJunk, junkType=$junkType, duplicateType=$duplicateType, accountType=$accountType, isSensitive=$isSensitive, sensitiveDescription=$sensitiveDescription, formatIssue=$formatIssue, name=***REDACTED***, numbers=[***REDACTED (size=${numbers.size})***], emails=[***REDACTED (size=${emails.size})***], normalizedNumber=***REDACTED***, accountName=***REDACTED***, platform_uid=***REDACTED***, matchingKey=***REDACTED***)"
+    }
+}
 
 
 @Serializable
@@ -39,7 +43,11 @@ data class JunkContact(
     val name: String?,
     val number: String?,
     val type: JunkType
-)
+) {
+    override fun toString(): String {
+        return "JunkContact(id=$id, type=$type, name=***REDACTED***, number=***REDACTED***)"
+    }
+}
 
 data class ScanResult(
     val total: Int = 0,
@@ -95,7 +103,11 @@ data class DuplicateGroupSummary(
     val groupKey: String,
     val count: Int,
     val previewNames: String // Comma separated names
-)
+) {
+    override fun toString(): String {
+        return "DuplicateGroupSummary(groupKey=$groupKey, count=$count, previewNames=***REDACTED***)"
+    }
+}
 
 data class AccountGroupSummary(
     val accountType: String?,
@@ -119,7 +131,11 @@ data class CrossAccountContact(
     val primaryNumber: String?,
     val primaryEmail: String?,
     val accounts: List<AccountInstance>
-)
+) {
+    override fun toString(): String {
+        return "CrossAccountContact(matchingKey=***REDACTED***, name=***REDACTED***, primaryNumber=***REDACTED***, primaryEmail=***REDACTED***, accounts=$accounts)"
+    }
+}
 
 /**
  * Represents a single instance of a contact in a specific account.
@@ -129,4 +145,8 @@ data class AccountInstance(
     val accountType: String?,
     val accountName: String?,
     val displayLabel: String
-)
+) {
+    override fun toString(): String {
+        return "AccountInstance(contactId=$contactId, accountType=$accountType, accountName=***REDACTED***, displayLabel=***REDACTED***)"
+    }
+}

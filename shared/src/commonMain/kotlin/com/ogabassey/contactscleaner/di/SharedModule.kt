@@ -25,6 +25,7 @@ import com.ogabassey.contactscleaner.domain.usecase.ExportUseCase
 import com.ogabassey.contactscleaner.domain.usecase.ImportContactsUseCase
 import com.ogabassey.contactscleaner.data.parser.ContactImportParser
 import com.ogabassey.contactscleaner.platform.PhoneNumberHandler
+import com.ogabassey.contactscleaner.platform.WhatsAppDetectorConfig
 import com.ogabassey.contactscleaner.platform.TextAnalyzer
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +85,10 @@ val sharedModule = module {
 
     // WhatsApp Detector (VPS-hosted Baileys service)
     // 2026 Best Practice: Local caching for 51k+ WhatsApp contacts
-    single { WhatsAppDetectorApi() }
+    single { WhatsAppDetectorApi(
+        baseUrl = WhatsAppDetectorConfig.baseUrl,
+        apiKey = WhatsAppDetectorConfig.apiKey
+    ) }
     // 2026 Fix: Explicit type parameters for improved readability
     single<WhatsAppDetectorRepository> {
         WhatsAppDetectorRepositoryImpl(

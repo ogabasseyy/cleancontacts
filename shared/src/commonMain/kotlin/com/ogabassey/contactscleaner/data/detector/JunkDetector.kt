@@ -121,10 +121,27 @@ class JunkDetector(
 
         // 3. Name Analysis
         // 2026 Fix: name is guaranteed non-null here after line 58 check
+        // 2026 Optimization: Single pass loop to compute flags, replacing multiple full traversals
+        var hasDigit = false
+        var allNumerical = true
+        var hasLetterOrDigit = false
+
+        for (c in name) {
+            if (c.isDigit()) hasDigit = true
+
+            // Check numerical validity if still potentially all numerical
+            if (allNumerical && !isNumericalNameChar(c)) {
+                allNumerical = false
+            }
+
+            if (!hasLetterOrDigit && c.isLetterOrDigit()) {
+                hasLetterOrDigit = true
+            }
+        }
+
         // A. Numerical Name (e.g. "123", "0801...")
         // Require at least one digit - otherwise "----" would be NUMERICAL_NAME instead of SYMBOL_NAME
-        // 2026 Optimization: O(N) char check instead of regex
-        if (name.any { it.isDigit() } && name.all { isNumericalNameChar(it) }) {
+        if (hasDigit && allNumerical) {
             return JunkType.NUMERICAL_NAME
         }
 
@@ -140,8 +157,7 @@ class JunkDetector(
         }
 
         // D. Symbol Only Names (e.g. "...", "!!!")
-        // 2026 Optimization: O(N) char check instead of \p{Punct} regex
-        if (name.none { it.isLetterOrDigit() }) {
+        if (!hasLetterOrDigit) {
             return JunkType.SYMBOL_NAME
         }
 

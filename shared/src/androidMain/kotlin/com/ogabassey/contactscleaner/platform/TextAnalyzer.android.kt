@@ -2,47 +2,78 @@ package com.ogabassey.contactscleaner.platform
 
 /**
  * Android implementation for text analysis.
+ *
+ * Uses single-pass O(N) codepoint iteration instead of regex for performance
+ * in high-frequency contact scanning loops.
  */
 actual class TextAnalyzer actual constructor() {
-
-    private companion object {
-        // 2026 Optimization: Pre-compile regex patterns to avoid recompilation per call
-        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
-        // High surrogate: 0xD835
-        // Low surrogate: 0xDC00 to 0xDFFF (handled via containsMatchIn)
-        private val FANCY_FONT_REGEX = Regex("[\\uD835][\\uDC00-\\uDFFF]|[\\u2460-\\u24FF]")
-
-        // 2026 Best Practice: Only include Symbol,Other (\p{So}) for emoji detection.
-        // Excluded categories that are NOT emojis:
-        //   - \p{Cn} (Unassigned codepoints)
-        //   - \p{Sk} (Modifier symbols like ^, `, ¨)
-        //   - \p{Sm} (Math symbols like +, =, <, >)
-        //   - \p{Sc} (Currency symbols like $, €, £)
-        //   - \p{Pd/Pe/Pf/Pi/Po/Ps} (Punctuation categories)
-        // ZWJ (\u200D) and variation selectors (\uFE0F, \uFE0E) are included for emoji sequences.
-        // Note: Java 21's \p{IsEmoji} requires Android API 36+; we target API 26.
-        private val EMOJI_REGEX = Regex("^[\\p{So}\\u200D\\uFE0F\\uFE0E]+$")
-    }
 
     actual fun isEmojiOnly(text: String): Boolean {
         if (text.isBlank()) return false
 
-        // 2026 Optimization: Avoid regex for whitespace removal
-        val cleanedText = text.filter { !it.isWhitespace() }
-        if (cleanedText.isEmpty()) return false
+        var hasContent = false
+        var i = 0
+        val length = text.length
 
-        // Use Unicode-aware check to detect letters/digits in any script (e.g., "É", "ß", "١")
-        val hasAlphanumeric = cleanedText.any { it.isLetterOrDigit() }
-        if (hasAlphanumeric) return false
+        while (i < length) {
+            val codePoint = text.codePointAt(i)
+            val charCount = Character.charCount(codePoint)
 
-        // If it's a fancy font, it's NOT an "emoji name"
-        if (hasFancyFonts(cleanedText)) return false
+            if (Character.isWhitespace(codePoint)) {
+                i += charCount
+                continue
+            }
 
-        return EMOJI_REGEX.matches(cleanedText)
+            hasContent = true
+
+            // Fail on letters/digits (e.g. 'A', '1', 'ß', '١')
+            if (Character.isLetterOrDigit(codePoint)) return false
+
+            // Fail on fancy font symbols (e.g. 𝐀, ①)
+            if (isFancyFont(codePoint)) return false
+
+            // Must be a valid emoji component
+            val type = Character.getType(codePoint).toByte()
+            val isSymbolOther = type == Character.OTHER_SYMBOL
+            val isModifierSymbol = type == Character.MODIFIER_SYMBOL
+            val isEnclosingMark = type == Character.ENCLOSING_MARK
+            val isFormat = type == Character.FORMAT
+
+            // ZWJ, variation selectors, skin tone modifiers, keycap combiner, tag characters
+            val isSpecial = codePoint == 0x200D ||
+                            codePoint == 0xFE0F ||
+                            codePoint == 0xFE0E ||
+                            codePoint in 0x1F3FB..0x1F3FF ||
+                            codePoint == 0x20E3 ||
+                            codePoint in 0xE0020..0xE007F
+
+            if (!isSymbolOther && !isModifierSymbol && !isEnclosingMark && !isFormat && !isSpecial) return false
+
+            i += charCount
+        }
+
+        return hasContent
     }
 
     actual fun hasFancyFonts(text: String): Boolean {
         if (text.isBlank()) return false
-        return FANCY_FONT_REGEX.containsMatchIn(text)
+        var i = 0
+        val length = text.length
+        while (i < length) {
+            val codePoint = text.codePointAt(i)
+            if (isFancyFont(codePoint)) return true
+            i += Character.charCount(codePoint)
+        }
+        return false
+    }
+
+    private fun isFancyFont(codePoint: Int): Boolean {
+        // Mathematical Alphanumeric Symbols (U+1D400 to U+1D7FF)
+        if (codePoint in 0x1D400..0x1D7FF) return true
+        // Enclosed Alphanumerics (U+2460 to U+24FF)
+        if (codePoint in 0x2460..0x24FF) return true
+        // Fullwidth Latin letters (A-Z: U+FF21–U+FF3A, a-z: U+FF41–U+FF5A)
+        if (codePoint in 0xFF21..0xFF3A || codePoint in 0xFF41..0xFF5A) return true
+        return false
     }
 }

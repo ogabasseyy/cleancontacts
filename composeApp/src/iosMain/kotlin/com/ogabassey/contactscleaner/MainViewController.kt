@@ -8,19 +8,33 @@ import com.ogabassey.contactscleaner.platform.Logger
 import platform.UIKit.UIViewController
 
 /**
+ * Initialize RevenueCat SDK.
+ *
+ * Per RevenueCat docs: "Configure Purchases once, early in your application lifecycle."
+ * For SwiftUI, call this from App.init() — the earliest lifecycle point.
+ * Exported so Swift can call: MainViewControllerKt.InitializeRevenueCat()
+ */
+fun InitializeRevenueCat() {
+    if (RevenueCatInitializer.isConfigured()) return
+    try {
+        RevenueCatInitializer.initialize(
+            appUserId = null, // Anonymous user, RevenueCat generates ID
+            debugMode = false // Production ready
+        )
+    } catch (e: Exception) {
+        Logger.e("RevenueCat", "Failed to initialize: ${e.message}")
+    }
+}
+
+/**
  * iOS entry point for Compose Multiplatform.
  *
  * 2026 KMP Best Practice: Uses real iOS Contacts implementation via CNContactStore.
  */
 fun MainViewController(): UIViewController {
-    // Initialize RevenueCat BEFORE Koin to ensure BillingRepository
-    // can access Purchases.sharedInstance during its own initialization.
-    // Note: RevenueCat failure is non-fatal - billing features will be unavailable
-    try {
-        initRevenueCat()
-    } catch (e: Exception) {
-        Logger.e("MainViewController", "RevenueCat initialization failed: ${e.message}")
-    }
+    // RevenueCat is already initialized from iOSApp.init() (earliest lifecycle point).
+    // This is a safety fallback in case it wasn't called yet.
+    InitializeRevenueCat()
 
     // Initialize Koin for iOS - critical for app functionality
     initKoinIos()
@@ -31,7 +45,6 @@ fun MainViewController(): UIViewController {
 }
 
 private var koinInitialized = false
-private var revenueCatInitialized = false
 
 private fun initKoinIos() {
     if (!koinInitialized) {
@@ -42,14 +55,4 @@ private fun initKoinIos() {
         )
         koinInitialized = true
     }
-}
-
-private fun initRevenueCat() {
-    if (revenueCatInitialized) return
-    // RevenueCat initialized before Koin so BillingRepository can access Purchases.sharedInstance
-    RevenueCatInitializer.initialize(
-        appUserId = null, // Anonymous user, RevenueCat generates ID
-        debugMode = false // Production ready
-    )
-    revenueCatInitialized = true
 }

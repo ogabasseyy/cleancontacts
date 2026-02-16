@@ -9,6 +9,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.pointed
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -49,11 +50,15 @@ class IosContactsSource {
      * Returns false if permission not granted, preventing silent failures.
      */
     private suspend fun ensureWritePermission(): Boolean {
-        val hasPermission = requestContactsPermission()
-        if (!hasPermission) {
-            println("Contacts write permission not granted")
+        val status = CNContactStore.authorizationStatusForEntityType(CNEntityType.CNEntityTypeContacts)
+        return when (status) {
+            CNAuthorizationStatusAuthorized -> true
+            CNAuthorizationStatusNotDetermined -> requestContactsPermission()
+            else -> {
+                println("Contacts write permission not granted (status: $status)")
+                false
+            }
         }
-        return hasPermission
     }
 
     /**
@@ -545,6 +550,96 @@ class IosContactsSource {
             println("Error updating contact: ${e.message}")
             false
         }
+    }
+
+    /**
+     * Normalize ALL phone numbers on a contact.
+     * For each number, calls [normalizer] with the raw string value.
+     * If [normalizer] returns a non-null value, the number is replaced (preserving its original label).
+     * If [normalizer] returns null, the number is kept as-is.
+     *
+     * @param platformUid iOS CNContact identifier
+     * @param normalizer Function that returns the normalized number, or null to keep original
+     * @return true if the contact was updated successfully
+     */
+    suspend fun normalizeAllNumbers(
+        platformUid: String,
+        normalizer: (String) -> String?
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (!ensureWritePermission()) return@withContext false
+
+        try {
+            val keysToFetch = listOf(
+                CNContactIdentifierKey,
+                CNContactPhoneNumbersKey
+            )
+
+            val success = memScoped {
+                val errorPtr = alloc<ObjCObjectVar<NSError?>>()
+                val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
+
+                if (cnContact == null || errorPtr.value != null) {
+                    println("Contact not found for UID: $platformUid")
+                    return@memScoped false
+                }
+
+                val mutableContact = cnContact.mutableCopy() as? CNMutableContact
+                    ?: return@memScoped false
+
+                @Suppress("UNCHECKED_CAST")
+                val existingNumbers = cnContact.phoneNumbers as? List<CNLabeledValue> ?: emptyList()
+                if (existingNumbers.isEmpty()) return@memScoped true // No numbers = no-op success
+
+                val (updatedNumbers, anyChanged) = mapNormalizedNumbers(existingNumbers, normalizer)
+
+                if (!anyChanged) return@memScoped true // Nothing to update
+
+                mutableContact.setPhoneNumbers(updatedNumbers)
+
+                val saveRequest = CNSaveRequest()
+                saveRequest.updateContact(mutableContact)
+
+                val saveErrorPtr = alloc<ObjCObjectVar<NSError?>>()
+                contactStore.executeSaveRequest(saveRequest, error = saveErrorPtr.ptr)
+
+                saveErrorPtr.value == null
+            }
+            success
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            println("Error normalizing contact numbers: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Helper to map and track changes during phone number normalization.
+     * Reduces cognitive complexity of [normalizeAllNumbers].
+     */
+    private fun mapNormalizedNumbers(
+        existingNumbers: List<CNLabeledValue>,
+        normalizer: (String) -> String?
+    ): Pair<List<CNLabeledValue>, Boolean> {
+        var anyChanged = false
+        val updatedNumbers = existingNumbers.map { labeledValue ->
+            val phoneNumber = labeledValue.value as? CNPhoneNumber
+            val rawValue = phoneNumber?.stringValue
+            if (rawValue.isNullOrEmpty()) return@map labeledValue
+            val normalized = normalizer(rawValue)
+
+            if (normalized != null && normalized != rawValue) {
+                anyChanged = true
+                // Preserve the original label (e.g. Mobile, Home, Work)
+                CNLabeledValue.labeledValueWithLabel(
+                    label = labeledValue.label,
+                    value = CNPhoneNumber.phoneNumberWithStringValue(stringValue = normalized)
+                )
+            } else {
+                labeledValue
+            }
+        }
+        return updatedNumbers to anyChanged
     }
 
     /**

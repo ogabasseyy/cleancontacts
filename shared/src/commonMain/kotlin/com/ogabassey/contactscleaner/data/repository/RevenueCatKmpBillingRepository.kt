@@ -39,7 +39,7 @@ class RevenueCatKmpBillingRepository : BillingRepository {
 
     companion object {
         private const val TAG = "RevenueCatKmp"
-        private const val SDK_NOT_CONFIGURED = "RevenueCat SDK not configured. Billing features unavailable."
+        private const val SDK_NOT_CONFIGURED = "Store services are temporarily unavailable. Please try again later."
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -131,7 +131,7 @@ class RevenueCatKmpBillingRepository : BillingRepository {
             _packages.value = Resource.Success(packageList)
         } catch (e: Exception) {
             Logger.e(TAG, "Error fetching offerings: ${e.message}")
-            _packages.value = Resource.Error(e.message ?: "Failed to load packages")
+            _packages.value = Resource.Error("Failed to load packages. Please check your connection and try again.")
         }
     }
 

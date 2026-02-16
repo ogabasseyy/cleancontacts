@@ -11,6 +11,9 @@ object ExportUtils {
     // 2026 Best Practice: Use CharArray with indexOfAny for efficient special character detection
     private val CSV_SPECIAL_CHARS = charArrayOf(',', '"', '\n', '\r')
 
+    // Characters allowed in phone fields without CSV injection escaping
+    private const val SAFE_PHONE_CHARS = "0123456789 +-.(),;*#"
+
     /**
      * RFC 4180 compliant CSV escaping with CSV Injection prevention.
      * @param isPhoneField true for phone number fields where + and - are legitimate prefixes.
@@ -28,9 +31,18 @@ object ExportUtils {
     }
 
     private fun escapeInjection(value: String, isPhoneField: Boolean = false): String {
-        val needsEscape = value.startsWith("=") || value.startsWith("@") ||
-            value.startsWith("\t") || value.startsWith("\r") ||
-            (!isPhoneField && (value.startsWith("+") || value.startsWith("-")))
+        var needsEscape = value.startsWith("=") || value.startsWith("@") ||
+            value.startsWith("\t") || value.startsWith("\r")
+
+        if (!needsEscape && (value.startsWith("+") || value.startsWith("-"))) {
+            if (isPhoneField) {
+                // Allow +/- in phone fields only if all characters are safe phone chars.
+                // Blocks formula payloads like "+cmd|' /C calc'!A0"
+                needsEscape = value.any { it !in SAFE_PHONE_CHARS }
+            } else {
+                needsEscape = true
+            }
+        }
         return if (needsEscape) "'$value" else value
     }
 

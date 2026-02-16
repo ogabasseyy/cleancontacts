@@ -17,3 +17,7 @@
 ## 2026-05-25 - [Clickable Card Padding]
 **Learning:** Applying `clickable` after inner padding creates unresponsive edges on cards. Users expect the entire visual container to be interactive.
 **Action:** For cards with inner padding, apply `clickable` *before* the padding modifier but after the visual shape/background (e.g. `glassy -> clickable -> padding`).
+
+## 2026-06-03 - CountryCodePicker Accessibility
+**Learning:** `CountryCodePicker` triggers often lack `Role.Button` and proper `contentDescription` because they are custom composables. Adding `Role.Button` and a merged description ("Change country...") is crucial for blind users.
+**Action:** For custom pickers, always add `semantics(mergeDescendants = true)` with a descriptive label and `Role.Button`. Adding a visual dropdown arrow improves affordance for everyone.

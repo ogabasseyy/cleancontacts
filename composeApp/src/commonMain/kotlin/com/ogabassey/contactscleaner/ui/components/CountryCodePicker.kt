@@ -7,11 +7,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +38,10 @@ fun CountryCodePicker(
     // Trigger
     Row(
         modifier = modifier
-            .clickable { showSheet = true }
+            .clickable(role = Role.Button) { showSheet = true }
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Change country. Selected: ${selectedCountry.name}, ${selectedCountry.code}"
+            }
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -47,6 +55,12 @@ fun CountryCodePicker(
             color = Color.White,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp
+        )
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = null,
+            tint = TextLow,
+            modifier = Modifier.size(20.dp)
         )
     }
 

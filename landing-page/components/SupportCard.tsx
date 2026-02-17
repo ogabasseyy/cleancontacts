@@ -4,6 +4,9 @@ import React from 'react';
 export const SupportCard: React.FC = () => {
   return (
     <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl animate-in fade-in zoom-in duration-300">
+      <title>Support - Contacts Cleaner</title>
+      <meta name="description" content="Get help with Contacts Cleaner. Find answers to common questions, report issues, or contact our support team." />
+      <link rel="canonical" href="https://contactscleaner.tech/support" />
        <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand/20 text-brand mb-6">
              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>

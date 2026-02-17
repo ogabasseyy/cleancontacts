@@ -4,6 +4,9 @@ import React from 'react';
 export const PrivacyCard: React.FC = () => {
   return (
     <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl animate-in fade-in zoom-in duration-300">
+      <title>Privacy Policy - Contacts Cleaner</title>
+      <meta name="description" content="Privacy Policy for Contacts Cleaner. Learn how we protect your data — all contact processing happens locally on your device." />
+      <link rel="canonical" href="https://contactscleaner.tech/privacy" />
       <div className="prose prose-invert max-w-none prose-headings:font-bold prose-p:text-gray-400 prose-strong:text-brand prose-a:text-brand">
         
         <div className="flex items-center gap-2 mb-8">

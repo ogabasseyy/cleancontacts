@@ -1,15 +1,17 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Features } from './components/Features';
 import { WhatsAppSection } from './components/WhatsAppSection';
 import { Security } from './components/Security';
+import { FAQ } from './components/FAQ';
 import { Footer } from './components/Footer';
-import { PrivacyCard } from './components/PrivacyCard';
-import { TermsCard } from './components/TermsCard';
-import { SupportCard } from './components/SupportCard';
+
+const PrivacyCard = React.lazy(() => import('./components/PrivacyCard').then(m => ({ default: m.PrivacyCard })));
+const TermsCard = React.lazy(() => import('./components/TermsCard').then(m => ({ default: m.TermsCard })));
+const SupportCard = React.lazy(() => import('./components/SupportCard').then(m => ({ default: m.SupportCard })));
 
 type ViewState = 'home' | 'privacy' | 'terms' | 'support';
 
@@ -49,25 +51,32 @@ const AppContent: React.FC = () => {
                 <Features />
                 <WhatsAppSection />
                 <Security />
+                <FAQ />
               </>
             } />
 
             <Route path="/privacy" element={
-              <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
-                <PrivacyCard />
-              </div>
+              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
+                  <PrivacyCard />
+                </div>
+              </Suspense>
             } />
 
             <Route path="/terms" element={
-              <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
-                <TermsCard />
-              </div>
+              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
+                  <TermsCard />
+                </div>
+              </Suspense>
             } />
 
             <Route path="/support" element={
-              <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
-                <SupportCard />
-              </div>
+              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
+                  <SupportCard />
+                </div>
+              </Suspense>
             } />
 
             <Route path="*" element={<Navigate to="/" replace />} />

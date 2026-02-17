@@ -4,6 +4,9 @@ import React from 'react';
 export const TermsCard: React.FC = () => {
   return (
     <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl animate-in fade-in zoom-in duration-300">
+      <title>Terms of Service - Contacts Cleaner</title>
+      <meta name="description" content="Terms of Service for Contacts Cleaner. Review the terms and conditions for using our AI-powered contact management app." />
+      <link rel="canonical" href="https://contactscleaner.tech/terms" />
       <div className="prose prose-invert max-w-none prose-headings:font-bold prose-p:text-gray-400 prose-strong:text-brand prose-a:text-brand">
         
         <div className="flex items-center gap-2 mb-8">

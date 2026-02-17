@@ -30,6 +30,8 @@ val generateSecrets by tasks.registering {
     val apiKey = waApiKey
     val baseUrl = waBaseUrl
     val outputDir = secretsDir.get().asFile
+    inputs.property("apiKey", apiKey)
+    inputs.property("baseUrl", baseUrl)
     outputs.dir(outputDir)
 
     doLast {

@@ -22,7 +22,7 @@
 }
 
 body {
-  background-color: #050505;
+  background-color: var(--color-dark);
   color: #fff;
 }
 
@@ -35,12 +35,14 @@ body {
 
 .text-gradient {
   background: linear-gradient(to right, #ffffff, #8B949E);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-green {
   background: linear-gradient(to right, #25D366, #34B7F1);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

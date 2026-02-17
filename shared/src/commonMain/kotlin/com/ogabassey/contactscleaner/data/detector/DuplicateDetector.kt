@@ -6,6 +6,7 @@ import com.ogabassey.contactscleaner.domain.model.DuplicateType
 import com.ogabassey.contactscleaner.platform.PhoneNumberHandler
 import com.ogabassey.contactscleaner.platform.RegionProvider
 import kotlin.math.abs
+import kotlin.math.ceil
 
 /**
  * Detects duplicate contacts based on phone numbers, emails, and names.
@@ -169,10 +170,18 @@ class DuplicateDetector(
         // 2026 Optimization: Inputs are already normalized (trimmed & lowercased)
         if (d1 == d2) return false // Exact match is not "Similar"
 
-        val dist = levenshteinDistance(d1, d2, buffer1, buffer2)
         val maxLength = maxOf(d1.length, d2.length)
-        val similarity = if (maxLength == 0) 0.0 else (1.0 - dist.toDouble() / maxLength)
-        return similarity > 0.82 // 82% threshold
+        if (maxLength == 0) return false
+
+        // Calculate max allowed distance (limit) based on 82% similarity threshold
+        // similarity > 0.82  =>  1 - dist/max > 0.82  =>  dist < 0.18 * max
+        // Since dist is integer, max allowed dist is ceil(0.18 * max) - 1
+        val limit = ceil(0.18 * maxLength).toInt() - 1
+
+        if (limit < 0) return false
+
+        val dist = levenshteinDistance(d1, d2, buffer1, buffer2, limit)
+        return dist <= limit
     }
 
     /**
@@ -184,15 +193,23 @@ class DuplicateDetector(
             buffer1.size > requiredLength && buffer2.size > requiredLength
     }
 
+    /**
+     * Calculates Levenshtein distance with an optional upper limit.
+     * If the distance exceeds the limit, the function may return early with a value > limit.
+     */
     private fun levenshteinDistance(
         s1: String,
         s2: String,
         buffer1: IntArray? = null,
-        buffer2: IntArray? = null
+        buffer2: IntArray? = null,
+        limit: Int = Int.MAX_VALUE
     ): Int {
         if (s1 == s2) return 0
         if (s1.isEmpty()) return s2.length
         if (s2.isEmpty()) return s1.length
+
+        // Optimization: If length difference exceeds limit, return early.
+        if (abs(s1.length - s2.length) > limit) return limit + 1
 
         var prev: IntArray
         var curr: IntArray
@@ -212,6 +229,8 @@ class DuplicateDetector(
 
         for (i in 1..s1.length) {
             curr[0] = i
+            var minRowDist = curr[0]
+
             for (j in 1..s2.length) {
                 val cost = if (s1[i - 1] == s2[j - 1]) 0 else 1
                 curr[j] = minOf(
@@ -219,7 +238,12 @@ class DuplicateDetector(
                     prev[j] + 1,            // Delete
                     prev[j - 1] + cost      // Replace
                 )
+                minRowDist = minOf(minRowDist, curr[j])
             }
+
+            // Optimization: If minimum distance in row exceeds limit, we can stop early.
+            if (minRowDist > limit) return limit + 1
+
             val temp = prev
             prev = curr
             curr = temp

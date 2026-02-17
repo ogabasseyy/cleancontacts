@@ -14,8 +14,8 @@ targets:
     sources: [iosApp]
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.ogabassey.contactscleaner.iosApp
-      CURRENT_PROJECT_VERSION: 3
-      MARKETING_VERSION: 1.0.0
+      CURRENT_PROJECT_VERSION: 4
+      MARKETING_VERSION: 1.1.0
       DEVELOPMENT_TEAM: J4MXAZ4X3U
       CODE_SIGN_STYLE: Automatic
       FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../composeApp/build/xcode-frameworks"
@@ -26,8 +26,8 @@ targets:
       properties:
         CFBundleDisplayName: "Contacts Cleaner"
         CFBundleName: "ContactsCleaner"
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "3"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchScreen: {}
         CADisableMinimumFrameDurationOnPhone: true
         UISupportedInterfaceOrientations:

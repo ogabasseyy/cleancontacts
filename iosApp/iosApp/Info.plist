@@ -19,9 +19,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Contacts Cleaner needs access to your contacts to scan for duplicates, junk entries, and formatting issues so you can clean and organize your address book.</string>
 	<key>UILaunchScreen</key>

@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -119,6 +120,17 @@ private fun CountrySelectionContent(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Search country...", color = TextMedium) },
             leadingIcon = { Icon(Icons.Default.Search, null, tint = TextMedium) },
+            trailingIcon = if (searchQuery.isNotEmpty()) {
+                {
+                    IconButton(onClick = { searchQuery = "" }) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear search",
+                            tint = TextMedium
+                        )
+                    }
+                }
+            } else null,
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -132,18 +144,40 @@ private fun CountrySelectionContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(
-                items = filteredCountries,
-                key = { country -> country.regionIso }
-            ) { country ->
-                CountryItem(
-                    country = country,
-                    onClick = { onSelected(country) }
-                )
+        if (filteredCountries.isEmpty()) {
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null,
+                        tint = TextLow,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No countries found",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextMedium
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    items = filteredCountries,
+                    key = { country -> country.regionIso }
+                ) { country ->
+                    CountryItem(
+                        country = country,
+                        onClick = { onSelected(country) }
+                    )
+                }
             }
         }
     }
@@ -158,7 +192,9 @@ private fun CountryItem(
         onClick = onClick,
         color = Color.White.copy(alpha = 0.05f),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier

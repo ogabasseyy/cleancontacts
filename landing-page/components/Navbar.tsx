@@ -47,10 +47,13 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4 bg-dark/80 backdrop-blur-md border-b border-white/5' : 'py-6 bg-transparent'}`}>
+    <nav aria-label="Main navigation" className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4 bg-dark/80 backdrop-blur-md border-b border-white/5' : 'py-6 bg-transparent'}`}>
       <div className="container mx-auto px-6 flex justify-between items-center">
         <button type="button" onClick={handleLogoClick} className="flex items-center gap-2 group">
-          <img src="/logo.png" alt="CleanContacts" className="w-10 h-10 rounded-xl" />
+          <picture>
+            <source srcSet="/logo.webp" type="image/webp" />
+            <img src="/logo.png" alt="Contacts Cleaner" width="40" height="40" fetchPriority="high" className="w-10 h-10 rounded-xl" />
+          </picture>
           <span className="font-bold text-xl tracking-tight">Contacts <span className="text-brand">Cleaner</span></span>
         </button>
         

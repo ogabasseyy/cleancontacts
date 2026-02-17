@@ -48,10 +48,10 @@ const features = [
 
 export const Features: React.FC = () => {
   return (
-    <section id="features" className="py-20 bg-dark relative scroll-mt-32">
+    <section id="features" className="py-20 bg-dark relative scroll-mt-32" aria-labelledby="features-heading">
       <div className="container mx-auto px-6">
         <div className="mb-16 text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Powerful Cleaning Tools</h2>
+          <h2 id="features-heading" className="text-3xl md:text-5xl font-bold mb-6">Powerful Cleaning Tools</h2>
           <p className="text-gray-400">Our algorithm uses fuzzy matching with 82% similarity threshold to find duplicates that other apps miss.</p>
         </div>
 

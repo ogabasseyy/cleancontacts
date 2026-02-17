@@ -3,7 +3,7 @@ import React from 'react';
 
 export const WhatsAppSection: React.FC = () => {
   return (
-    <section id="whatsapp" className="py-24 relative overflow-hidden scroll-mt-32">
+    <section id="whatsapp" className="py-24 relative overflow-hidden scroll-mt-32" aria-labelledby="whatsapp-heading">
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0B120E] to-dark z-0"></div>
       
@@ -15,7 +15,7 @@ export const WhatsAppSection: React.FC = () => {
               <div className="inline-block px-4 py-1 rounded-full bg-brand/10 text-brand text-xs font-bold uppercase tracking-widest">
                 Exclusive Feature
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold">
+              <h2 id="whatsapp-heading" className="text-3xl md:text-5xl font-bold">
                 WhatsApp <span className="text-brand">Intelligence</span>
               </h2>
               <p className="text-gray-400 text-lg">

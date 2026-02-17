@@ -32,7 +32,7 @@ android {
         applicationId = "com.ogabassey.contactscleaner"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
+        versionCode = (project.findProperty("ciVersionCode") as? String)?.toIntOrNull() ?: 6
         versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -55,7 +55,8 @@ android {
     val releaseKeyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
         ?: System.getenv("RELEASE_KEY_PASSWORD")
 
-    if (releaseStoreFile != null) {
+    if (releaseStoreFile != null && releaseStorePassword != null
+        && releaseKeyAlias != null && releaseKeyPassword != null) {
         signingConfigs {
             create("release") {
                 storeFile = file(releaseStoreFile)
@@ -71,7 +72,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             // Only assign signing config if it was created
-            if (releaseStoreFile != null) {
+            if (releaseStoreFile != null && releaseStorePassword != null
+                && releaseKeyAlias != null && releaseKeyPassword != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

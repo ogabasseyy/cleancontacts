@@ -110,7 +110,7 @@ class IosContactsSource {
             // Iterate each container and fetch its contacts
             for (container in containers) {
                 // Determine Account Name & Type from Container (handle nulls)
-                val safeAccountName = container.name ?: "Unknown"
+                val safeAccountName = container.name
                 val accountType = when (container.type) {
                     CNContainerTypeExchange -> "Exchange"
                     CNContainerTypeCardDAV -> "CardDAV" // Likely Gmail/Yahoo
@@ -214,7 +214,7 @@ class IosContactsSource {
         val socialProfiles = cnContact.socialProfiles as? List<CNLabeledValue> ?: emptyList()
         for (profile in socialProfiles) {
             val value = profile.value as? CNSocialProfile ?: continue
-            val service = value.service?.lowercase() ?: ""
+            val service = value.service.lowercase()
             val profileLabel = profile.label?.lowercase() ?: ""
             if (service.contains("whatsapp") || profileLabel.contains("whatsapp")) isWhatsApp = true
             if (service.contains("telegram") || profileLabel.contains("telegram")) isTelegram = true
@@ -225,7 +225,7 @@ class IosContactsSource {
         val imAddresses = cnContact.instantMessageAddresses as? List<CNLabeledValue> ?: emptyList()
         for (im in imAddresses) {
             val value = im.value as? CNInstantMessageAddress ?: continue
-            val service = value.service?.lowercase() ?: ""
+            val service = value.service.lowercase()
             val imLabel = im.label?.lowercase() ?: ""
             if (service.contains("whatsapp") || imLabel.contains("whatsapp")) isWhatsApp = true
             if (service.contains("telegram") || imLabel.contains("telegram")) isTelegram = true

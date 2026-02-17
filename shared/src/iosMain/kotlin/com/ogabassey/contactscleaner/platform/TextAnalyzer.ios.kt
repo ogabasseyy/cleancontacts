@@ -10,7 +10,7 @@ actual class TextAnalyzer actual constructor() {
 
     private val commonSymbols = listOf("\u2705", "\u274C", "\u203C", "\u2049", "\u2139", "\u24C2")
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
     actual fun isEmojiOnly(text: String): Boolean {
         if (text.isBlank()) return false
 
@@ -39,7 +39,7 @@ actual class TextAnalyzer actual constructor() {
         return hasTrueEmoji && onlyEmojiOrSpace
     }
 
-    @OptIn(ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
     actual fun hasFancyFonts(text: String): Boolean {
         if (text.isBlank()) return false
         

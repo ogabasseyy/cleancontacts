@@ -267,7 +267,6 @@ class IosContactRepository(
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.EMAIL_MATCH -> 3
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.NAME_MATCH -> 2
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.SIMILAR_NAME_MATCH -> 1
-                    else -> 0
                 }
                 val currentPriority = when(current?.first) {
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.NUMBER_MATCH -> 4

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+@file:Suppress("DEPRECATION")
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -462,7 +463,7 @@ private fun AnimatedCategoryCards(
         }
 
         // Detection progress indicator (compact)
-        if (isDetecting && businessDetectionProgress != null) {
+        if (businessDetectionProgress != null && businessDetectionProgress.inProgress) {
             val progressPercent = if (businessDetectionProgress.total > 0) {
                 (businessDetectionProgress.checked.toFloat() / businessDetectionProgress.total * 100).toInt()
             } else 0

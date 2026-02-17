@@ -105,7 +105,7 @@ class IosShareLauncher : ShareLauncher {
 
         // For iPad, we need to set popover presentation with both sourceView and sourceRect
         // to avoid crashes. Using the root view centers the popover.
-        (viewController.popoverPresentationController as? UIPopoverPresentationController)?.let { popover ->
+        viewController.popoverPresentationController?.let { popover ->
             popover.setSourceView(rootViewController.view)
             popover.setSourceRect(CGRectMake(0.0, 0.0, 0.0, 0.0))
         }

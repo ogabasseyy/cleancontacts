@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.ogabassey.contactscleaner.ui.dashboard
 
 import androidx.compose.animation.animateContentSize

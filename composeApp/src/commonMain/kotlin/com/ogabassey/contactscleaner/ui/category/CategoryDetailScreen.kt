@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.ogabassey.contactscleaner.ui.category
 
 import androidx.compose.animation.core.*

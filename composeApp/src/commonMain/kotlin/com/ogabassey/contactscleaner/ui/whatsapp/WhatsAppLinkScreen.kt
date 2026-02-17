@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.ogabassey.contactscleaner.ui.whatsapp
 
 import androidx.compose.animation.*

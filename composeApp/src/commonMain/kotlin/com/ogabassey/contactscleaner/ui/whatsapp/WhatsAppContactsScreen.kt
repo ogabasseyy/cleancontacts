@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.ogabassey.contactscleaner.ui.whatsapp
 
 import androidx.compose.animation.core.*
@@ -462,7 +463,7 @@ private fun AnimatedCategoryCards(
         }
 
         // Detection progress indicator (compact)
-        if (isDetecting && businessDetectionProgress != null) {
+        if (businessDetectionProgress != null && businessDetectionProgress.inProgress) {
             val progressPercent = if (businessDetectionProgress.total > 0) {
                 (businessDetectionProgress.checked.toFloat() / businessDetectionProgress.total * 100).toInt()
             } else 0

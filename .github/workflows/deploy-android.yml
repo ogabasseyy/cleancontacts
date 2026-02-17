@@ -28,6 +28,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    concurrency:
+      group: deploy-android-${{ github.ref }}
+      cancel-in-progress: true
     permissions:
       contents: read
 

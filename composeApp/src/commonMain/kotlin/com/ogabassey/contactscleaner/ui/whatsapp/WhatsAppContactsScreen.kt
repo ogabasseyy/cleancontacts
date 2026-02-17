@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.ogabassey.contactscleaner.ui.whatsapp
 
 import androidx.compose.animation.core.*
@@ -20,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-@file:Suppress("DEPRECATION")
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight

@@ -3,66 +3,152 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contacts Cleaner - Smart Contact Manager</title>
-    <meta name="description" content="Clean, organize, and manage your contacts with AI-powered duplicate detection and WhatsApp integration." />
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#25D366',
-              dark: '#050505',
-              glass: 'rgba(255, 255, 255, 0.05)',
-              'glass-hover': 'rgba(255, 255, 255, 0.1)',
-            },
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
-            animation: {
-              'float': 'float 6s ease-in-out infinite',
-              'pulse-glow': 'pulse-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            },
-            keyframes: {
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-20px)' },
-              },
-              'pulse-glow': {
-                '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
-                '50%': { opacity: '0.8', transform: 'scale(1.1)' },
-              }
-            }
+
+    <!-- SEO Core -->
+    <title>Contacts Cleaner - AI Duplicate Remover for iPhone & Android</title>
+    <meta name="description" content="Free AI-powered contacts cleaner for iPhone & Android. Find & merge duplicate contacts, remove junk entries, detect WhatsApp users. Download now." />
+    <link rel="canonical" href="https://contactscleaner.tech/" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Ogabassey Services Limited" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://contactscleaner.tech/" />
+    <meta property="og:title" content="Contacts Cleaner - AI Duplicate Remover for iPhone & Android" />
+    <meta property="og:description" content="Free AI-powered contacts cleaner. Find & merge duplicate contacts, remove junk entries, detect WhatsApp users. Download now on iOS & Android." />
+    <meta property="og:image" content="https://contactscleaner.tech/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="Contacts Cleaner" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Contacts Cleaner - AI Contact Manager" />
+    <meta name="twitter:description" content="AI-powered duplicate detection, junk removal & WhatsApp intelligence. Free on iOS & Android." />
+    <meta name="twitter:image" content="https://contactscleaner.tech/og-image.png" />
+
+    <!-- App Integration -->
+    <meta name="apple-itunes-app" content="app-id=6758563652" />
+    <meta name="theme-color" content="#050505" />
+    <meta name="application-name" content="Contacts Cleaner" />
+
+    <!-- Geo targeting -->
+    <meta name="geo.region" content="US" />
+
+    <!-- Favicon & Manifest -->
+    <link rel="icon" type="image/webp" href="/logo.webp" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="preload" as="image" type="image/webp" href="/logo.webp" />
+
+    <!-- JSON-LD: MobileApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MobileApplication",
+      "name": "Contacts Cleaner",
+      "operatingSystem": "iOS, Android",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Contact Management",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Free with premium features available"
+      },
+      "description": "AI-powered contacts cleaner that finds and merges duplicate contacts, removes junk entries, and organizes your WhatsApp connections automatically.",
+      "downloadUrl": [
+        "https://apps.apple.com/app/id6758563652",
+        "https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner"
+      ],
+      "author": {
+        "@type": "Organization",
+        "name": "Ogabassey Services Limited",
+        "url": "https://contactscleaner.tech"
+      },
+      "featureList": "Duplicate contact detection, AI-powered merge, Junk contact removal, WhatsApp intelligence, Contact backup, Phone number formatting, Cross-account merge, Sensitive data shield, Undo history",
+      "softwareVersion": "2.0",
+      "screenshot": "https://contactscleaner.tech/og-image.png"
+    }
+    </script>
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Contacts Cleaner",
+      "url": "https://contactscleaner.tech",
+      "logo": "https://contactscleaner.tech/logo.png",
+      "sameAs": [
+        "https://apps.apple.com/app/id6758563652",
+        "https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner"
+      ]
+    }
+    </script>
+
+    <!-- JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How does Contacts Cleaner find duplicate contacts?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Contacts Cleaner uses AI and fuzzy matching with an 82% similarity threshold to analyze names, phone numbers, and email addresses. It detects exact duplicates, near-duplicates, and similar contacts across Google, iCloud, and device accounts."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Contacts Cleaner safe for my contacts?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. All contact processing happens locally on your device — your contacts are never uploaded to external servers. The app creates an automatic backup before any changes, and every action can be undone with the built-in undo history."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work with iCloud and Google Contacts?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Contacts Cleaner is the only app that merges duplicates across Google, iCloud, and device accounts intelligently. It detects when the same person exists in multiple accounts and merges them without losing data."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is this different from iPhone's built-in duplicate detection?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Apple's built-in detection only catches exact matches. Contacts Cleaner uses AI-powered fuzzy matching to find near-duplicates, detects 12 types of junk contacts, offers WhatsApp intelligence, and works across multiple account sources simultaneously."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What types of junk contacts does it detect?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Contacts Cleaner identifies 12 types of junk including missing names, emoji-only contacts, invalid characters, contacts without phone numbers, single-character names, and entries containing sensitive data like SSN or credit card numbers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I undo changes made by Contacts Cleaner?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Every action takes an automatic snapshot of your contacts. You can roll back any merge, deletion, or format change instantly using the built-in undo history. Your original contacts are always recoverable."
           }
         }
-      }
+      ]
+    }
     </script>
-    <style>
-      body {
-        background-color: #050505;
-        color: #fff;
-      }
-      .glass-panel {
-        background: rgba(22, 27, 34, 0.6);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .text-gradient {
-        background: linear-gradient(to right, #ffffff, #8B949E);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .text-gradient-green {
-        background: linear-gradient(to right, #25D366, #34B7F1);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-    </style>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>

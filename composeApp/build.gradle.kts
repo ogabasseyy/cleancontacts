@@ -56,8 +56,6 @@ kotlin {
             @Suppress("DEPRECATION")
             implementation(compose.ui)
             @Suppress("DEPRECATION")
-            implementation(compose.components.resources)
-            @Suppress("DEPRECATION")
             implementation(compose.components.uiToolingPreview)
 
             // Navigation - JetBrains Compose Multiplatform version

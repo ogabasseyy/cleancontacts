@@ -1,7 +1,7 @@
 {
   "name": "Contacts Cleaner - AI Contact Manager",
   "short_name": "Contacts Cleaner",
-  "description": "AI-powered contacts cleaner for iPhone & Android",
+  "description": "AI-powered contacts cleaner for iPhone & Android. Find & merge duplicate contacts, remove junk entries, detect WhatsApp users.",
   "start_url": "/",
   "display": "browser",
   "background_color": "#050505",
@@ -10,6 +10,16 @@
     {
       "src": "/logo.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "1024x1024",
       "type": "image/png"
     }
   ]

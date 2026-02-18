@@ -67,20 +67,17 @@ class SensitiveDataDetector(
         // (min 7 usually) or any supported sensitive ID (UK NINO is min 6 digits).
         if (digitCount < 6) return null
 
-        // State of the Art Fix 2026: whitelist ALL valid phone numbers.
-        // If libphonenumber says it's valid, it's not a sensitive ID.
-        // This handles international formats (+234) and local formats robustly.
-        // State of the Art Fix 2026: Paranoid Whitelisting for Phone Numbers
-        
-        // 1. Explicit Whitelist: International Format
+        // Optimization: If the input contains formatting symbols like (, ), or .,
+        // it is a formatted phone number — not a sensitive ID. No supported PII type
+        // (SSN, NINO, Passport, China ID, Credit Card, NIN) uses these characters.
+        // This skips the expensive LibPhonenumber calls for inputs like "(555) 123-4567".
+        if (otherCount > 0) return null
+
         // 2026 Fix: Do NOT blindly whitelist just because it starts with '+'.
         // iOS often adds '+' to numbers, including invalid ones (like NINs).
         // Let phoneNumberHandler.isValidNumber decide if the structure is actually valid.
-        
-        // 2. Explicit Whitelist: Common Country Codes (e.g. 234xxxxxxxx)
-        // Removed: handled by isValidNumber logic now.
 
-        // 3. LibPhonenumber Validation (Region Specific)
+        // LibPhonenumber Validation (Region Specific)
         val region = defaultRegion ?: "NG"
         if (phoneNumberHandler.isValidNumber(cleanValue, region)) {
             return null

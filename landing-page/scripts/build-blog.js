@@ -66,7 +66,12 @@ function stripMarkdown(md) {
  */
 function normalizeDate(value) {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
-  return String(value);
+  const str = String(value);
+  const parsed = new Date(str);
+  if (isNaN(parsed.getTime())) {
+    throw new Error(`Invalid date value: "${str}"`);
+  }
+  return parsed.toISOString().slice(0, 10);
 }
 
 /**
@@ -203,6 +208,11 @@ const blogUrls = [
   ].join('\n')),
   `  <!-- BLOG_END -->`,
 ].join('\n');
+
+if (!sitemapBase.includes('</urlset>')) {
+  console.error('  Error: sitemap.xml is missing closing </urlset> tag. Blog URLs not added.');
+  process.exit(1);
+}
 
 const updatedSitemap = sitemapBase.replace(
   '</urlset>',

@@ -6,7 +6,7 @@
  * - public/rss.xml (RSS 2.0 feed)
  * - Updates public/sitemap.xml with blog URLs
  */
-import { readFileSync, writeFileSync, mkdirSync, readdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
@@ -26,18 +26,6 @@ const files = readdirSync(blogDir).filter(f => f.endsWith('.md'));
 if (files.length === 0) {
   console.log('No blog posts found. Skipping blog build.');
   process.exit(0);
-}
-
-/**
- * Escape special XML characters.
- */
-function escapeXml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 }
 
 /**
@@ -146,9 +134,12 @@ console.log('  RSS feed: rss.xml');
 
 // Update sitemap.xml with blog URLs
 const sitemapPath = resolve(publicDir, 'sitemap.xml');
-const existingSitemap = existsSync(sitemapPath)
-  ? readFileSync(sitemapPath, 'utf-8')
-  : `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+let existingSitemap;
+try {
+  existingSitemap = readFileSync(sitemapPath, 'utf-8');
+} catch {
+  existingSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+}
 
 // Remove any previously generated blog entries (between markers)
 let sitemapBase = existingSitemap.replace(

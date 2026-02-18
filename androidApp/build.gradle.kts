@@ -19,7 +19,9 @@ if (localPropertiesFile.exists()) {
 
 
 
-val revenueCatApiKey = localProperties.getProperty("REVENUECAT_API_KEY") ?: ""
+val revenueCatApiKey = localProperties.getProperty("REVENUECAT_API_KEY")
+    ?: System.getenv("REVENUECAT_API_KEY")
+    ?: ""
 
 
 android {
@@ -30,7 +32,7 @@ android {
         applicationId = "com.ogabassey.contactscleaner"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
+        versionCode = (project.findProperty("ciVersionCode") as? String)?.toIntOrNull() ?: 6
         versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -43,15 +45,24 @@ android {
         buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenueCatApiKey\"")
     }
 
-    // 2026 Best Practice: Only create signing config when all properties exist
+    // 2026 Best Practice: Signing from local.properties (dev) or env vars (CI)
     val releaseStoreFile = localProperties.getProperty("RELEASE_STORE_FILE")
-    if (releaseStoreFile != null) {
+        ?: System.getenv("RELEASE_STORE_FILE")
+    val releaseStorePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
+        ?: System.getenv("RELEASE_STORE_PASSWORD")
+    val releaseKeyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
+        ?: System.getenv("RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+        ?: System.getenv("RELEASE_KEY_PASSWORD")
+
+    if (releaseStoreFile != null && releaseStorePassword != null
+        && releaseKeyAlias != null && releaseKeyPassword != null) {
         signingConfigs {
             create("release") {
                 storeFile = file(releaseStoreFile)
-                storePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD")
-                keyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS")
-                keyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD")
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -61,7 +72,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             // Only assign signing config if it was created
-            if (releaseStoreFile != null) {
+            if (releaseStoreFile != null && releaseStorePassword != null
+                && releaseKeyAlias != null && releaseKeyPassword != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

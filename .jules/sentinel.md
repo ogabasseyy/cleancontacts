@@ -32,3 +32,9 @@
 **Vulnerability:** `ExportUtils` sanitized quotes but failed to escape formula triggers (`=`, `@`), allowing malicious contact names to execute code in spreadsheet software.
 **Learning:** Standard CSV escaping (RFC 4180) only handles structural integrity (quotes/commas) but not payload safety for spreadsheet viewers (Formula Injection). Note: `+` and `-` must NOT be escaped in contact exports because phone numbers commonly start with `+`.
 **Prevention:** Prefix values starting with `=` or `@` with a single quote `'` to force text interpretation. Exclude `+` and `-` to preserve phone number data integrity.
+
+## 2026-02-04 - Broken CSV Quote Escaping
+
+**Vulnerability:** `ContactImportParser` manually implemented CSV parsing logic that failed to correctly handle escaped double quotes (`""`) inside quoted fields, leading to data corruption and potential injection of field delimiters.
+**Learning:** Naive state-based parsing (toggling a boolean on every quote) fails for escaped quotes because it requires lookahead or context awareness to distinguish an escaped quote from a closing quote.
+**Prevention:** Use a robust state machine with lookahead for manual CSV parsing, or rely on established libraries where possible. Ensure all edge cases (escaped quotes, empty fields, end of line) are covered by specific unit tests.

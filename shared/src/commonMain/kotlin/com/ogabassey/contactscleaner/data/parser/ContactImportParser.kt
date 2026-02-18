@@ -49,17 +49,40 @@ class ContactImportParser {
         var current = StringBuilder()
         var inQuotes = false
         
-        for (char in line) {
-            when {
-                char == '\"' -> inQuotes = !inQuotes
-                char == ',' && !inQuotes -> {
-                    parts.add(current.toString().trim().removeSurrounding("\""))
-                    current = StringBuilder()
+        var i = 0
+
+        while (i < line.length) {
+            val char = line[i]
+
+            if (inQuotes) {
+                if (char == '\"') {
+                    // Check lookahead for escaped quote ("")
+                    if (i + 1 < line.length && line[i + 1] == '\"') {
+                        current.append('\"')
+                        i += 2 // Skip both quotes
+                    } else {
+                        inQuotes = false
+                        i++
+                    }
+                } else {
+                    current.append(char)
+                    i++
                 }
-                else -> current.append(char)
+            } else {
+                if (char == '\"') {
+                    inQuotes = true
+                    i++
+                } else if (char == ',') {
+                    parts.add(current.toString().trim())
+                    current = StringBuilder()
+                    i++
+                } else {
+                    current.append(char)
+                    i++
+                }
             }
         }
-        parts.add(current.toString().trim().removeSurrounding("\""))
+        parts.add(current.toString().trim())
         
         return when {
             parts.size >= 2 -> {

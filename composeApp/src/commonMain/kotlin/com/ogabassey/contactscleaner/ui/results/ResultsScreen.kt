@@ -32,6 +32,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
@@ -707,7 +709,9 @@ private fun IssueCard(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = color.copy(alpha = 0.1f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -751,7 +755,9 @@ private fun StatCard(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -829,7 +835,9 @@ fun AccountDialogItem(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

@@ -17,19 +17,34 @@ interface BlogPostMeta {
 const BlogList: React.FC = () => {
   const [posts, setPosts] = useState<BlogPostMeta[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch('/blog-manifest.json')
-      .then(res => res.json())
+    const controller = new AbortController();
+    fetch('/blog-manifest.json', { signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load posts');
+        return res.json();
+      })
       .then((data: BlogPostMeta[]) => {
-        setPosts(data);
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        setPosts(sorted);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          setError(true);
+          setLoading(false);
+        }
+      });
+    return () => controller.abort();
   }, []);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    // Append T00:00:00 to avoid UTC midnight shifting the day in negative offsets
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -52,6 +67,8 @@ const BlogList: React.FC = () => {
               <div key={i} className="animate-pulse rounded-2xl bg-white/5 h-48" />
             ))}
           </div>
+        ) : error ? (
+          <p className="text-gray-500">Failed to load posts. Please try again later.</p>
         ) : posts.length === 0 ? (
           <p className="text-gray-500">No posts yet. Check back soon!</p>
         ) : (

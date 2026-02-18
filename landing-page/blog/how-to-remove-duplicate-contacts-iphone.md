@@ -118,4 +118,4 @@ Yes. Contacts Cleaner also includes WhatsApp intelligence features — it can de
 
 Duplicate contacts are a universal problem, but in 2026 you don't have to fix them manually. Built-in tools handle basic cases, but for a thorough cleanup that catches near-duplicates across all accounts, an AI-powered tool like Contacts Cleaner is the fastest solution.
 
-[Download Contacts Cleaner](https://apps.apple.com/app/id6758563652) — Free on iOS and Android.
+[Download Contacts Cleaner](https://apps.apple.com/app/id6758563652) — Free on [iOS](https://apps.apple.com/app/id6758563652) and [Android](https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner).

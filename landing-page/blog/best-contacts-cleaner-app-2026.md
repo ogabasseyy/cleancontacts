@@ -147,4 +147,4 @@ The built-in tools from Apple and Google are fine for occasional quick fixes, bu
 
 **Key differentiator:** Contacts Cleaner is the only app that processes everything locally on your device while offering AI-powered detection. You get the accuracy of cloud-based solutions with the privacy of on-device processing.
 
-[Download Contacts Cleaner](https://apps.apple.com/app/id6758563652) — Free on iOS and Android.
+[Download Contacts Cleaner](https://apps.apple.com/app/id6758563652) — Free on [iOS](https://apps.apple.com/app/id6758563652) and [Android](https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner).

@@ -12,6 +12,17 @@ const distDir = resolve(__dirname, '../dist');
 const indexHtml = readFileSync(resolve(distDir, 'index.html'), 'utf-8');
 const SITE_URL = 'https://contactscleaner.tech';
 
+/**
+ * Escape a string for safe use inside an HTML attribute value.
+ */
+function escapeAttr(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 const routes = [
   {
     path: '/privacy',
@@ -79,13 +90,13 @@ function prerenderRoute(route) {
   // Replace title
   html = html.replace(
     /<title>.*?<\/title>/,
-    `<title>${route.title}</title>`
+    `<title>${escapeAttr(route.title)}</title>`
   );
 
   // Replace meta description
   html = html.replace(
     /<meta name="description" content=".*?" \/>/,
-    `<meta name="description" content="${route.description}" />`
+    `<meta name="description" content="${escapeAttr(route.description)}" />`
   );
 
   // Replace canonical
@@ -103,13 +114,13 @@ function prerenderRoute(route) {
   // Replace OG title
   html = html.replace(
     /<meta property="og:title" content=".*?" \/>/,
-    `<meta property="og:title" content="${route.title}" />`
+    `<meta property="og:title" content="${escapeAttr(route.title)}" />`
   );
 
   // Replace OG description
   html = html.replace(
     /<meta property="og:description" content=".*?" \/>/,
-    `<meta property="og:description" content="${route.description}" />`
+    `<meta property="og:description" content="${escapeAttr(route.description)}" />`
   );
 
   // Inject Article JSON-LD for blog posts

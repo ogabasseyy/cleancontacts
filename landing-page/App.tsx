@@ -8,14 +8,13 @@ import { WhatsAppSection } from './components/WhatsAppSection';
 import { Security } from './components/Security';
 import { FAQ } from './components/FAQ';
 import { Footer } from './components/Footer';
+import type { ViewState } from './types';
 
 const PrivacyCard = React.lazy(() => import('./components/PrivacyCard').then(m => ({ default: m.PrivacyCard })));
 const TermsCard = React.lazy(() => import('./components/TermsCard').then(m => ({ default: m.TermsCard })));
 const SupportCard = React.lazy(() => import('./components/SupportCard').then(m => ({ default: m.SupportCard })));
 const BlogList = React.lazy(() => import('./components/BlogList'));
 const BlogPost = React.lazy(() => import('./components/BlogPost'));
-
-type ViewState = 'home' | 'privacy' | 'terms' | 'support' | 'blog' | 'blog-post';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();

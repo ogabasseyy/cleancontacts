@@ -23,6 +23,7 @@
   <!-- BLOG_START -->
   <url>
     <loc>https://contactscleaner.tech/blog</loc>
+    <lastmod>2026-02-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

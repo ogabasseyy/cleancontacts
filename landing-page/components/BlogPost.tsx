@@ -28,9 +28,15 @@ const BlogPost: React.FC = () => {
   useEffect(() => {
     if (!slug) return;
 
+    const controller = new AbortController();
+    const { signal } = controller;
+
     Promise.all([
-      fetch('/blog-manifest.json').then(r => r.json()),
-      fetch(`/blog/${slug}.md`).then(r => {
+      fetch('/blog-manifest.json', { signal }).then(r => {
+        if (!r.ok) throw new Error('Failed to load manifest');
+        return r.json();
+      }),
+      fetch(`/blog/${slug}.md`, { signal }).then(r => {
         if (!r.ok) throw new Error('Not found');
         return r.text();
       }),
@@ -45,14 +51,18 @@ const BlogPost: React.FC = () => {
         }
         setLoading(false);
       })
-      .catch(() => {
-        setNotFound(true);
-        setLoading(false);
+      .catch((err) => {
+        if (err.name !== 'AbortError') {
+          setNotFound(true);
+          setLoading(false);
+        }
       });
+
+    return () => controller.abort();
   }, [slug]);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

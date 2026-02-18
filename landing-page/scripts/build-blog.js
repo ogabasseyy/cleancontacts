@@ -29,21 +29,37 @@ if (files.length === 0) {
 }
 
 /**
+ * Escape special XML characters.
+ */
+function escapeXml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
  * Strip markdown syntax for plain text excerpt.
  */
 function stripMarkdown(md) {
   return md
-    .replace(/^#{1,6}\s+/gm, '')       // headings
-    .replace(/\*\*(.+?)\*\*/g, '$1')    // bold
-    .replace(/\*(.+?)\*/g, '$1')        // italic
-    .replace(/\[(.+?)\]\(.+?\)/g, '$1') // links
-    .replace(/!\[.*?\]\(.+?\)/g, '')    // images
-    .replace(/`{1,3}[^`]*`{1,3}/g, '')  // code
-    .replace(/>\s+/g, '')               // blockquotes
-    .replace(/[-*+]\s+/g, '')           // list items
-    .replace(/\d+\.\s+/g, '')           // ordered list items
-    .replace(/\n{2,}/g, ' ')            // multiple newlines
-    .replace(/\n/g, ' ')               // single newlines
+    .replace(/^```[\s\S]*?```$/gm, '')   // fenced code blocks (backticks)
+    .replace(/^~~~[\s\S]*?~~~$/gm, '')    // fenced code blocks (tildes)
+    .replace(/^\s*\|.*\|\s*$/gm, '')      // table rows
+    .replace(/^\s*\|?\s*-{3,}.*$/gm, '')  // table separator lines
+    .replace(/^#{1,6}\s+/gm, '')          // headings
+    .replace(/\*\*(.+?)\*\*/g, '$1')      // bold
+    .replace(/\*(.+?)\*/g, '$1')          // italic
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1')   // links
+    .replace(/!\[.*?\]\(.+?\)/g, '')      // images
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')   // inline code
+    .replace(/>\s+/g, '')                 // blockquotes
+    .replace(/[-*+]\s+/g, '')            // list items
+    .replace(/\d+\.\s+/g, '')            // ordered list items
+    .replace(/\n{2,}/g, ' ')             // multiple newlines
+    .replace(/\n/g, ' ')                 // single newlines
     .trim();
 }
 
@@ -108,8 +124,8 @@ const rssItems = posts.map(post => `    <item>
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
       <description><![CDATA[${post.description}]]></description>
-      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-      <category>${post.category}</category>
+      <pubDate>${new Date(post.date + 'T00:00:00').toUTCString()}</pubDate>
+      <category><![CDATA[${post.category}]]></category>
     </item>`).join('\n');
 
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
@@ -129,7 +145,10 @@ writeFileSync(resolve(publicDir, 'rss.xml'), rss);
 console.log('  RSS feed: rss.xml');
 
 // Update sitemap.xml with blog URLs
-const existingSitemap = readFileSync(resolve(publicDir, 'sitemap.xml'), 'utf-8');
+const sitemapPath = resolve(publicDir, 'sitemap.xml');
+const existingSitemap = existsSync(sitemapPath)
+  ? readFileSync(sitemapPath, 'utf-8')
+  : `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
 
 // Remove any previously generated blog entries (between markers)
 let sitemapBase = existingSitemap.replace(
@@ -137,11 +156,15 @@ let sitemapBase = existingSitemap.replace(
   ''
 );
 
+// Use the newest post date as lastmod for the blog index
+const blogIndexLastmod = posts.length > 0 ? posts[0].lastModified : new Date().toISOString().slice(0, 10);
+
 // Insert blog URLs before closing </urlset>
 const blogUrls = [
   `  <!-- BLOG_START -->`,
   `  <url>`,
   `    <loc>${SITE_URL}/blog</loc>`,
+  `    <lastmod>${blogIndexLastmod}</lastmod>`,
   `    <changefreq>weekly</changefreq>`,
   `    <priority>0.7</priority>`,
   `  </url>`,
@@ -161,7 +184,7 @@ const updatedSitemap = sitemapBase.replace(
   `${blogUrls}\n</urlset>`
 );
 
-writeFileSync(resolve(publicDir, 'sitemap.xml'), updatedSitemap);
+writeFileSync(sitemapPath, updatedSitemap);
 console.log('  Sitemap updated with blog URLs');
 
 console.log('Blog build complete.');

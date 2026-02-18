@@ -66,12 +66,11 @@ function stripMarkdown(md) {
  */
 function normalizeDate(value) {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
-  const str = String(value);
-  const parsed = new Date(str);
-  if (isNaN(parsed.getTime())) {
-    throw new Error(`Invalid date value: "${str}"`);
+  const str = String(value).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    throw new Error(`Invalid date value: "${String(value)}"`);
   }
-  return parsed.toISOString().slice(0, 10);
+  return str;
 }
 
 /**
@@ -121,13 +120,15 @@ const posts = files.map(file => {
   // Copy raw markdown to public/blog/
   writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), content);
 
+  const excerpt = generateExcerpt(content);
+
   return {
     title: data.title,
     slug: data.slug,
     date,
     lastModified,
-    description: data.description || generateExcerpt(content),
-    excerpt: generateExcerpt(content),
+    description: data.description || excerpt,
+    excerpt,
     readingTime: readingTime(content),
     category: data.category || 'General',
     tags: data.tags || [],
@@ -176,8 +177,12 @@ const sitemapPath = resolve(publicDir, 'sitemap.xml');
 let existingSitemap;
 try {
   existingSitemap = readFileSync(sitemapPath, 'utf-8');
-} catch {
-  existingSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+} catch (err) {
+  if (err.code === 'ENOENT') {
+    existingSitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
+  } else {
+    throw err;
+  }
 }
 
 // Remove any previously generated blog entries (between markers)

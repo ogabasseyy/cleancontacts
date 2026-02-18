@@ -60,4 +60,16 @@ class ContactImportParserSecurityTest {
         assertEquals("08012345678", result.validContacts[0].numbers[0])
         assertEquals("+1987654321", result.validContacts[1].numbers[0])
     }
+
+    @Test
+    fun `parseCSVLine handles escaped quotes correctly`() {
+        // "A""B",C -> Field 1: A"B, Field 2: C
+        // Current implementation incorrectly parses this as AB
+        val content = "\"A\"\"B\",C"
+        val result = parser.parseFile(content, "escaped.csv")
+
+        assertEquals(1, result.validContacts.size)
+        assertEquals("A\"B", result.validContacts[0].name)
+        assertEquals("C", result.validContacts[0].numbers[0])
+    }
 }

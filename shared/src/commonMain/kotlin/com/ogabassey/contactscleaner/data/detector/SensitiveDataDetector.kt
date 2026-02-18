@@ -60,15 +60,14 @@ class SensitiveDataDetector(
             if (c.isDigit()) digitCount++
             else if (c.isLetter()) letterCount++
             else if (c == '-') hasHyphen = true
-            else if (c == '+' || c == '(' || c == ')' || c == '.' || c == '*' || c == '#') {
-                // ⚡ Bolt Optimization: Found phone-specific char
-                // Since none of our supported sensitive ID types (SSN, NINO, Passport, etc.)
-                // allow these symbols, we can immediately classify this as "Not Sensitive".
-                // This allows us to skip the expensive LibPhonenumber validation for formatted numbers.
-                return null
-            }
             else if (!c.isWhitespace()) otherCount++
         }
+
+        // ⚡ Bolt Optimization: Early Exit for Invalid Characters
+        // If the string contains characters that are NOT digits, letters, hyphens, or spaces
+        // (e.g. '+', '(', ')', '.', '*', '#'), it cannot be any of our supported sensitive ID types.
+        // We can immediately return null and skip expensive LibPhonenumber validation.
+        if (otherCount > 0) return null
 
         // Optimization: If fewer than 6 digits, it cannot be a valid phone number
         // (min 7 usually) or any supported sensitive ID (UK NINO is min 6 digits).

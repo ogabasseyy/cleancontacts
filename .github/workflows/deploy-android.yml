@@ -78,7 +78,8 @@ jobs:
         packageName: com.ogabassey.contactscleaner
         releaseFiles: androidApp/build/outputs/bundle/release/androidApp-release.aab
         track: ${{ github.event.inputs.track || 'alpha' }}
-        status: completed
+        status: ${{ (github.event.inputs.track == 'production') && 'inProgress' || 'completed' }}
+        userFraction: ${{ (github.event.inputs.track == 'production') && '0.1' || '' }}
 
     - name: Clean up keystore
       if: always()

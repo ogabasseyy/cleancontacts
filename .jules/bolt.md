@@ -92,3 +92,26 @@ for (c in input) {
     }
 }
 ```
+
+# 2026-03-01 - Early Exit on Domain-Specific Symbols
+
+**Learning:** In domain-specific validation (e.g., separating sensitive IDs from phone numbers), the presence of certain characters can immediately disqualify a candidate. Checking for these "disqualifiers" in a single pass can skip expensive downstream validation (like `LibPhonenumber` parsing).
+
+**Action:** Identify characters that are valid in the "common case" (phone numbers) but invalid in the "special case" (SSN, Passport). Use an early return inside the analysis loop.
+
+```kotlin
+// ❌ Avoid: Expensive validation on every item
+for (input in inputs) {
+    // Expensive LibPhonenumber call runs for everything
+    if (PhoneNumberUtil.isValid(input)) continue
+    // ... check sensitive ID
+}
+
+// ✅ Prefer: Early exit on disqualifying symbols
+for (c in input) {
+    // '+', '(', ')' are valid in phones, invalid in SSN/Passport
+    if (c == '+' || c == '(' || c == ')') return null
+}
+// Now LibPhonenumber is only called for ambiguous inputs
+if (PhoneNumberUtil.isValid(input)) continue
+```

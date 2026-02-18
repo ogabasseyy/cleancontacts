@@ -60,6 +60,13 @@ class SensitiveDataDetector(
             if (c.isDigit()) digitCount++
             else if (c.isLetter()) letterCount++
             else if (c == '-') hasHyphen = true
+            else if (c == '+' || c == '(' || c == ')' || c == '.' || c == '*' || c == '#') {
+                // ⚡ Bolt Optimization: Found phone-specific char
+                // Since none of our supported sensitive ID types (SSN, NINO, Passport, etc.)
+                // allow these symbols, we can immediately classify this as "Not Sensitive".
+                // This allows us to skip the expensive LibPhonenumber validation for formatted numbers.
+                return null
+            }
             else if (!c.isWhitespace()) otherCount++
         }
 

@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { APP_STORE_LINK } from '../constants';
-
-type ViewState = 'home' | 'privacy' | 'terms' | 'support';
+import type { ViewState } from '../types';
 
 interface NavbarProps {
   currentView: ViewState;
@@ -84,7 +83,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
         )}
 
         <div className="flex items-center gap-4">
-          {currentView !== 'home' && (
+          <button
+            type="button"
+            onClick={() => onNavigate('blog')}
+            aria-current={currentView === 'blog' || currentView === 'blog-post' ? 'page' : undefined}
+            className={`hidden md:block text-sm font-medium transition-colors ${currentView === 'blog' || currentView === 'blog-post' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+          >
+            Blog
+          </button>
+          {currentView !== 'home' && currentView !== 'blog' && currentView !== 'blog-post' && (
              <button
                 type="button"
                 onClick={() => onNavigate('home')}

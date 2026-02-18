@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Generated blog artifacts (built by scripts/build-blog.js)
+public/blog/
+public/blog-manifest.json
+public/rss.xml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -15,7 +15,7 @@ targets:
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.ogabassey.contactscleaner.iosApp
       CURRENT_PROJECT_VERSION: 4
-      MARKETING_VERSION: 1.1.0
+      MARKETING_VERSION: 1.2.0
       DEVELOPMENT_TEAM: J4MXAZ4X3U
       CODE_SIGN_STYLE: Automatic
       FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../composeApp/build/xcode-frameworks"

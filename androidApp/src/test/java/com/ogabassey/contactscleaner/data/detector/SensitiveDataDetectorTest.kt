@@ -59,6 +59,38 @@ class SensitiveDataDetectorTest {
     }
 
     @Test
+    fun `ignores formatted phone numbers with parentheses`() {
+        val formatted = "(555) 123-4567"
+        val match = detector.analyze(formatted, "US")
+        assertNull("Formatted phone with parens should not be flagged", match)
+    }
+
+    @Test
+    fun `ignores dot-formatted phone numbers`() {
+        val dotFormatted = "555.123.4567"
+        val match = detector.analyze(dotFormatted, "US")
+        assertNull("Dot-formatted phone should not be flagged", match)
+    }
+
+    @Test
+    fun `still detects SSN despite optimization`() {
+        // SSN uses only digits + hyphens (otherCount == 0), must not be filtered
+        val ssn = "123-45-6789"
+        val match = detector.analyze(ssn)
+        assertNotNull("SSN must still be detected", match)
+        assertEquals(SensitiveType.USA_SSN, match?.type)
+    }
+
+    @Test
+    fun `still detects NINO despite optimization`() {
+        // NINO uses only letters + digits (otherCount == 0), must not be filtered
+        val nino = "AB123456C"
+        val match = detector.analyze(nino)
+        assertNotNull("NINO must still be detected", match)
+        assertEquals(SensitiveType.UK_NINO, match?.type)
+    }
+
+    @Test
     fun `ignores input exceeding max length`() {
         // Create a string longer than 100 characters
         val longString = "A".repeat(101)

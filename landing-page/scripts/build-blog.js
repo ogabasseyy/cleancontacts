@@ -20,8 +20,17 @@ const SITE_URL = 'https://contactscleaner.tech';
 // Ensure output directories exist
 mkdirSync(publicBlogDir, { recursive: true });
 
-// Read all markdown files
-const files = readdirSync(blogDir).filter(f => f.endsWith('.md'));
+// Read all markdown files (gracefully handle missing blog/ directory)
+let files;
+try {
+  files = readdirSync(blogDir).filter(f => f.endsWith('.md'));
+} catch (err) {
+  if (err.code === 'ENOENT') {
+    files = [];
+  } else {
+    throw err;
+  }
+}
 
 if (files.length === 0) {
   console.log('No blog posts found. Skipping blog build.');
@@ -52,10 +61,26 @@ function stripMarkdown(md) {
 }
 
 /**
+ * Normalize a Date object or string to YYYY-MM-DD.
+ * gray-matter parses unquoted YAML dates into JS Date objects.
+ */
+function normalizeDate(value) {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value);
+}
+
+/**
+ * Validate slug contains only safe characters (alphanumerics, hyphens, underscores).
+ */
+function isValidSlug(slug) {
+  return /^[a-z0-9][a-z0-9-_]*$/.test(slug);
+}
+
+/**
  * Calculate reading time (words / 200 wpm).
  */
 function readingTime(content) {
-  const words = content.split(/\s+/).filter(Boolean).length;
+  const words = stripMarkdown(content).split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.ceil(words / 200));
 }
 
@@ -79,14 +104,23 @@ const posts = files.map(file => {
     return null;
   }
 
+  // Validate slug to prevent path traversal
+  if (!isValidSlug(data.slug)) {
+    console.warn(`  Warning: ${file} has invalid slug "${data.slug}". Skipping.`);
+    return null;
+  }
+
+  const date = normalizeDate(data.date);
+  const lastModified = normalizeDate(data.lastModified || data.date);
+
   // Copy raw markdown to public/blog/
   writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), content);
 
   return {
     title: data.title,
     slug: data.slug,
-    date: data.date,
-    lastModified: data.lastModified || data.date,
+    date,
+    lastModified,
     description: data.description || generateExcerpt(content),
     excerpt: generateExcerpt(content),
     readingTime: readingTime(content),
@@ -112,7 +146,7 @@ const rssItems = posts.map(post => `    <item>
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
       <description><![CDATA[${post.description}]]></description>
-      <pubDate>${new Date(post.date + 'T00:00:00').toUTCString()}</pubDate>
+      <pubDate>${new Date(post.date + 'T00:00:00Z').toUTCString()}</pubDate>
       <category><![CDATA[${post.category}]]></category>
     </item>`).join('\n');
 

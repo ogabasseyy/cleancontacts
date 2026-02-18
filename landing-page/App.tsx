@@ -12,8 +12,10 @@ import { Footer } from './components/Footer';
 const PrivacyCard = React.lazy(() => import('./components/PrivacyCard').then(m => ({ default: m.PrivacyCard })));
 const TermsCard = React.lazy(() => import('./components/TermsCard').then(m => ({ default: m.TermsCard })));
 const SupportCard = React.lazy(() => import('./components/SupportCard').then(m => ({ default: m.SupportCard })));
+const BlogList = React.lazy(() => import('./components/BlogList'));
+const BlogPost = React.lazy(() => import('./components/BlogPost'));
 
-type ViewState = 'home' | 'privacy' | 'terms' | 'support';
+type ViewState = 'home' | 'privacy' | 'terms' | 'support' | 'blog' | 'blog-post';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
@@ -25,7 +27,10 @@ const AppContent: React.FC = () => {
       case '/privacy': return 'privacy';
       case '/terms': return 'terms';
       case '/support': return 'support';
-      default: return 'home';
+      case '/blog': return 'blog';
+      default:
+        if (normalizedPath.startsWith('/blog/')) return 'blog-post';
+        return 'home';
     }
   };
 
@@ -76,6 +81,18 @@ const AppContent: React.FC = () => {
                 <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
                   <SupportCard />
                 </div>
+              </Suspense>
+            } />
+
+            <Route path="/blog" element={
+              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                <BlogList />
+              </Suspense>
+            } />
+
+            <Route path="/blog/:slug" element={
+              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                <BlogPost />
               </Suspense>
             } />
 

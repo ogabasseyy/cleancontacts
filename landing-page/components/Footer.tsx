@@ -1,8 +1,9 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { APP_STORE_LINK, PLAY_STORE_LINK } from '../constants';
 
-type ViewState = 'home' | 'privacy' | 'terms' | 'support';
+type ViewState = 'home' | 'privacy' | 'terms' | 'support' | 'blog' | 'blog-post';
 
 interface FooterProps {
   onNavigate: (view: ViewState) => void;
@@ -41,6 +42,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </a>
           </div>
           <div className="flex gap-8 text-gray-500">
+            <Link
+              to="/blog"
+              className="hover:text-brand transition-colors"
+            >
+              Blog
+            </Link>
             <button
               type="button"
               onClick={() => onNavigate('privacy')}

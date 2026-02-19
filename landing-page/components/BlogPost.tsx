@@ -4,6 +4,10 @@ import type { BlogPostMeta, TocHeading } from '../types';
 
 const SITE_URL = 'https://contactscleaner.tech';
 
+/** Safely serialize JSON-LD for embedding in <script> tags (prevents XSS via </script> injection) */
+const safeJsonLd = (data: unknown): string =>
+  JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+
 // Module-level manifest cache — avoids re-fetching on each post navigation
 let cachedManifest: BlogPostMeta[] | null = null;
 
@@ -201,7 +205,7 @@ const BlogPost: React.FC = () => {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
             headline: meta.title,
@@ -233,7 +237,7 @@ const BlogPost: React.FC = () => {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [

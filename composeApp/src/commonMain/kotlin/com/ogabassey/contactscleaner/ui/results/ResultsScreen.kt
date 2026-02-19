@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import com.ogabassey.contactscleaner.domain.model.ContactType
@@ -650,7 +651,12 @@ private fun SummaryCard(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable(role = Role.Button) { onAccountsClick() }
+                        .padding(vertical = 4.dp)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "${accountsCount.formatWithCommas()} Accounts. Double tap to manage."
+                        }
                 ) {
                     Text(
                         text = accountsCount.formatWithCommas(),
@@ -658,11 +664,22 @@ private fun SummaryCard(
                         color = PrimaryNeon,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        "Accounts",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            "Accounts",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color.White.copy(alpha = 0.6f)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.4f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
 
                 // Vertical Divider
@@ -677,7 +694,10 @@ private fun SummaryCard(
                 // Total Issues
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(vertical = 4.dp)
+                        .semantics(mergeDescendants = true) {}
                 ) {
                     Text(
                         text = totalIssues.formatWithCommas(),

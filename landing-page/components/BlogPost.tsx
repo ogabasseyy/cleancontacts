@@ -225,7 +225,7 @@ const BlogPost: React.FC = () => {
                 url: `${SITE_URL}/logo.png`,
               },
             },
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
 
@@ -256,7 +256,7 @@ const BlogPost: React.FC = () => {
                 item: `${SITE_URL}/blog/${meta.slug}`,
               },
             ],
-          }),
+          }).replace(/</g, '\\u003c'),
         }}
       />
     </div>

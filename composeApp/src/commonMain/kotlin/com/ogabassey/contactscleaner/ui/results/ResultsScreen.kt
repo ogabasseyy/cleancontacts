@@ -652,11 +652,11 @@ private fun SummaryCard(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(role = Role.Button) { onAccountsClick() }
+                        .clickable(
+                            role = Role.Button,
+                            onClickLabel = "manage accounts"
+                        ) { onAccountsClick() }
                         .padding(vertical = 4.dp)
-                        .semantics(mergeDescendants = true) {
-                            contentDescription = "${accountsCount.formatWithCommas()} Accounts. Double tap to manage."
-                        }
                 ) {
                     Text(
                         text = accountsCount.formatWithCommas(),
@@ -697,7 +697,9 @@ private fun SummaryCard(
                     modifier = Modifier
                         .weight(1f)
                         .padding(vertical = 4.dp)
-                        .semantics(mergeDescendants = true) {}
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "${totalIssues.formatWithCommas()} Total Issues"
+                        }
                 ) {
                     Text(
                         text = totalIssues.formatWithCommas(),

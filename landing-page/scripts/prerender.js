@@ -169,7 +169,7 @@ function prerenderRoute(route) {
   // Inject JSON-LD schemas for blog posts (array of schemas)
   if (route.jsonLd) {
     const schemas = route.jsonLd
-      .map(schema => `  <script type="application/ld+json">\n    ${JSON.stringify(schema).replace(/</g, '\\u003c')}\n    </script>`)
+      .map(schema => `  <script type="application/ld+json">\n    ${JSON.stringify(schema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e')}\n    </script>`)
       .join('\n');
     html = html.replace('</head>', `${schemas}\n  </head>`);
   }

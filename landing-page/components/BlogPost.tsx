@@ -1,29 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import type { BlogPostMeta, TocHeading } from '../types';
 
-interface BlogPostMeta {
-  title: string;
-  slug: string;
-  date: string;
-  lastModified: string;
-  description: string;
-  excerpt: string;
-  readingTime: number;
-  category: string;
-  tags: string[];
-  image: string;
-}
+const SITE_URL = 'https://contactscleaner.tech';
+
+// Module-level manifest cache — avoids re-fetching on each post navigation
+let cachedManifest: BlogPostMeta[] | null = null;
+
+const TableOfContents: React.FC<{ headings: TocHeading[] }> = ({ headings }) => {
+  const h2s = headings.filter(h => h.level === 2);
+  if (h2s.length < 3) return null;
+
+  return (
+    <nav aria-label="Table of contents" className="mb-8 p-4 rounded-xl border border-white/10 bg-white/[0.02]">
+      <p className="text-sm font-semibold text-gray-400 mb-3">In this article</p>
+      <ul className="space-y-1.5">
+        {h2s.map(heading => (
+          <li key={heading.id}>
+            <a
+              href={`#${heading.id}`}
+              className="text-sm text-gray-400 hover:text-brand transition-colors"
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};
 
 const BlogPost: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [meta, setMeta] = useState<BlogPostMeta | null>(null);
-  const [content, setContent] = useState<string>('');
+  const [html, setHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -31,23 +44,32 @@ const BlogPost: React.FC = () => {
     const controller = new AbortController();
     const { signal } = controller;
 
+    const fetchManifest = cachedManifest
+      ? Promise.resolve(cachedManifest)
+      : fetch('/blog-manifest.json', { signal })
+          .then(r => {
+            if (!r.ok) throw new Error('Failed to load manifest');
+            return r.json();
+          })
+          .then((data: BlogPostMeta[]) => {
+            cachedManifest = data;
+            return data;
+          });
+
     Promise.all([
-      fetch('/blog-manifest.json', { signal }).then(r => {
-        if (!r.ok) throw new Error('Failed to load manifest');
-        return r.json();
-      }),
-      fetch(`/blog/${slug}.md`, { signal }).then(r => {
+      fetchManifest,
+      fetch(`/blog/${slug}.html`, { signal }).then(r => {
         if (!r.ok) throw new Error('Not found');
         return r.text();
       }),
     ])
-      .then(([manifest, md]: [BlogPostMeta[], string]) => {
+      .then(([manifest, htmlContent]) => {
         const post = manifest.find(p => p.slug === slug);
         if (!post) {
           setNotFound(true);
         } else {
           setMeta(post);
-          setContent(md);
+          setHtml(htmlContent);
         }
         setLoading(false);
       })
@@ -60,6 +82,13 @@ const BlogPost: React.FC = () => {
 
     return () => controller.abort();
   }, [slug]);
+
+  // Focus management: move focus to h1 after content loads for screen readers
+  useEffect(() => {
+    if (!loading && meta && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [loading, meta]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
@@ -103,16 +132,16 @@ const BlogPost: React.FC = () => {
     <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
       <title>{meta.title} - Contacts Cleaner Blog</title>
       <meta name="description" content={meta.description} />
-      <link rel="canonical" href={`https://contactscleaner.tech/blog/${meta.slug}`} />
+      <link rel="canonical" href={`${SITE_URL}/blog/${meta.slug}`} />
       <meta property="og:type" content="article" />
       <meta property="og:title" content={meta.title} />
       <meta property="og:description" content={meta.description} />
-      <meta property="og:image" content={`https://contactscleaner.tech${meta.image}`} />
-      <meta property="og:url" content={`https://contactscleaner.tech/blog/${meta.slug}`} />
+      <meta property="og:image" content={`${SITE_URL}${meta.image}`} />
+      <meta property="og:url" content={`${SITE_URL}/blog/${meta.slug}`} />
       <meta property="article:published_time" content={meta.date} />
       <meta property="article:modified_time" content={meta.lastModified} />
 
-      <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
+      <article className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
         {/* Back link */}
         <Link
           to="/blog"
@@ -125,98 +154,108 @@ const BlogPost: React.FC = () => {
         </Link>
 
         {/* Post header */}
-        <div className="mb-8">
+        <header className="mb-8">
           <div className="flex items-center gap-3 mb-4 text-sm">
             <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium text-xs">
               {meta.category}
             </span>
-            <span className="text-gray-500">{formatDate(meta.date)}</span>
-            <span className="text-gray-600">·</span>
-            <span className="text-gray-500">{meta.readingTime} min read</span>
+            <time dateTime={meta.date} className="text-gray-400">
+              {formatDate(meta.date)}
+            </time>
+            <span className="text-gray-600" aria-hidden="true">·</span>
+            <span className="text-gray-400">{meta.readingTime} min read</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-gradient leading-tight">
+          <h1
+            ref={titleRef}
+            tabIndex={-1}
+            className="text-3xl md:text-4xl font-bold text-gradient leading-tight outline-none"
+          >
             {meta.title}
           </h1>
-        </div>
+        </header>
 
-        {/* Markdown content */}
-        <div className="prose prose-invert max-w-none prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-p:leading-relaxed prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-li:text-gray-300 prose-blockquote:border-brand/30 prose-blockquote:text-gray-400 prose-code:text-brand prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-th:text-white prose-td:text-gray-300 prose-hr:border-white/10">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[
-              rehypeSlug,
-              [rehypeAutolinkHeadings, { behavior: 'wrap' }],
-            ]}
-            components={{
-              img: ({ src, alt, ...props }) => (
-                <img {...props} src={src} alt={alt || ''} loading="lazy" className="rounded-xl" />
-              ),
-              a: ({ href, children, ...props }) => {
-                const isExternal = href?.startsWith('http');
-                return (
-                  <a
-                    {...props}
-                    href={href}
-                    {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                  >
-                    {children}
-                  </a>
-                );
-              },
-              table: ({ children, ...props }) => (
-                <div className="overflow-x-auto -mx-4 md:mx-0">
-                  <table {...props} className="min-w-full">
-                    {children}
-                  </table>
-                </div>
-              ),
-            }}
-          >
-            {content}
-          </ReactMarkdown>
-        </div>
+        {/* Table of Contents */}
+        <TableOfContents headings={meta.headings} />
+
+        {/* Pre-rendered HTML content (build-time markdown→HTML, safe: our own output) */}
+        <div
+          className="prose prose-invert max-w-none prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-p:leading-relaxed prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-li:text-gray-300 prose-blockquote:border-brand/30 prose-blockquote:text-gray-400 prose-code:text-brand prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-th:text-white prose-td:text-gray-300 prose-hr:border-white/10 prose-table:border-white/10 prose-thead:border-white/10 prose-tr:border-white/10"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
 
         {/* Tags */}
         {meta.tags.length > 0 && (
-          <div className="mt-10 pt-6 border-t border-white/10">
+          <footer className="mt-10 pt-6 border-t border-white/10">
             <div className="flex flex-wrap gap-2">
               {meta.tags.map(tag => (
-                <span key={tag} className="text-xs text-gray-500 bg-white/5 px-3 py-1.5 rounded-full">
+                <span key={tag} className="text-xs text-gray-400 bg-white/5 px-3 py-1.5 rounded-full">
                   {tag}
                 </span>
               ))}
             </div>
-          </div>
+          </footer>
         )}
-      </div>
+      </article>
 
-      {/* JSON-LD Article */}
+      {/* JSON-LD BlogPosting */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
-            '@type': 'Article',
+            '@type': 'BlogPosting',
             headline: meta.title,
             description: meta.description,
-            image: `https://contactscleaner.tech${meta.image}`,
+            image: `${SITE_URL}${meta.image}`,
             datePublished: meta.date,
             dateModified: meta.lastModified,
-            url: `https://contactscleaner.tech/blog/${meta.slug}`,
+            url: `${SITE_URL}/blog/${meta.slug}`,
+            mainEntityOfPage: `${SITE_URL}/blog/${meta.slug}`,
             author: {
               '@type': 'Organization',
               name: 'Contacts Cleaner',
-              url: 'https://contactscleaner.tech',
+              url: SITE_URL,
             },
             publisher: {
               '@type': 'Organization',
               name: 'Contacts Cleaner',
-              url: 'https://contactscleaner.tech',
+              url: SITE_URL,
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://contactscleaner.tech/logo.png',
+                url: `${SITE_URL}/logo.png`,
               },
             },
+          }),
+        }}
+      />
+
+      {/* JSON-LD BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: SITE_URL,
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Blog',
+                item: `${SITE_URL}/blog`,
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: meta.title,
+                item: `${SITE_URL}/blog/${meta.slug}`,
+              },
+            ],
           }),
         }}
       />

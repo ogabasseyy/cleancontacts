@@ -8,6 +8,7 @@ import { WhatsAppSection } from './components/WhatsAppSection';
 import { Security } from './components/Security';
 import { FAQ } from './components/FAQ';
 import { Footer } from './components/Footer';
+import BlogErrorBoundary from './components/BlogErrorBoundary';
 import type { ViewState } from './types';
 
 const PrivacyCard = React.lazy(() => import('./components/PrivacyCard').then(m => ({ default: m.PrivacyCard })));
@@ -41,13 +42,21 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-dark text-white selection:bg-brand/30 selection:text-brand relative overflow-x-hidden">
+      {/* Skip to content — accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-brand focus:text-black focus:rounded-lg focus:text-sm focus:font-semibold"
+      >
+        Skip to content
+      </a>
+
       {/* Global Background Glows */}
       <div className="fixed top-0 left-0 w-full h-[800px] bg-[radial-gradient(ellipse_at_top,_rgba(37,211,102,0.15)_0%,_rgba(5,5,5,0)_70%)] pointer-events-none z-0" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar currentView={getCurrentView()} onNavigate={navigateTo} />
 
-        <main className="flex-grow">
+        <main id="main-content" className="flex-grow">
           <Routes>
             <Route path="/" element={
               <>
@@ -84,15 +93,19 @@ const AppContent: React.FC = () => {
             } />
 
             <Route path="/blog" element={
-              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
-                <BlogList />
-              </Suspense>
+              <BlogErrorBoundary>
+                <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                  <BlogList />
+                </Suspense>
+              </BlogErrorBoundary>
             } />
 
             <Route path="/blog/:slug" element={
-              <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
-                <BlogPost />
-              </Suspense>
+              <BlogErrorBoundary>
+                <Suspense fallback={<div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl" />}>
+                  <BlogPost />
+                </Suspense>
+              </BlogErrorBoundary>
             } />
 
             <Route path="*" element={<Navigate to="/" replace />} />

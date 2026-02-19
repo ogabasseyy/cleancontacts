@@ -1,23 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import type { BlogPostMeta } from '../types';
 
-interface BlogPostMeta {
-  title: string;
-  slug: string;
-  date: string;
-  lastModified: string;
-  description: string;
-  excerpt: string;
-  readingTime: number;
-  category: string;
-  tags: string[];
-  image: string;
-}
+const SITE_URL = 'https://contactscleaner.tech';
 
 const BlogList: React.FC = () => {
   const [posts, setPosts] = useState<BlogPostMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -42,8 +33,14 @@ const BlogList: React.FC = () => {
     return () => controller.abort();
   }, []);
 
+  // Focus management: move focus to h1 after loading for screen readers
+  useEffect(() => {
+    if (!loading && !error && titleRef.current) {
+      titleRef.current.focus();
+    }
+  }, [loading, error]);
+
   const formatDate = (dateStr: string) => {
-    // Append T00:00:00 to avoid UTC midnight shifting the day in negative offsets
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -55,10 +52,16 @@ const BlogList: React.FC = () => {
     <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
       <title>Blog - Contacts Cleaner</title>
       <meta name="description" content="Tips, guides, and comparisons for managing your phone contacts. Learn how to remove duplicates, detect WhatsApp users, and keep your address book clean." />
-      <link rel="canonical" href="https://contactscleaner.tech/blog" />
+      <link rel="canonical" href={`${SITE_URL}/blog`} />
 
       <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2 text-gradient">Blog</h1>
+        <h1
+          ref={titleRef}
+          tabIndex={-1}
+          className="text-3xl md:text-4xl font-bold mb-2 text-gradient outline-none"
+        >
+          Blog
+        </h1>
         <p className="text-gray-400 mb-10">Tips, guides, and news about contact management.</p>
 
         {loading ? (
@@ -68,9 +71,9 @@ const BlogList: React.FC = () => {
             ))}
           </div>
         ) : error ? (
-          <p className="text-gray-500">Failed to load posts. Please try again later.</p>
+          <p className="text-gray-400">Failed to load posts. Please try again later.</p>
         ) : posts.length === 0 ? (
-          <p className="text-gray-500">No posts yet. Check back soon!</p>
+          <p className="text-gray-400">No posts yet. Check back soon!</p>
         ) : (
           <div className="space-y-6">
             {posts.map(post => (
@@ -83,9 +86,11 @@ const BlogList: React.FC = () => {
                   <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium text-xs">
                     {post.category}
                   </span>
-                  <span className="text-gray-500">{formatDate(post.date)}</span>
-                  <span className="text-gray-600">·</span>
-                  <span className="text-gray-500">{post.readingTime} min read</span>
+                  <time dateTime={post.date} className="text-gray-400">
+                    {formatDate(post.date)}
+                  </time>
+                  <span className="text-gray-600" aria-hidden="true">·</span>
+                  <span className="text-gray-400">{post.readingTime} min read</span>
                 </div>
 
                 <h2 className="text-xl md:text-2xl font-bold text-white group-hover:text-brand transition-colors mb-3">
@@ -98,7 +103,7 @@ const BlogList: React.FC = () => {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {post.tags.slice(0, 4).map(tag => (
-                    <span key={tag} className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">
+                    <span key={tag} className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">
                       {tag}
                     </span>
                   ))}
@@ -109,7 +114,7 @@ const BlogList: React.FC = () => {
         )}
       </div>
 
-      {/* JSON-LD CollectionPage */}
+      {/* JSON-LD CollectionPage with mainEntity */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -118,12 +123,18 @@ const BlogList: React.FC = () => {
             '@type': 'CollectionPage',
             name: 'Contacts Cleaner Blog',
             description: 'Tips, guides, and comparisons for managing your phone contacts.',
-            url: 'https://contactscleaner.tech/blog',
+            url: `${SITE_URL}/blog`,
             publisher: {
               '@type': 'Organization',
               name: 'Contacts Cleaner',
-              url: 'https://contactscleaner.tech',
+              url: SITE_URL,
             },
+            mainEntity: posts.map(post => ({
+              '@type': 'BlogPosting',
+              headline: post.title,
+              url: `${SITE_URL}/blog/${post.slug}`,
+              datePublished: post.date,
+            })),
           }),
         }}
       />

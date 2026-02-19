@@ -1,8 +1,8 @@
 /**
- * Build-time blog processor.
+ * Build-time blog processor (2026 Best Practice: build-time HTML rendering).
  * Reads markdown posts from blog/, generates:
- * - public/blog-manifest.json (post metadata for client)
- * - public/blog/*.md (raw markdown for client-side rendering)
+ * - public/blog-manifest.json (post metadata + TOC for client)
+ * - public/blog/*.html (pre-rendered HTML — no client-side markdown parsing)
  * - public/rss.xml (RSS 2.0 feed)
  * - Updates public/sitemap.xml with blog URLs
  */
@@ -10,6 +10,14 @@ import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkGfm from 'remark-gfm';
+import remarkRehype from 'remark-rehype';
+import rehypeStringify from 'rehype-stringify';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import rehypePrettyCode from 'rehype-pretty-code';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const blogDir = resolve(__dirname, '../blog');
@@ -97,32 +105,104 @@ function generateExcerpt(content) {
   return plain.slice(0, 157) + '...';
 }
 
+/**
+ * Extract h2/h3 headings from markdown for TOC generation.
+ */
+function extractHeadings(markdown) {
+  const headings = [];
+  const regex = /^(#{2,3})\s+(.+)$/gm;
+  let match;
+  while ((match = regex.exec(markdown)) !== null) {
+    const text = match[2]
+      .replace(/\*\*(.+?)\*\*/g, '$1')  // strip bold
+      .replace(/\*(.+?)\*/g, '$1')      // strip italic
+      .replace(/`(.+?)`/g, '$1')        // strip inline code
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1') // strip links
+      .trim();
+    const id = text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-');
+    headings.push({
+      level: match[1].length,
+      text,
+      id,
+    });
+  }
+  return headings;
+}
+
+/**
+ * Warn about images without alt text in markdown.
+ */
+function warnMissingAltText(content, filename) {
+  const emptyAltRegex = /!\[\s*\]\(/g;
+  let match;
+  while ((match = emptyAltRegex.exec(content)) !== null) {
+    const line = content.substring(0, match.index).split('\n').length;
+    console.warn(`  Warning: Image without alt text in ${filename} (line ${line})`);
+  }
+}
+
+/**
+ * Build the unified remark→rehype pipeline for markdown→HTML conversion.
+ */
+function createMarkdownProcessor() {
+  return unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype, { allowDangerousHtml: false })
+    .use(rehypeSlug)
+    .use(rehypeAutolinkHeadings, { behavior: 'wrap' })
+    .use(rehypePrettyCode, {
+      theme: 'github-dark',
+      keepBackground: true,
+    })
+    .use(rehypeStringify);
+}
+
+const processor = createMarkdownProcessor();
+
 // Process all posts
-const posts = files.map(file => {
+const allPosts = [];
+for (const file of files) {
   const raw = readFileSync(resolve(blogDir, file), 'utf-8');
   const { data, content } = matter(raw);
 
   // Validate required frontmatter
   if (!data.title || !data.slug || !data.date) {
     console.warn(`  Warning: ${file} missing required frontmatter (title, slug, date). Skipping.`);
-    return null;
+    continue;
   }
 
   // Validate slug to prevent path traversal
   if (!isValidSlug(data.slug)) {
     console.warn(`  Warning: ${file} has invalid slug "${data.slug}". Skipping.`);
-    return null;
+    continue;
   }
+
+  // Draft filtering
+  if (data.status === 'draft') {
+    console.log(`  Skipping draft: ${file}`);
+    continue;
+  }
+
+  // Warn about images without alt text
+  warnMissingAltText(content, file);
 
   const date = normalizeDate(data.date);
   const lastModified = normalizeDate(data.lastModified || data.date);
-
-  // Copy raw markdown to public/blog/
-  writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), content);
-
   const excerpt = generateExcerpt(content);
+  const headings = extractHeadings(content);
 
-  return {
+  // Convert markdown to HTML at build time
+  const htmlResult = await processor.process(content);
+  const html = String(htmlResult);
+
+  // Write pre-rendered HTML to public/blog/
+  writeFileSync(resolve(publicBlogDir, `${data.slug}.html`), html);
+
+  allPosts.push({
     title: data.title,
     slug: data.slug,
     date,
@@ -133,21 +213,33 @@ const posts = files.map(file => {
     category: data.category || 'General',
     tags: data.tags || [],
     image: data.image || '/og-image.png',
-  };
-}).filter(Boolean);
+    headings,
+  });
+}
+
+// Duplicate slug detection
+const slugCounts = {};
+for (const post of allPosts) {
+  slugCounts[post.slug] = (slugCounts[post.slug] || 0) + 1;
+}
+const duplicates = Object.entries(slugCounts).filter(([, count]) => count > 1);
+if (duplicates.length > 0) {
+  console.error(`  Error: Duplicate slugs found: ${duplicates.map(([s]) => s).join(', ')}`);
+  process.exit(1);
+}
 
 // Sort by date (newest first)
-posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-// Write blog manifest
+// Write blog manifest (includes headings for TOC)
 writeFileSync(
   resolve(publicDir, 'blog-manifest.json'),
-  JSON.stringify(posts, null, 2)
+  JSON.stringify(allPosts, null, 2)
 );
-console.log(`  Blog manifest: ${posts.length} posts`);
+console.log(`  Blog manifest: ${allPosts.length} posts`);
 
 // Generate RSS 2.0 feed
-const rssItems = posts.map(post => `    <item>
+const rssItems = allPosts.map(post => `    <item>
       <title><![CDATA[${post.title}]]></title>
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
@@ -192,7 +284,7 @@ let sitemapBase = existingSitemap.replace(
 );
 
 // Use the newest post date as lastmod for the blog index
-const blogIndexLastmod = posts.length > 0 ? posts[0].lastModified : new Date().toISOString().slice(0, 10);
+const blogIndexLastmod = allPosts.length > 0 ? allPosts[0].lastModified : new Date().toISOString().slice(0, 10);
 
 // Insert blog URLs before closing </urlset>
 const blogUrls = [
@@ -203,7 +295,7 @@ const blogUrls = [
   `    <changefreq>weekly</changefreq>`,
   `    <priority>0.7</priority>`,
   `  </url>`,
-  ...posts.map(post => [
+  ...allPosts.map(post => [
     `  <url>`,
     `    <loc>${SITE_URL}/blog/${post.slug}</loc>`,
     `    <lastmod>${post.lastModified}</lastmod>`,

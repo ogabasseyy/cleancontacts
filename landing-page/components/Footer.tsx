@@ -21,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         </div>
 
         <div className="flex flex-col items-center md:items-end gap-4">
-          <div className="flex gap-6 text-gray-500 mb-2">
+          <div className="flex gap-6 text-gray-400 mb-2">
             <a
               href={APP_STORE_LINK}
               target="_blank"
@@ -39,7 +39,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Google Play
             </a>
           </div>
-          <div className="flex gap-8 text-gray-500">
+          <div className="flex gap-8 text-gray-400">
             <button
               type="button"
               onClick={() => onNavigate('blog')}

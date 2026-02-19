@@ -1,7 +1,7 @@
 /**
  * Post-build prerender script.
  * Creates static HTML shells for each SPA route with correct meta tags.
- * Googlebot sees proper <title>, <meta>, <canonical> per route without JS.
+ * Googlebot sees proper <title>, <meta>, <canonical>, JSON-LD per route without JS.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, dirname } from 'path';
@@ -55,30 +55,48 @@ if (existsSync(manifestPath)) {
       path: `/blog/${post.slug}`,
       title: `${post.title} - Contacts Cleaner Blog`,
       description: post.description,
-      jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'Article',
-        headline: post.title,
-        description: post.description,
-        image: `${SITE_URL}${post.image}`,
-        datePublished: post.date,
-        dateModified: post.lastModified,
-        url: `${SITE_URL}/blog/${post.slug}`,
-        author: {
-          '@type': 'Organization',
-          name: 'Contacts Cleaner',
-          url: SITE_URL,
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'Contacts Cleaner',
-          url: SITE_URL,
-          logo: {
-            '@type': 'ImageObject',
-            url: `${SITE_URL}/logo.png`,
+      isBlogPost: true,
+      date: post.date,
+      lastModified: post.lastModified,
+      image: post.image,
+      jsonLd: [
+        // BlogPosting schema
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.title,
+          description: post.description,
+          image: `${SITE_URL}${post.image}`,
+          datePublished: post.date,
+          dateModified: post.lastModified,
+          url: `${SITE_URL}/blog/${post.slug}`,
+          mainEntityOfPage: `${SITE_URL}/blog/${post.slug}`,
+          author: {
+            '@type': 'Organization',
+            name: 'Contacts Cleaner',
+            url: SITE_URL,
+          },
+          publisher: {
+            '@type': 'Organization',
+            name: 'Contacts Cleaner',
+            url: SITE_URL,
+            logo: {
+              '@type': 'ImageObject',
+              url: `${SITE_URL}/logo.png`,
+            },
           },
         },
-      },
+        // BreadcrumbList schema
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+            { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+            { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
+          ],
+        },
+      ],
     });
   }
   console.log(`  Found ${posts.length} blog posts to prerender`);
@@ -123,12 +141,37 @@ function prerenderRoute(route) {
     `<meta property="og:description" content="${escapeAttr(route.description)}" />`
   );
 
-  // Inject Article JSON-LD for blog posts
-  if (route.jsonLd) {
+  // Blog post specific: og:type → article, article timestamps, twitter card per post
+  if (route.isBlogPost) {
     html = html.replace(
-      '</head>',
-      `  <script type="application/ld+json">\n    ${JSON.stringify(route.jsonLd)}\n    </script>\n  </head>`
+      /<meta property="og:type" content=".*?" \/>/,
+      `<meta property="og:type" content="article" />`
     );
+
+    // Add article timestamps before </head>
+    const articleMeta = [
+      `  <meta property="article:published_time" content="${route.date}" />`,
+      `  <meta property="article:modified_time" content="${route.lastModified}" />`,
+    ].join('\n');
+    html = html.replace('</head>', `${articleMeta}\n  </head>`);
+
+    // Replace twitter card tags per post
+    html = html.replace(
+      /<meta name="twitter:title" content=".*?" \/>/,
+      `<meta name="twitter:title" content="${escapeAttr(route.title)}" />`
+    );
+    html = html.replace(
+      /<meta name="twitter:description" content=".*?" \/>/,
+      `<meta name="twitter:description" content="${escapeAttr(route.description)}" />`
+    );
+  }
+
+  // Inject JSON-LD schemas for blog posts (array of schemas)
+  if (route.jsonLd) {
+    const schemas = route.jsonLd
+      .map(schema => `  <script type="application/ld+json">\n    ${JSON.stringify(schema)}\n    </script>`)
+      .join('\n');
+    html = html.replace('</head>', `${schemas}\n  </head>`);
   }
 
   // Write to route directory

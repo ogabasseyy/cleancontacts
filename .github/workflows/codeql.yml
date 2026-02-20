@@ -36,7 +36,7 @@ jobs:
         - language: actions
           build-mode: none
         - language: java-kotlin
-          build-mode: autobuild
+          build-mode: manual
         - language: javascript-typescript
           build-mode: none
 
@@ -44,11 +44,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Setup Java 25 (Project Standard)
+    - name: Setup JDK 21
       if: matrix.language == 'java-kotlin'
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
-        java-version: '25'
+        java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
 
@@ -58,9 +58,11 @@ jobs:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/codeql-config.yml
 
-    - name: Autobuild
-      if: matrix.build-mode == 'autobuild'
-      uses: github/codeql-action/autobuild@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3.32.4
+    - name: Build (java-kotlin)
+      if: matrix.build-mode == 'manual'
+      run: |
+        chmod +x gradlew
+        ./gradlew :androidApp:assembleDebug --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3.32.4

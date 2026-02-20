@@ -33,30 +33,18 @@ plugins {
 
     // Build tools
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.hilt) apply false
     alias(libs.plugins.room) apply false
 }
 
 subprojects {
     configurations.all {
         resolutionStrategy {
-            val nettyVersion = libs.versions.netty.get()
             val jose4jVersion = libs.versions.jose4j.get()
             val jdom2Version = libs.versions.jdom2.get()
             val protobufVersion = libs.versions.protobuf.get()
             val commonsCompressVersion = libs.versions.commonsCompress.get()
             val commonsLang3Version = libs.versions.commonsLang3.get()
             val httpClientVersion = libs.versions.httpClient.get()
-
-            // Netty: Fix HTTP/2 Rapid Reset, CRLF injection, and other CVEs
-            force("io.netty:netty-codec-http:$nettyVersion")
-            force("io.netty:netty-codec-http2:$nettyVersion")
-            force("io.netty:netty-codec:$nettyVersion")
-            force("io.netty:netty-common:$nettyVersion")
-            force("io.netty:netty-handler:$nettyVersion")
-            force("io.netty:netty-buffer:$nettyVersion")
-            force("io.netty:netty-transport:$nettyVersion")
-            force("io.netty:netty-resolver:$nettyVersion")
 
             // jose4j: CVE-2023-31582, CVE-2023-51775, CVE-2024-29371
             force("org.bitbucket.b_c:jose4j:$jose4jVersion")

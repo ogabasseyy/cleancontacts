@@ -14,8 +14,6 @@ composeMultiplatform = "1.10.0"
 navigationComposeMultiplatform = "2.9.2"
 lifecycleMultiplatform = "2.8.4"
 serialization = "1.7.3"
-hilt = "2.57"
-hiltNavigationCompose = "1.2.0"
 ksp = "2.3.5"
 coroutines = "1.10.2"
 coroutinesPlayServices = "1.10.1"
@@ -44,7 +42,6 @@ purchasesKmp = "2.4.0+17.30.0"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions
 jose4j = "0.9.6"
-netty = "4.1.130.Final"
 jdom2 = "2.0.6.1"
 protobuf = "4.33.4"
 commonsCompress = "1.28.0"
@@ -71,10 +68,6 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 navigation-compose-multiplatform = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "navigationComposeMultiplatform" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
-androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltNavigationCompose" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 mlkit-genai = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenAi" }
@@ -133,7 +126,6 @@ ktor-client-websockets = { group = "io.ktor", name = "ktor-client-websockets", v
 # Security Pin Libraries
 # Note: protobuf-bom removed - BOM overrides force() directives, use force() only for protobuf
 jose4j = { group = "org.bitbucket.b_c", name = "jose4j", version.ref = "jose4j" }
-netty-bom = { group = "io.netty", name = "netty-bom", version.ref = "netty" }
 jdom2 = { group = "org.jdom", name = "jdom2", version.ref = "jdom2" }
 commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
 commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang3" }
@@ -151,6 +143,5 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }

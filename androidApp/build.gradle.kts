@@ -201,10 +201,8 @@ dependencies {
     // DataStore Persistence
     implementation(libs.androidx.datastore.preferences)
 
-    // BOM Platforms for Transitive Security (2026 Best Practice)
-    implementation(platform(libs.netty.bom))
     // Note: protobuf-bom removed - it overrides force() directives
-    // Protobuf security pins handled via resolutionStrategy.force() below
+    // Protobuf security pins handled via resolutionStrategy.force() in root build.gradle.kts
 
     // Security Constraint Pins (2026 Best Practice: Resolve transitive CVEs)
     constraints {

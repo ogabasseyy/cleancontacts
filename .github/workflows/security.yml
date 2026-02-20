@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Checkout repository
         # Pin to full SHA for supply chain security
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Run Semgrep
         id: semgrep
@@ -50,14 +50,14 @@ jobs:
         if: always()
         run: |
           if [ -s semgrep.sarif ]; then
-            echo "sarif_exists=true" >> $GITHUB_OUTPUT
+            echo "sarif_exists=true" >> "$GITHUB_OUTPUT"
           else
-            echo "sarif_exists=false" >> $GITHUB_OUTPUT
+            echo "sarif_exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Upload SARIF file
         # Pin to full SHA for supply chain security
-        uses: github/codeql-action/upload-sarif@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3.31.11
+        uses: github/codeql-action/upload-sarif@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3.32.4
         if: always() && steps.verify-sarif.outputs.sarif_exists == 'true'
         with:
           sarif_file: semgrep.sarif
@@ -77,11 +77,11 @@ jobs:
     steps:
       - name: Checkout repository
         # Pin to full SHA for supply chain security
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Dependency Review
         # Pin to full SHA for supply chain security
-        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4
+        uses: actions/dependency-review-action@05fe4576374b728f0c523d6a13d64c25081e0803 # v4.8.3
         with:
           fail-on-severity: high
           # 2026 best practice: use allow-licenses (deny-licenses is deprecated)
@@ -104,12 +104,12 @@ jobs:
     steps:
       - name: Checkout repository
         # Pin to full SHA for supply chain security
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: TruffleHog OSS
         # Pin to full SHA for supply-chain security
-        uses: trufflesecurity/trufflehog@383f8a1f67c7172ab0606ef1605631e33408f4d3 # v3.63.11
+        uses: trufflesecurity/trufflehog@7c0734f987ad0bb30ee8da210773b800ee2016d3 # v3.93.4
         with:
           extra_args: --only-verified

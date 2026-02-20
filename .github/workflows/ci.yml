@@ -16,10 +16,10 @@ jobs:
       actions: read
 
     steps:
-    - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
     - name: set up JDK 21
-      uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
         java-version: '21'
         distribution: 'temurin'
@@ -38,7 +38,7 @@ jobs:
       run: ./gradlew :androidApp:assembleDebug
 
     - name: Upload Debug APK
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
       with:
         name: debug-apk
         path: androidApp/build/outputs/apk/debug/androidApp-debug.apk

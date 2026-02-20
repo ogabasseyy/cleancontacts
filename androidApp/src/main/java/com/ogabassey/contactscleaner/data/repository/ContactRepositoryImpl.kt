@@ -214,7 +214,8 @@ class ContactRepositoryImpl constructor(
         emit(ScanStatus.Progress(0.82f, "Analyzing duplicates..."))
         
         // Fetch all for analysis (using lightweight projection if possible, but full object needed for detector)
-        val allContacts = contactDao.getAllContacts().map { it.toDomain() }
+        // ⚡ Bolt Optimization: Reuse in-memory entities to avoid redundant DB read (O(N) savings)
+        val allContacts = validatedEntities.map { it.toDomain() }
         val duplicates = duplicateDetector.detectDuplicates(allContacts)
         
         // Map duplicates to a map for O(1) lookup: ContactID -> Pair(Type, Key)

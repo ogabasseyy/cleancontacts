@@ -92,3 +92,19 @@ for (c in input) {
     }
 }
 ```
+
+# 2026-10-17 - Redundant DB Read in Scan Flow
+
+**Learning:** In "Sync & Scan" workflows where data is fetched from a provider, processed, and inserted into a local DB, avoid immediately reading it back from the DB for subsequent analysis. The in-memory processed entities are the source of truth for that transaction.
+
+**Action:** Always check if the data needed for post-processing is already available in scope before querying the database.
+
+```kotlin
+// ❌ Avoid: Insert then immediately fetch back
+contactDao.replaceAllContacts(validatedEntities)
+val allContacts = contactDao.getAllContacts().map { it.toDomain() } // Expensive O(N) DB + Deserialization
+
+// ✅ Prefer: Reuse in-memory entities
+contactDao.replaceAllContacts(validatedEntities)
+val allContacts = validatedEntities.map { it.toDomain() } // Instant O(1) Access
+```

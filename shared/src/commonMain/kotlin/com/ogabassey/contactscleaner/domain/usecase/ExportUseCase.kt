@@ -4,6 +4,7 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.FileService
+import com.ogabassey.contactscleaner.util.ExportUtils
 import com.ogabassey.contactscleaner.util.getPlatformTimeMillis
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -52,25 +53,17 @@ class ExportUseCase(
         val stringBuilder = StringBuilder(csvHeader)
 
         contacts.forEach { contact ->
-            val name = escapeCsv(contact.name ?: "")
-            val phone = escapeCsv(contact.numbers.firstOrNull() ?: "")
-            val normPhone = escapeCsv(contact.normalizedNumber ?: "")
-            val email = escapeCsv(contact.emails.firstOrNull() ?: "")
+            val name = ExportUtils.escapeCsvValue(contact.name ?: "")
+            val phone = ExportUtils.escapeCsvValue(contact.numbers.firstOrNull() ?: "", isPhoneField = true)
+            val normPhone = ExportUtils.escapeCsvValue(contact.normalizedNumber ?: "", isPhoneField = true)
+            val email = ExportUtils.escapeCsvValue(contact.emails.firstOrNull() ?: "")
             val wa = if (contact.isWhatsApp) "Yes" else "No"
             val tg = if (contact.isTelegram) "Yes" else "No"
-            val account = escapeCsv("${contact.accountType ?: ""} ${contact.accountName ?: ""}")
+            val account = ExportUtils.escapeCsvValue("${contact.accountType ?: ""} ${contact.accountName ?: ""}")
 
             stringBuilder.append("$name,$phone,$normPhone,$email,$wa,$tg,$account\n")
         }
 
         return fileService.generateCsvFile(fileName, stringBuilder.toString())
-    }
-
-    private fun escapeCsv(value: String): String {
-        var result = value.replace("\"", "\"\"")
-        if (result.contains(",") || result.contains("\n") || result.contains("\"")) {
-            result = "\"$result\""
-        }
-        return result
     }
 }

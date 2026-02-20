@@ -57,9 +57,13 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/codeql-config.yml
+        # Use latest CodeQL CLI for Kotlin 2.3.x support (github/codeql#20661)
+        tools: linked
 
     - name: Build (java-kotlin)
       if: matrix.build-mode == 'manual'
+      # KSP may crash under CodeQL instrumentation until Kotlin 2.3.x support fully ships
+      continue-on-error: true
       run: |
         chmod +x gradlew
         ./gradlew :androidApp:assembleDebug --no-daemon

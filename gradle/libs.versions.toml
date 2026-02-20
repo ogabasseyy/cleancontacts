@@ -11,7 +11,7 @@ composeBom = "2026.02.00"
 navigationCompose = "2.9.7"
 # JetBrains versions for KMP - CMP 1.10.0 with Kotlin 2.3.0
 composeMultiplatform = "1.10.0"
-navigationComposeMultiplatform = "2.9.1"
+navigationComposeMultiplatform = "2.9.2"
 lifecycleMultiplatform = "2.8.4"
 serialization = "1.7.3"
 hilt = "2.57"

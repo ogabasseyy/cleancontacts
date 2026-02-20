@@ -44,7 +44,7 @@ purchasesKmp = "2.4.0+17.30.0"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions
 jose4j = "0.9.6"
-netty = "4.1.130.Final"
+netty = "4.2.10.Final"
 jdom2 = "2.0.6.1"
 protobuf = "4.33.4"
 commonsCompress = "1.28.0"

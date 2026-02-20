@@ -162,6 +162,16 @@ private fun CountrySelectionContent(
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextMedium
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextButton(
+                        onClick = { searchQuery = "" },
+                        colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon)
+                    ) {
+                        Text(
+                            text = "Clear Search",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         } else {

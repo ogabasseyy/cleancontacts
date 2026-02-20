@@ -61,12 +61,18 @@ jobs:
         tools: linked
 
     - name: Build (java-kotlin)
+      id: build
       if: matrix.build-mode == 'manual'
-      # KSP may crash under CodeQL instrumentation until Kotlin 2.3.x support fully ships
+      # TODO: Remove continue-on-error once CodeQL ships Kotlin 2.3.x support (github/codeql#20661)
       continue-on-error: true
       run: |
         chmod +x gradlew
         ./gradlew :androidApp:assembleDebug --no-daemon
+
+    - name: Warn on degraded analysis
+      if: matrix.build-mode == 'manual' && steps.build.outcome == 'failure'
+      run: |
+        echo "::warning::Build failed (likely KSP/Kotlin 2.3.x incompatibility). CodeQL analysis will run on source only — security coverage is degraded. Track: github/codeql#20661"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@45580472a5bb82c4681c4ac726cfdb60060c2ee1 # v3.32.4

@@ -21,3 +21,7 @@
 ## 2026-06-03 - CountryCodePicker Accessibility
 **Learning:** `CountryCodePicker` triggers often lack `Role.Button` and proper `contentDescription` because they are custom composables. Adding `Role.Button` and a merged description ("Change country...") is crucial for blind users.
 **Action:** For custom pickers, always add `semantics(mergeDescendants = true)` with a descriptive label and `Role.Button`. Adding a visual dropdown arrow improves affordance for everyone.
+
+## 2026-06-15 - Haptic Feedback Overload
+**Learning:** Using `HapticFeedbackType.LongPress` for standard tap interactions feels aggressive and unnatural. Users expect visual feedback (ripple) for taps, not strong vibration.
+**Action:** Restore default ripple indications for standard buttons and reserve haptic feedback for gestures or critical errors.

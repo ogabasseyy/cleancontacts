@@ -38,7 +38,15 @@ actual class PhoneNumberHandler actual constructor() {
         if (rawNumber.startsWith("+")) return null
 
         // Clean the number (remove spaces, dashes, etc.)
-        val cleanedNumber = rawNumber.replace(Regex("[^0-9]"), "")
+        // ⚡ Bolt Optimization: Use filter instead of Regex for performance (O(N) vs overhead)
+        val cleanedNumber = rawNumber.filter { it.isDigit() }
+
+        if (cleanedNumber.isEmpty()) return null
+
+        // ⚡ Bolt Optimization: Local numbers starting with '0' (e.g., 080...)
+        // are never valid E.164 numbers when simply prefixed with '+'.
+        // Skip expensive libphonenumber parsing and exception handling for this common case.
+        if (cleanedNumber.startsWith('0')) return null
 
         // Special case: Nigerian numbers starting with 234
         if (cleanedNumber.startsWith("234") && cleanedNumber.length == 13) {

@@ -238,14 +238,22 @@ writeFileSync(
 );
 console.log(`  Blog manifest: ${allPosts.length} posts`);
 
+/**
+ * Escape content for use inside CDATA sections.
+ * Replaces "]]>" with "]]]]><![CDATA[>".
+ */
+function escapeCdata(str) {
+  return str.replace(/]]>/g, ']]]]><![CDATA[>');
+}
+
 // Generate RSS 2.0 feed
 const rssItems = allPosts.map(post => `    <item>
-      <title><![CDATA[${post.title}]]></title>
+      <title><![CDATA[${escapeCdata(post.title)}]]></title>
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
-      <description><![CDATA[${post.description}]]></description>
+      <description><![CDATA[${escapeCdata(post.description)}]]></description>
       <pubDate>${new Date(post.date + 'T00:00:00Z').toUTCString()}</pubDate>
-      <category><![CDATA[${post.category}]]></category>
+      <category><![CDATA[${escapeCdata(post.category)}]]></category>
     </item>`).join('\n');
 
 const rss = `<?xml version="1.0" encoding="UTF-8"?>

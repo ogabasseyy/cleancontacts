@@ -23,7 +23,7 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
 
     // Kotlin plugins
-    alias(libs.plugins.kotlin.android) apply false
+    // Note: kotlin.android removed — AGP 9.0 has built-in Kotlin support
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.kotlin.serialization) apply false

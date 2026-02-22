@@ -9,9 +9,11 @@ VERSION="$(tr -d '[:space:]' < "$REPO_ROOT/VERSION")"
 echo "Syncing version to $VERSION"
 
 # Update project.yml
-sed -i '' "s/MARKETING_VERSION: .*/MARKETING_VERSION: $VERSION/" "$REPO_ROOT/iosApp/project.yml"
+sed -i.bak "s/MARKETING_VERSION: .*/MARKETING_VERSION: $VERSION/" "$REPO_ROOT/iosApp/project.yml"
+rm -f "$REPO_ROOT/iosApp/project.yml.bak"
 
 # Update project.pbxproj (all occurrences)
-sed -i '' "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/" "$REPO_ROOT/iosApp/CleanContactsAI.xcodeproj/project.pbxproj"
+sed -i.bak "s/MARKETING_VERSION = .*;/MARKETING_VERSION = $VERSION;/" "$REPO_ROOT/iosApp/CleanContactsAI.xcodeproj/project.pbxproj"
+rm -f "$REPO_ROOT/iosApp/CleanContactsAI.xcodeproj/project.pbxproj.bak"
 
 echo "Done. iOS version set to $VERSION"

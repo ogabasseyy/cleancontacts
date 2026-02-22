@@ -239,19 +239,14 @@ writeFileSync(
 console.log(`  Blog manifest: ${allPosts.length} posts`);
 
 // Generate RSS 2.0 feed
-const rssItems = allPosts.map(post => {
-  const title = String(post.title).replace(/]]>/g, ']]]]><![CDATA[>');
-  const description = String(post.description).replace(/]]>/g, ']]]]><![CDATA[>');
-  const category = String(post.category).replace(/]]>/g, ']]]]><![CDATA[>');
-  return `    <item>
-      <title><![CDATA[${title}]]></title>
+const rssItems = allPosts.map(post => `    <item>
+      <title><![CDATA[${post.title}]]></title>
       <link>${SITE_URL}/blog/${post.slug}</link>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
-      <description><![CDATA[${description}]]></description>
+      <description><![CDATA[${post.description}]]></description>
       <pubDate>${new Date(post.date + 'T00:00:00Z').toUTCString()}</pubDate>
-      <category><![CDATA[${category}]]></category>
-    </item>`;
-}).join('\n');
+      <category><![CDATA[${post.category}]]></category>
+    </item>`).join('\n');
 
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">

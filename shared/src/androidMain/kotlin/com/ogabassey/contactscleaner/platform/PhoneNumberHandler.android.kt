@@ -37,8 +37,10 @@ actual class PhoneNumberHandler actual constructor() {
         // If it already starts with +, it's already international format
         if (rawNumber.startsWith("+")) return null
 
-        // Clean the number (remove spaces, dashes, etc.)
-        val cleanedNumber = rawNumber.replace(Regex("[^0-9]"), "")
+        // Clean the number: keep ASCII digits only (avoids Regex compilation overhead)
+        val cleanedNumber = rawNumber.filter { it in '0'..'9' }
+
+        if (cleanedNumber.isEmpty()) return null
 
         // Special case: Nigerian numbers starting with 234
         if (cleanedNumber.startsWith("234") && cleanedNumber.length == 13) {

@@ -37,9 +37,8 @@ actual class PhoneNumberHandler actual constructor() {
         // If it already starts with +, it's already international format
         if (rawNumber.startsWith("+")) return null
 
-        // Clean the number (remove spaces, dashes, etc.)
-        // ⚡ Bolt Optimization: Use filter instead of Regex for performance (O(N) vs overhead)
-        val cleanedNumber = rawNumber.filter { it.isDigit() }
+        // Clean the number: keep ASCII digits only (avoids Regex compilation overhead)
+        val cleanedNumber = rawNumber.filter { it in '0'..'9' }
 
         if (cleanedNumber.isEmpty()) return null
 

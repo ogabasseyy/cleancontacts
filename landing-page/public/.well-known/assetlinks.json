@@ -4,7 +4,10 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.ogabassey.contactscleaner",
-      "sha256_cert_fingerprints": ["7F:7A:AF:0F:AE:8D:51:AB:B8:EC:5B:B8:9D:3E:02:73:BF:68:B9:91:AA:36:00:C5:DB:8E:47:E2:5F:D6:DD:88"]
+      "sha256_cert_fingerprints": [
+        "AA:4B:27:BA:06:C8:9D:8A:10:5F:B3:22:34:8F:57:CB:4E:BE:89:EE:CA:51:68:F9:95:D9:60:6F:A2:40:60:DC",
+        "7F:7A:AF:0F:AE:8D:51:AB:B8:EC:5B:B8:9D:3E:02:73:BF:68:B9:91:AA:36:00:C5:DB:8E:47:E2:5F:D6:DD:88"
+      ]
     }
   }
 ]

@@ -388,7 +388,6 @@ private fun ResultsSummaryCard(
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
             .glassy(radius = 16.dp)
-            .clickable(role = Role.Button) { onViewDetails() }
             .padding(16.dp)
     ) {
         Row(
@@ -411,11 +410,21 @@ private fun ResultsSummaryCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            ResultMiniStat(count = result.accountCount, label = "ACCOUNTS", color = PrimaryNeon)
+            ResultMiniStat(
+                count = result.accountCount,
+                label = "ACCOUNTS",
+                color = PrimaryNeon,
+                onClick = onViewDetails
+            )
             
             // Sum of all issues for the summary view
             val totalIssues = result.junkCount + result.duplicateCount + result.formatIssueCount + result.sensitiveCount
-            ResultMiniStat(count = totalIssues, label = "TOTAL ISSUES", color = ErrorNeon)
+            ResultMiniStat(
+                count = totalIssues,
+                label = "TOTAL ISSUES",
+                color = ErrorNeon,
+                onClick = onViewDetails
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -647,12 +656,16 @@ fun SettingsItem(
 }
 
 @Composable
-fun ResultMiniStat(count: Int, label: String, color: Color) {
+fun ResultMiniStat(count: Int, label: String, color: Color, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.semantics(mergeDescendants = true) {
-            contentDescription = "${count.formatWithCommas()} $label"
-        }
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(role = Role.Button) { onClick() }
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${count.formatWithCommas()} $label"
+            }
+            .padding(8.dp)
     ) {
         Text(
             text = count.formatWithCommas(),

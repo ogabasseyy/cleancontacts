@@ -43,11 +43,6 @@ actual class PhoneNumberHandler actual constructor() {
 
         if (cleanedNumber.isEmpty()) return null
 
-        // ⚡ Bolt Optimization: Local numbers starting with '0' (e.g., 080...)
-        // are never valid E.164 numbers when simply prefixed with '+'.
-        // Skip expensive libphonenumber parsing and exception handling for this common case.
-        if (cleanedNumber.startsWith('0')) return null
-
         // Special case: Nigerian numbers starting with 234
         if (cleanedNumber.startsWith("234") && cleanedNumber.length == 13) {
             val normalized = "+$cleanedNumber"

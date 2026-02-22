@@ -243,7 +243,7 @@ console.log(`  Blog manifest: ${allPosts.length} posts`);
  * Replaces "]]>" with "]]]]><![CDATA[>".
  */
 function escapeCdata(str) {
-  return str.replace(/]]>/g, ']]]]><![CDATA[>');
+  return String(str ?? '').replace(/]]>/g, ']]]]><![CDATA[>');
 }
 
 // Generate RSS 2.0 feed

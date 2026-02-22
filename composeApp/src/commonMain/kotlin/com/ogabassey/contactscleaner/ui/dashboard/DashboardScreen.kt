@@ -214,10 +214,10 @@ fun DashboardScreen(
                                 contentDescription = buttonContentDescription
                             }
                             .clickable(
-                                interactionSource = interactionSource,
-                                indication = null
+                                interactionSource = interactionSource
+                                // indication = null // Palette: Use default ripple for better feedback
                             ) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                // Palette: Replaced heavy haptic with standard interaction feedback
                                 val status = permissionsState.authorizationStatus
                                 when (status) {
                                     ContactsAuthorizationStatus.AUTHORIZED,

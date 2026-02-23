@@ -38,4 +38,9 @@ data class LocalContact(
     @ColumnInfo(name = "matching_key") val matchingKey: String? = null,
     @ColumnInfo(name = "platform_uid") val platformUid: String? = null,
     @ColumnInfo(name = "last_synced") val lastSynced: Long
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "LocalContact(id=$id, isWhatsApp=$isWhatsApp, isTelegram=$isTelegram, accountType=$accountType, isJunk=$isJunk, junkType=$junkType, duplicateType=$duplicateType, isFormatIssue=$isFormatIssue, detectedRegion=$detectedRegion, isSensitive=$isSensitive, sensitiveDescription=$sensitiveDescription, displayName=***REDACTED***, normalizedNumber=***REDACTED***, rawNumbers=***REDACTED***, rawEmails=***REDACTED***, accountName=***REDACTED***, platformUid=***REDACTED***, matchingKey=***REDACTED***, lastSynced=$lastSynced)"
+    }
+}

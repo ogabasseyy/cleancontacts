@@ -108,3 +108,26 @@ val allContacts = contactDao.getAllContacts().map { it.toDomain() } // Expensive
 contactDao.replaceAllContacts(validatedEntities)
 val allContacts = validatedEntities.map { it.toDomain() } // Instant O(1) Access
 ```
+
+# 2026-03-22 - Phone Format Analysis Optimization
+
+**Learning:** `libphonenumber` validation is expensive. For local numbers starting with `0`, prepending `+` (to check if it's international) results in an invalid E.164 number (`+0...`) because country codes cannot start with 0.
+
+**Action:** Check the first digit of a number. If it's '0', return immediately. This saves significant CPU time and String allocation when scanning thousands of local contacts.
+
+```kotlin
+// ❌ Avoid: Allocates string and runs regex/parsing
+val cleaned = raw.filter { it.isDigit() }
+val plus = "+$cleaned"
+phoneUtil.parse(plus, "ZZ")
+
+// ✅ Prefer: Early check for invalid prefix
+var firstDigit: Char? = null
+for (c in raw) {
+    if (c in '0'..'9') {
+        firstDigit = c
+        break
+    }
+}
+if (firstDigit == '0') return null // +0... is invalid
+```

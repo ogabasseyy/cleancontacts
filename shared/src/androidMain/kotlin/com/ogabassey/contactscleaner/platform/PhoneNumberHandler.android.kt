@@ -37,6 +37,18 @@ actual class PhoneNumberHandler actual constructor() {
         // If it already starts with +, it's already international format
         if (rawNumber.startsWith("+")) return null
 
+        // Optimization: Check if first digit is '0'. If so, +0... is invalid E.164.
+        // This skips allocation and expensive parsing for common local numbers (e.g. 080...)
+        var firstDigit: Char? = null
+        for (c in rawNumber) {
+            if (c in '0'..'9') {
+                firstDigit = c
+                break
+            }
+        }
+
+        if (firstDigit == null || firstDigit == '0') return null
+
         // Clean the number: keep ASCII digits only (avoids Regex compilation overhead)
         val cleanedNumber = rawNumber.filter { it in '0'..'9' }
 

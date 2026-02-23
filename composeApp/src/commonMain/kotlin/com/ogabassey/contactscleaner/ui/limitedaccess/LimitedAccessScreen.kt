@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -212,7 +213,7 @@ private fun AccessOptionCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { role = Role.Button }
+            .semantics(mergeDescendants = true) { role = Role.Button }
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -264,6 +265,15 @@ private fun AccessOptionCard(
                     color = TextMedium
                 )
             }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = TextLow,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

@@ -38,3 +38,8 @@
 **Vulnerability:** `ContactImportParser` manually implemented CSV parsing logic that failed to correctly handle escaped double quotes (`""`) inside quoted fields, leading to data corruption and potential injection of field delimiters.
 **Learning:** Naive state-based parsing (toggling a boolean on every quote) fails for escaped quotes because it requires lookahead or context awareness to distinguish an escaped quote from a closing quote.
 **Prevention:** Use a robust state machine with lookahead for manual CSV parsing, or rely on established libraries where possible. Ensure all edge cases (escaped quotes, empty fields, end of line) are covered by specific unit tests.
+
+## 2026-02-04 - Transitive PII Leak via Nested toString()
+**Vulnerability:** `Contact.toString()` leaked phone numbers because it relied on the default `toString()` of a nested data class (`FormatIssue`) which contained sensitive fields (`normalizedNumber`).
+**Learning:** Redacting PII in a parent object is insufficient if it contains child objects that expose PII in their `toString()` implementation.
+**Prevention:** Override `toString()` in ALL data classes containing sensitive information, even if they are internal or nested, to explicitly redact PII.

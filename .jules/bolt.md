@@ -108,3 +108,19 @@ val allContacts = contactDao.getAllContacts().map { it.toDomain() } // Expensive
 contactDao.replaceAllContacts(validatedEntities)
 val allContacts = validatedEntities.map { it.toDomain() } // Instant O(1) Access
 ```
+
+# 2026-02-24 - Local Number Optimization
+
+**Learning:** Validating international formats on local numbers (starting with '0') is wasteful. Since E.164 country codes never start with 0, we can short-circuit these checks immediately.
+
+**Action:** Always check the first digit of a number before attempting expensive parsing. If it's '0', return early.
+
+```kotlin
+// ❌ Avoid: Expensive parsing for local numbers
+val cleaned = raw.filter { it.isDigit() }
+val parsed = phoneUtil.parse("+$cleaned", "ZZ") // Throws/Fails for local numbers
+
+// ✅ Prefer: Quick check for leading zero
+val firstDigit = raw.firstOrNull { it.isDigit() }
+if (firstDigit == '0') return null // Skip parsing
+```

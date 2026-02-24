@@ -865,17 +865,43 @@ fun AccountDialogItem(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val icon = when {
-                group.accountName?.contains("google", ignoreCase = true) == true -> Icons.Default.Email
-                group.accountName?.contains("whatsapp", ignoreCase = true) == true -> Icons.Default.Email 
-                else -> Icons.Default.Phone
+            // 2026 UX: Enhanced icon logic with brand-specific colors and shapes
+            val (icon, iconColor) = when {
+                group.accountName?.contains("google", ignoreCase = true) == true ->
+                    Icons.Default.Cloud to SecondaryNeon // Google -> Cloud (Blue/Cyan)
+                group.accountName?.contains("icloud", ignoreCase = true) == true ->
+                    Icons.Default.Cloud to Color.White // iCloud -> Cloud (White)
+                group.accountName?.contains("whatsapp", ignoreCase = true) == true ->
+                    Icons.Default.Email to PrimaryNeon // WhatsApp -> Chat (Green) - using Email as fallback if Chat missing
+                group.accountName?.contains("telegram", ignoreCase = true) == true ->
+                    Icons.AutoMirrored.Filled.Send to SecondaryNeon // Telegram -> Send (Blue)
+                else -> Icons.Default.Person to TextMedium // Default -> Person (Gray)
+            }
+
+            // Visual Polish: Icon container similar to IssueCard for consistency
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(iconColor.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(icon, null, tint = iconColor, modifier = Modifier.size(20.dp))
             }
             
-            Icon(icon, null, tint = SecondaryNeon, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(group.accountName ?: "Unknown", color = Color.White, fontWeight = FontWeight.Bold)
-                Text(group.accountType ?: "Unknown", color = TextMedium, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    group.accountName ?: "Unknown",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    group.accountType ?: "Local Account",
+                    color = TextMedium,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             Text(
                 group.count.formatWithCommas(),

@@ -25,3 +25,8 @@
 ## 2026-02-19 - Haptic Feedback Overload
 **Learning:** Using `HapticFeedbackType.LongPress` for standard tap interactions feels aggressive and unnatural. Users expect visual feedback (ripple) for taps, not strong vibration.
 **Action:** Restore default ripple indications for standard buttons and reserve haptic feedback for gestures or critical errors.
+
+## 2026-02-24 - [Consistent List Iconography]
+
+**Learning:** Raw icons in list items (e.g., in `AccountDialogItem`) feel disconnected and lack visual hierarchy. Wrapping icons in a colored container (CircleShape + translucent background) anchors the list item visually and improves scannability.
+**Action:** When displaying icons representing entities (like Accounts or Issues), always wrap them in a consistent container shape with brand/entity-specific colors.

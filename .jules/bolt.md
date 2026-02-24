@@ -109,7 +109,7 @@ contactDao.replaceAllContacts(validatedEntities)
 val allContacts = validatedEntities.map { it.toDomain() } // Instant O(1) Access
 ```
 
-# 2026-10-18 - Local Number Optimization
+# 2026-02-24 - Local Number Optimization
 
 **Learning:** Validating international formats on local numbers (starting with '0') is wasteful. Since E.164 country codes never start with 0, we can short-circuit these checks immediately.
 

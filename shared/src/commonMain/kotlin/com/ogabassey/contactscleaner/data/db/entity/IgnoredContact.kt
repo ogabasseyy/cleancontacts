@@ -14,4 +14,9 @@ data class IgnoredContact(
     val displayName: String,
     val reason: String, // e.g., "Detected SensitiveID", "Manual Ignore"
     val timestamp: Long
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "IgnoredContact(id=***REDACTED***, displayName=***REDACTED***, reason=$reason, timestamp=$timestamp)"
+    }
+}

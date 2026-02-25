@@ -89,4 +89,18 @@ class JunkDetectorTest {
 
         assertEquals(0, result.size)
     }
+
+    @Test
+    fun `detect fancy font names`() {
+        val contacts = listOf(
+            Contact(id = 1, name = "\uD835\uDC00", numbers = listOf("+1234567890"), normalizedNumber = null), // Math Alphanum
+            Contact(id = 2, name = "\u2460", numbers = listOf("+1234567890"), normalizedNumber = null), // Enclosed
+            Contact(id = 3, name = "\uFF21", numbers = listOf("+1234567890"), normalizedNumber = null) // Fullwidth
+        )
+
+        val result = junkDetector.detectJunk(contacts)
+
+        assertEquals(3, result.size)
+        assertTrue(result.all { it.type == JunkType.FANCY_FONT_NAME })
+    }
 }

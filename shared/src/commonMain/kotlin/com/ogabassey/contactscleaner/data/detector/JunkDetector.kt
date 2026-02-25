@@ -31,6 +31,22 @@ class JunkDetector(
     /** Valid numerical name chars - same as phone number chars */
     private fun isNumericalNameChar(c: Char): Boolean = isValidNumberChar(c)
 
+    /**
+     * Checks if a character is part of a "fancy font" (Math Alphanum, Enclosed, Fullwidth).
+     * 2026 Optimization: Replaces TextAnalyzer.hasFancyFonts() full string scan.
+     */
+    private fun isFancyFontChar(c: Char): Boolean {
+        val code = c.code
+        // Enclosed Alphanumerics (U+2460..U+24FF)
+        if (code in 0x2460..0x24FF) return true
+        // Fullwidth Latin (U+FF21..U+FF3A, U+FF41..U+FF5A)
+        if (code in 0xFF21..0xFF3A || code in 0xFF41..0xFF5A) return true
+        // Mathematical Alphanumeric Symbols (High Surrogate U+D835)
+        // Maps to U+1D400..U+1D7FF range when combined with low surrogate
+        if (code == 0xD835) return true
+        return false
+    }
+
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
 
@@ -127,6 +143,11 @@ class JunkDetector(
         var hasLetterOrDigit = false
 
         for (c in name) {
+            // 2026 Optimization: Early detection of fancy fonts inside the main loop
+            if (isFancyFontChar(c)) {
+                return JunkType.FANCY_FONT_NAME
+            }
+
             if (c.isDigit()) hasDigit = true
 
             // Check numerical validity if still potentially all numerical
@@ -146,9 +167,7 @@ class JunkDetector(
         }
 
         // B. Fancy Font Names
-        if (textAnalyzer.hasFancyFonts(name)) {
-            return JunkType.FANCY_FONT_NAME
-        }
+        // Handled in loop above (O(1) integration)
 
         // C. Emoji Only Names
         // 2026 KMP Best Practice: Use platform-specific TextAnalyzer for robust emoji detection.

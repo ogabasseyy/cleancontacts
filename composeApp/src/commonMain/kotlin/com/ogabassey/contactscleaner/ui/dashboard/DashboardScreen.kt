@@ -206,7 +206,7 @@ fun DashboardScreen(
                                     listOf(PrimaryNeon, PrimaryNeonDim.copy(alpha = 0.8f))
                                 )
                             )
-                            .semantics {
+                            .semantics(mergeDescendants = true) {
                                 role = Role.Button
                                 contentDescription = buttonContentDescription
                             }
@@ -276,7 +276,7 @@ fun DashboardScreen(
                                 Icon(
                                     imageVector = if (!permissionsState.allPermissionsGranted)
                                         Icons.Default.Lock else Icons.Default.Search,
-                                    contentDescription = "Scan",
+                                    contentDescription = null,
                                     tint = SpaceBlack,
                                     modifier = Modifier.size(72.dp)
                                 )

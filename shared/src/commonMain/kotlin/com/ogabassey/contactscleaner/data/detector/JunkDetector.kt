@@ -125,6 +125,7 @@ class JunkDetector(
         var hasDigit = false
         var allNumerical = true
         var hasLetterOrDigit = false
+        var hasFancyFont = false
 
         for (c in name) {
             if (c.isDigit()) hasDigit = true
@@ -137,6 +138,17 @@ class JunkDetector(
             if (!hasLetterOrDigit && c.isLetterOrDigit()) {
                 hasLetterOrDigit = true
             }
+
+            // Check for fancy fonts (Mathematical Alphanumeric Symbols, Enclosed, Fullwidth)
+            // U+D835 is the high surrogate for Mathematical Alphanumeric Symbols
+            if (!hasFancyFont) {
+                if (c == '\uD835' ||
+                    (c >= '\u2460' && c <= '\u24FF') || // Enclosed Alphanumerics
+                    (c >= '\uFF21' && c <= '\uFF3A') || // Fullwidth Latin A-Z
+                    (c >= '\uFF41' && c <= '\uFF5A')) { // Fullwidth Latin a-z
+                    hasFancyFont = true
+                }
+            }
         }
 
         // A. Numerical Name (e.g. "123", "0801...")
@@ -146,7 +158,7 @@ class JunkDetector(
         }
 
         // B. Fancy Font Names
-        if (textAnalyzer.hasFancyFonts(name)) {
+        if (hasFancyFont) {
             return JunkType.FANCY_FONT_NAME
         }
 

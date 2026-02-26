@@ -124,3 +124,23 @@ val parsed = phoneUtil.parse("+$cleaned", "ZZ") // Throws/Fails for local number
 val firstDigit = raw.firstOrNull { it.isDigit() }
 if (firstDigit == '0') return null // Skip parsing
 ```
+
+# 2026-06-15 - Double-Pass Pattern in "Optimized" Code
+
+**Learning:** Code comments or documentation claiming "Single-pass O(N) optimization" can be misleading if subsequent refactors or initial implementations left external helper calls (like `TextAnalyzer.hasFancyFonts`) intact. These external calls often iterate the string again, negating the single-pass benefit.
+
+**Action:** Verify "single-pass" claims by tracing all function calls within the loop. Inline simple character checks (like range checks for fancy fonts) directly into the main loop to ensure true O(N) complexity and avoid hidden traversals.
+
+```kotlin
+// ❌ Avoid: External call iterating string again
+for (c in name) { ... } // Pass 1
+if (helper.hasFancyFonts(name)) ... // Pass 2 (Hidden O(N))
+
+// ✅ Prefer: Inline checks in main loop
+var hasFancyFont = false
+for (c in name) {
+    if (isFancy(c)) hasFancyFont = true // True O(N)
+    // ...
+}
+if (hasFancyFont) ...
+```

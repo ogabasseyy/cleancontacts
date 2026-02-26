@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.mergeDescendants
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,7 +35,9 @@ fun WhatsAppLinkCard(
         onClick = onLinkClick,
         shape = RoundedCornerShape(16.dp),
         color = Color.White.copy(alpha = 0.05f),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -74,7 +78,7 @@ fun WhatsAppLinkCard(
 
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Navigate to link WhatsApp",
+                    contentDescription = null,
                     tint = PrimaryNeon,
                     modifier = Modifier.size(24.dp)
                 )
@@ -92,7 +96,7 @@ fun WhatsAppLinkCard(
             ) {
                 Icon(
                     Icons.Default.Lock,
-                    contentDescription = "Privacy protected",
+                    contentDescription = null,
                     tint = PrimaryNeon,
                     modifier = Modifier.size(14.dp)
                 )
@@ -121,7 +125,9 @@ fun WhatsAppLinkCardCompact(
         onClick = if (isConnected) onDisconnectClick else onLinkClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -182,7 +188,9 @@ fun WhatsAppContactsCard(
         onClick = onViewContacts,
         shape = RoundedCornerShape(16.dp),
         color = PrimaryNeon.copy(alpha = 0.1f),
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -225,7 +233,7 @@ fun WhatsAppContactsCard(
 
                 Icon(
                     Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "View WhatsApp contacts",
+                    contentDescription = null,
                     tint = PrimaryNeon,
                     modifier = Modifier.size(24.dp)
                 )

@@ -18,7 +18,12 @@ data class WhatsAppCacheEntry(
     val normalizedNumber: String,  // e.g., "2349169449282" (digits only)
     val isBusiness: Boolean = false,
     val lastSynced: Long = 0L
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WhatsAppCacheEntry(isBusiness=$isBusiness, lastSynced=$lastSynced, normalizedNumber=***REDACTED***)"
+    }
+}
 
 /**
  * Metadata about the WhatsApp cache sync status.

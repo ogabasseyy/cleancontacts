@@ -97,7 +97,12 @@ data class DuplicateGroup(
     val matchingKey: String,
     val duplicateType: DuplicateType,
     val contacts: List<Contact>
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "DuplicateGroup(duplicateType=$duplicateType, contacts=$contacts, matchingKey=***REDACTED***)"
+    }
+}
 
 data class DuplicateGroupSummary(
     val groupKey: String,
@@ -119,7 +124,11 @@ data class ImportResult(
     val validContacts: List<Contact>,
     val junkContacts: List<JunkContact>,
     val duplicates: List<DuplicateGroup>
-)
+) {
+    override fun toString(): String {
+        return "ImportResult(validContacts=${validContacts.size}, junkContacts=${junkContacts.size}, duplicates=$duplicates)"
+    }
+}
 
 /**
  * Represents a contact that exists in multiple accounts.

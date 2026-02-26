@@ -15,4 +15,9 @@ data class UndoLog(
     val actionType: String, // "DELETE" or "MERGE"
     val originalDataJson: String, // Serialized List<Contact>
     val description: String // e.g., "Deleted 5 duplicates"
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "UndoLog(id=$id, timestamp=$timestamp, actionType=$actionType, description=$description, originalDataJson=***REDACTED***)"
+    }
+}

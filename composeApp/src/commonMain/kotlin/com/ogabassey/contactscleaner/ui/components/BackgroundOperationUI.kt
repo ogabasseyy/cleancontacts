@@ -24,6 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.BackgroundOperation
 import com.ogabassey.contactscleaner.util.BackgroundOperationManager
@@ -378,7 +382,14 @@ private fun FloatingOperationBubble(
                         offsetY = (offsetY + dragAmount.y).coerceIn(minY, maxY)
                     }
                 }
-                .clickable(onClick = onClick),
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription = "${operation.title}: ${operation.status}, ${(operation.progress * 100).toInt()}% complete."
+                }
+                .clickable(
+                    onClick = onClick,
+                    onClickLabel = "Maximize"
+                ),
             shape = RoundedCornerShape(20.dp),
             color = SurfaceSpaceElevated,
             shadowElevation = 8.dp

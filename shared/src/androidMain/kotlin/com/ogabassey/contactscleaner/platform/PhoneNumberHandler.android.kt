@@ -52,19 +52,33 @@ actual class PhoneNumberHandler actual constructor() {
         if (firstDigit == null) return null // No digits found
         if (firstDigit == '0') return null // Local number, not a "missing plus" issue
 
-        // Clean the number: keep ASCII digits only (avoids Regex compilation overhead)
-        val cleanedNumber = rawNumber.filter { it in '0'..'9' }
+        // ⚡ Bolt Optimization: Use StringBuilder loop to construct +Number directly
+        // This avoids:
+        // 1. `rawNumber.filter` (allocation + loop)
+        // 2. String concatenation (allocation)
+        val plusNumberBuilder = StringBuilder(rawNumber.length + 1)
+        plusNumberBuilder.append('+')
 
-        if (cleanedNumber.isEmpty()) return null
+        for (i in rawNumber.indices) {
+            val c = rawNumber[i]
+            if (c in '0'..'9') {
+                plusNumberBuilder.append(c)
+            }
+        }
+
+        if (plusNumberBuilder.length <= 1) return null // Only '+' present
+
+        val plusNumber = plusNumberBuilder.toString()
 
         // Special case: Nigerian numbers starting with 234
-        if (cleanedNumber.startsWith("234") && cleanedNumber.length == 13) {
-            val normalized = "+$cleanedNumber"
+        // Check `plusNumber` (which includes '+') so compare with "+234"
+        // Length 14 means '+' + 13 digits
+        if (plusNumber.startsWith("+234") && plusNumber.length == 14) {
             try {
-                val proto = phoneUtil.parse(normalized, "ZZ")
+                val proto = phoneUtil.parse(plusNumber, "ZZ")
                 if (phoneUtil.isValidNumber(proto)) {
                     return FormatAnalysis(
-                        normalizedNumber = normalized,
+                        normalizedNumber = plusNumber,
                         countryCode = 234,
                         regionCode = "NG",
                         displayCountry = "Nigeria"
@@ -73,7 +87,7 @@ actual class PhoneNumberHandler actual constructor() {
             } catch (e: Exception) {
                 // Even if libphonenumber fails, trust our pattern
                 return FormatAnalysis(
-                    normalizedNumber = normalized,
+                    normalizedNumber = plusNumber,
                     countryCode = 234,
                     regionCode = "NG",
                     displayCountry = "Nigeria"
@@ -82,7 +96,6 @@ actual class PhoneNumberHandler actual constructor() {
         }
 
         // For other numbers, use libphonenumber
-        val plusNumber = "+$cleanedNumber"
         try {
             val proto = phoneUtil.parse(plusNumber, "ZZ")
 

@@ -37,11 +37,21 @@ class DuplicateDetector(
         val defaultRegion = regionProvider.getRegionIso()
         val groups = mutableMapOf<String, MutableList<Contact>>()
 
+        // ⚡ Bolt Optimization: Memoize expensive E.164 normalizations.
+        // Users often have the EXACT SAME raw string saved multiple times
+        // (e.g. across Google and local accounts, or multiple people sharing a home line).
+        // Caching reduces O(N) JNI/parsing calls to O(U) where U is unique raw strings.
+        val normalizationCache = mutableMapOf<String, String>()
+
         contacts.forEach { contact ->
             contact.numbers.forEach { number ->
-                val normalized = phoneNumberHandler.normalizeToE164(number, defaultRegion)
-                if (normalized.isNotBlank()) {
-                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                if (number.isNotBlank()) {
+                    val normalized = normalizationCache.getOrPut(number) {
+                        phoneNumberHandler.normalizeToE164(number, defaultRegion)
+                    }
+                    if (normalized.isNotBlank()) {
+                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                    }
                 }
             }
         }

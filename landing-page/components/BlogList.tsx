@@ -4,6 +4,10 @@ import type { BlogPostMeta } from '../types';
 
 const SITE_URL = 'https://contactscleaner.tech';
 
+/** Safely serialize JSON-LD for embedding in <script> tags (prevents XSS via </script> injection) */
+const safeJsonLd = (data: unknown): string =>
+  JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+
 const BlogList: React.FC = () => {
   const [posts, setPosts] = useState<BlogPostMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,7 +122,7 @@ const BlogList: React.FC = () => {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: safeJsonLd({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
             name: 'Contacts Cleaner Blog',

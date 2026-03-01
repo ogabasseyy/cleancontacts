@@ -135,7 +135,7 @@ const BlogList: React.FC = () => {
               url: `${SITE_URL}/blog/${post.slug}`,
               datePublished: post.date,
             })),
-          }),
+          }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e'),
         }}
       />
     </div>

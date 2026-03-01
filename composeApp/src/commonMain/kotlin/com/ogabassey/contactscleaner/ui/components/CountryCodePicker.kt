@@ -1,5 +1,8 @@
 package com.ogabassey.contactscleaner.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -120,8 +123,12 @@ private fun CountrySelectionContent(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Search country...", color = TextMedium) },
             leadingIcon = { Icon(Icons.Default.Search, null, tint = TextMedium) },
-            trailingIcon = if (searchQuery.isNotEmpty()) {
-                {
+            trailingIcon = {
+                AnimatedVisibility(
+                    visible = searchQuery.isNotEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
                     IconButton(onClick = { searchQuery = "" }) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -130,7 +137,7 @@ private fun CountrySelectionContent(
                         )
                     }
                 }
-            } else null,
+            },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(

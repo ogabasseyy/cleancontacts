@@ -28,6 +28,7 @@
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
+    "rollup": "^4.59.0",
     "shiki": "^3.22.0",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",

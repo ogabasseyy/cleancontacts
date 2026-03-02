@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.domain.model.ContactType
@@ -165,7 +168,9 @@ private fun SubGroupCard(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) { role = Role.Button }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

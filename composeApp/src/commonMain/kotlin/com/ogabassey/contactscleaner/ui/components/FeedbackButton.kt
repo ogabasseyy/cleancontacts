@@ -227,21 +227,22 @@ fun FeedbackBottomSheet(
                                 deviceInfo = deviceString
                             )
                         )
-                        isSubmitting = false
                         if (result.success) {
                             submissionResult = SubmissionResult.Success("Feedback sent! Thank you.")
                             kotlinx.coroutines.delay(1500)
+                            isSubmitting = false
                             if (!isDismissed) {
                                 isDismissed = true
                                 sheetState.hide()
                                 onDismiss()
                             }
                         } else {
+                            isSubmitting = false
                             submissionResult = SubmissionResult.Error("Failed to send. Please try again.")
                         }
                     }
                 },
-                enabled = message.isNotBlank() && isEmailValid && !isSubmitting,
+                enabled = message.trim().isNotEmpty() && isEmailValid && !isSubmitting,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

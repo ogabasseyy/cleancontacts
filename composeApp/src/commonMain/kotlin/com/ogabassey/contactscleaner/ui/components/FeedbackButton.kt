@@ -30,6 +30,11 @@ import kotlinx.coroutines.launch
 private const val MAX_FEEDBACK_LENGTH = 5000
 private val categories = listOf("Bug Report", "Feature Request", "General Feedback")
 
+private sealed class SubmissionResult {
+    data class Success(val message: String) : SubmissionResult()
+    data class Error(val message: String) : SubmissionResult()
+}
+
 @Composable
 fun FloatingFeedbackButton(
     modifier: Modifier = Modifier,
@@ -56,24 +61,27 @@ fun FloatingFeedbackButton(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FeedbackBottomSheet(
     onDismiss: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
     var selectedCategory by remember { mutableStateOf(categories[0]) }
     var message by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
-    var resultMessage by remember { mutableStateOf<String?>(null) }
+    var submissionResult by remember { mutableStateOf<SubmissionResult?>(null) }
     var isDismissed by remember { mutableStateOf(false) }
+    val isEmailValid = email.isBlank() || email.contains("@")
 
     ModalBottomSheet(
         onDismissRequest = {
             isDismissed = true
             onDismiss()
         },
+        sheetState = sheetState,
         containerColor = DeepSpace,
         contentColor = Color.White
     ) {
@@ -99,7 +107,10 @@ fun FeedbackBottomSheet(
                 color = TextMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 categories.forEach { category ->
                     FilterChip(
                         selected = selectedCategory == category,
@@ -153,6 +164,10 @@ fun FeedbackBottomSheet(
                 placeholder = { Text("your@email.com") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = !isEmailValid,
+                supportingText = if (!isEmailValid) {
+                    { Text("Enter a valid email address") }
+                } else null,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = SecondaryNeon,
                     unfocusedBorderColor = SurfaceSpaceElevated,
@@ -160,7 +175,10 @@ fun FeedbackBottomSheet(
                     unfocusedLabelColor = TextMedium,
                     cursorColor = SecondaryNeon,
                     focusedTextColor = TextHigh,
-                    unfocusedTextColor = TextHigh
+                    unfocusedTextColor = TextHigh,
+                    errorBorderColor = ErrorNeon,
+                    errorLabelColor = ErrorNeon,
+                    errorSupportingTextColor = ErrorNeon
                 )
             )
 
@@ -176,16 +194,19 @@ fun FeedbackBottomSheet(
 
             // Result message
             AnimatedVisibility(
-                visible = resultMessage != null,
+                visible = submissionResult != null,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                resultMessage?.let { msg ->
-                    val isError = msg.startsWith("Failed")
+                submissionResult?.let { result ->
+                    val (text, color) = when (result) {
+                        is SubmissionResult.Success -> result.message to SuccessNeon
+                        is SubmissionResult.Error -> result.message to ErrorNeon
+                    }
                     Text(
-                        msg,
+                        text,
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isError) ErrorNeon else SuccessNeon,
+                        color = color,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
@@ -196,7 +217,7 @@ fun FeedbackBottomSheet(
                 onClick = {
                     scope.launch {
                         isSubmitting = true
-                        resultMessage = null
+                        submissionResult = null
                         val deviceString = "${DeviceInfo.platformName} ${DeviceInfo.osVersion} | ${DeviceInfo.deviceModel}"
                         val result = FeedbackApi.submitFeedback(
                             FeedbackRequest(
@@ -208,18 +229,19 @@ fun FeedbackBottomSheet(
                         )
                         isSubmitting = false
                         if (result.success) {
-                            resultMessage = "Feedback sent! Thank you."
+                            submissionResult = SubmissionResult.Success("Feedback sent! Thank you.")
                             kotlinx.coroutines.delay(1500)
                             if (!isDismissed) {
                                 isDismissed = true
+                                sheetState.hide()
                                 onDismiss()
                             }
                         } else {
-                            resultMessage = "Failed to send. Please try again."
+                            submissionResult = SubmissionResult.Error("Failed to send. Please try again.")
                         }
                     }
                 },
-                enabled = message.isNotBlank() && !isSubmitting,
+                enabled = message.isNotBlank() && isEmailValid && !isSubmitting,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

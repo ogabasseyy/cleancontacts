@@ -9,26 +9,30 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Feedback API client that submits user feedback to the Vercel serverless function.
  * The API sends the feedback as an email via Resend.
  *
- * Creates a short-lived HttpClient per call to avoid lifecycle/leak concerns.
+ * Uses a shared HttpClient for connection reuse. The object lives for the app lifetime,
+ * so the client lifecycle matches the app lifecycle.
  */
 object FeedbackApi {
     private const val BASE_URL = "https://contactscleaner.tech"
 
-    suspend fun submitFeedback(request: FeedbackRequest): FeedbackResponse {
-        val client = HttpClient {
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
-            install(HttpTimeout) {
-                requestTimeoutMillis = 15_000
-                connectTimeoutMillis = 10_000
-            }
+    private val client = HttpClient {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
         }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 15_000
+            connectTimeoutMillis = 10_000
+            socketTimeoutMillis = 10_000
+        }
+    }
+
+    suspend fun submitFeedback(request: FeedbackRequest): FeedbackResponse {
         return try {
             val response = client.post("$BASE_URL/api/feedback") {
                 contentType(ContentType.Application.Json)
@@ -39,10 +43,10 @@ object FeedbackApi {
             } else {
                 FeedbackResponse(success = false, error = "Server error: ${response.status.value}")
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             FeedbackResponse(success = false, error = e.message ?: "Failed to send feedback")
-        } finally {
-            client.close()
         }
     }
 }

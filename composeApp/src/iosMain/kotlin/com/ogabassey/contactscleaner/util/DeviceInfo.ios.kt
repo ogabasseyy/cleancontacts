@@ -13,8 +13,11 @@ import platform.posix.utsname
 actual object DeviceInfo {
     actual val deviceModel: String = memScoped {
         val systemInfo = alloc<utsname>()
-        uname(systemInfo.ptr)
-        systemInfo.machine.toKString()
+        if (uname(systemInfo.ptr) == 0) {
+            systemInfo.machine.toKString()
+        } else {
+            "Unknown"
+        }
     }
     actual val osVersion: String = "iOS ${UIDevice.currentDevice.systemVersion}"
     actual val platformName: String = "iOS"

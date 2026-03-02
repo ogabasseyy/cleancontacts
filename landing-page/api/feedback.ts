@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FEEDBACK_EMAIL = "basseybjohn@gmail.com";
+const FEEDBACK_EMAIL = process.env.FEEDBACK_EMAIL;
 
 const VALID_CATEGORIES = ["Bug Report", "Feature Request", "General Feedback"];
 
@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  if (!RESEND_API_KEY) {
+  if (!RESEND_API_KEY || !FEEDBACK_EMAIL) {
     return res.status(500).json({ success: false, error: "Email service not configured" });
   }
 
@@ -38,7 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ success: false, error: "Message is required" });
   }
 
-  if (message.length > 5000) {
+  const trimmedMessage = message.trim();
+
+  if (trimmedMessage.length > 5000) {
     return res.status(400).json({ success: false, error: "Message too long" });
   }
 
@@ -65,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         html: `
           <h2>${escapeHtml(category)}</h2>
           <p><strong>Message:</strong></p>
-          <p>${escapeHtml(message)}</p>
+          <p>${escapeHtml(trimmedMessage)}</p>
           <hr>
           <p><strong>Email:</strong> ${escapeHtml(sanitizedEmail)}</p>
           <p><strong>Device:</strong> ${escapeHtml(sanitizedDevice)}</p>

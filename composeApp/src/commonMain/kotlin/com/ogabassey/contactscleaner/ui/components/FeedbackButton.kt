@@ -27,8 +27,7 @@ import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.DeviceInfo
 import kotlinx.coroutines.launch
 
-private val feedbackApi = FeedbackApi()
-
+private const val MAX_FEEDBACK_LENGTH = 5000
 private val categories = listOf("Bug Report", "Feature Request", "General Feedback")
 
 @Composable
@@ -68,9 +67,13 @@ fun FeedbackBottomSheet(
     var email by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
     var resultMessage by remember { mutableStateOf<String?>(null) }
+    var isDismissed by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            isDismissed = true
+            onDismiss()
+        },
         containerColor = DeepSpace,
         contentColor = Color.White
     ) {
@@ -123,7 +126,7 @@ fun FeedbackBottomSheet(
             // Message field
             OutlinedTextField(
                 value = message,
-                onValueChange = { if (it.length <= 2000) message = it },
+                onValueChange = { if (it.length <= MAX_FEEDBACK_LENGTH) message = it },
                 label = { Text("Message") },
                 placeholder = { Text("Describe your feedback...") },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
@@ -195,7 +198,7 @@ fun FeedbackBottomSheet(
                         isSubmitting = true
                         resultMessage = null
                         val deviceString = "${DeviceInfo.platformName} ${DeviceInfo.osVersion} | ${DeviceInfo.deviceModel}"
-                        val result = feedbackApi.submitFeedback(
+                        val result = FeedbackApi.submitFeedback(
                             FeedbackRequest(
                                 category = selectedCategory,
                                 message = message.trim(),
@@ -206,9 +209,11 @@ fun FeedbackBottomSheet(
                         isSubmitting = false
                         if (result.success) {
                             resultMessage = "Feedback sent! Thank you."
-                            // Reset form after short delay
                             kotlinx.coroutines.delay(1500)
-                            onDismiss()
+                            if (!isDismissed) {
+                                isDismissed = true
+                                onDismiss()
+                            }
                         } else {
                             resultMessage = "Failed to send. Please try again."
                         }

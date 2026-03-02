@@ -5,6 +5,15 @@ const FEEDBACK_EMAIL = "basseybjohn@gmail.com";
 
 const VALID_CATEGORIES = ["Bug Report", "Feature Request", "General Feedback"];
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/\n/g, "<br>");
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers for mobile app requests
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -54,19 +63,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         to: FEEDBACK_EMAIL,
         subject: `[${category}] App Feedback`,
         html: `
-          <h2>${category}</h2>
+          <h2>${escapeHtml(category)}</h2>
           <p><strong>Message:</strong></p>
-          <p>${message.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</p>
+          <p>${escapeHtml(message)}</p>
           <hr>
-          <p><strong>Email:</strong> ${sanitizedEmail}</p>
-          <p><strong>Device:</strong> ${sanitizedDevice}</p>
+          <p><strong>Email:</strong> ${escapeHtml(sanitizedEmail)}</p>
+          <p><strong>Device:</strong> ${escapeHtml(sanitizedDevice)}</p>
         `,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error("Resend API error:", errorData);
+      let errorDetails: unknown;
+      try {
+        errorDetails = await response.json();
+      } catch {
+        errorDetails = await response.text();
+      }
+      console.error("Resend API error:", response.status, errorDetails);
       return res.status(502).json({ success: false, error: "Failed to send email" });
     }
 

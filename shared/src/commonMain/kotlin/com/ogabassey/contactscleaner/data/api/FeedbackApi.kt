@@ -13,23 +13,24 @@ import kotlinx.serialization.json.Json
 /**
  * Feedback API client that submits user feedback to the Vercel serverless function.
  * The API sends the feedback as an email via Resend.
+ *
+ * Creates a short-lived HttpClient per call to avoid lifecycle/leak concerns.
  */
-class FeedbackApi(
-    private val baseUrl: String = "https://contactscleaner.tech"
-) {
-    private val client = HttpClient {
-        install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 15_000
-            connectTimeoutMillis = 10_000
-        }
-    }
+object FeedbackApi {
+    private const val BASE_URL = "https://contactscleaner.tech"
 
     suspend fun submitFeedback(request: FeedbackRequest): FeedbackResponse {
+        val client = HttpClient {
+            install(ContentNegotiation) {
+                json(Json { ignoreUnknownKeys = true })
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 15_000
+                connectTimeoutMillis = 10_000
+            }
+        }
         return try {
-            val response = client.post("$baseUrl/api/feedback") {
+            val response = client.post("$BASE_URL/api/feedback") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
@@ -40,11 +41,9 @@ class FeedbackApi(
             }
         } catch (e: Exception) {
             FeedbackResponse(success = false, error = e.message ?: "Failed to send feedback")
+        } finally {
+            client.close()
         }
-    }
-
-    fun close() {
-        client.close()
     }
 }
 

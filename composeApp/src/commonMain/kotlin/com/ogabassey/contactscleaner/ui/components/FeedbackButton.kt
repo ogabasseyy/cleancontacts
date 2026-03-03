@@ -17,8 +17,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.data.api.FeedbackApi
@@ -143,6 +147,7 @@ fun FeedbackBottomSheet(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                 minLines = 4,
                 maxLines = 8,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = SecondaryNeon,
                     unfocusedBorderColor = SurfaceSpaceElevated,
@@ -168,6 +173,10 @@ fun FeedbackBottomSheet(
                 supportingText = if (!isEmailValid) {
                     { Text("Enter a valid email address") }
                 } else null,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Done
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = SecondaryNeon,
                     unfocusedBorderColor = SurfaceSpaceElevated,

@@ -57,7 +57,12 @@ data class FeedbackRequest(
     val message: String,
     val email: String = "",
     val deviceInfo: String = ""
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "FeedbackRequest(category=$category, deviceInfo=$deviceInfo, email=***REDACTED***, message=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class FeedbackResponse(

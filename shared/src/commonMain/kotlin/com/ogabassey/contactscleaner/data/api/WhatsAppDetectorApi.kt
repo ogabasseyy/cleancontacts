@@ -419,12 +419,22 @@ data class SessionStatus(
     val contactsCount: Int? = null,
     val businessDetectionProgress: BusinessDetectionProgress? = null,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "SessionStatus(connected=$connected, userId=$userId, lastActivity=$lastActivity, createdAt=$createdAt, contactsCount=$contactsCount, businessDetectionProgress=$businessDetectionProgress, error=$error, phoneNumber=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class PairingRequest(
     val phoneNumber: String
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "PairingRequest(phoneNumber=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class PairingResponse(
@@ -444,7 +454,12 @@ data class DisconnectResponse(
 @Serializable
 data class CheckNumbersRequest(
     val numbers: List<String>
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "CheckNumbersRequest(numbers=[***REDACTED (size=${numbers.size})***])"
+    }
+}
 
 @Serializable
 data class CheckNumbersResponse(
@@ -458,14 +473,24 @@ data class NumberCheckResult(
     val number: String,
     val hasWhatsApp: Boolean,
     val jid: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "NumberCheckResult(hasWhatsApp=$hasWhatsApp, number=***REDACTED***, jid=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class BatchCheckRequest(
     val numbers: List<String>,
     val batchSize: Int = 50,
     val delayMs: Int = 1000
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "BatchCheckRequest(batchSize=$batchSize, delayMs=$delayMs, numbers=[***REDACTED (size=${numbers.size})***])"
+    }
+}
 
 @Serializable
 data class BatchCheckResponse(
@@ -498,7 +523,12 @@ data class WhatsAppContact(
     val pushName: String? = null,
     val isBusiness: Boolean = false,
     val businessProfile: BusinessProfile? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WhatsAppContact(isBusiness=$isBusiness, businessProfile=$businessProfile, jid=***REDACTED***, phoneNumber=***REDACTED***, name=***REDACTED***, pushName=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class BusinessProfile(
@@ -507,4 +537,9 @@ data class BusinessProfile(
     val email: String? = null,
     val website: List<String>? = null,
     val address: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "BusinessProfile(category=$category, website=$website, description=***REDACTED***, email=***REDACTED***, address=***REDACTED***)"
+    }
+}

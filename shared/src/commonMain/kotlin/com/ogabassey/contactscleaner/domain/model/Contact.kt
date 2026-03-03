@@ -118,7 +118,12 @@ data class AccountGroupSummary(
     val accountType: String?,
     val accountName: String?,
     val count: Int
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "AccountGroupSummary(accountType=$accountType, count=$count, accountName=***REDACTED***)"
+    }
+}
 
 data class ImportResult(
     val validContacts: List<Contact>,

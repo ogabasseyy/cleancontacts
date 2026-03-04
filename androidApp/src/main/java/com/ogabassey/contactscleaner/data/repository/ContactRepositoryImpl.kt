@@ -169,23 +169,23 @@ class ContactRepositoryImpl constructor(
             android.util.Log.w("ContactRepository", "Failed to get contact count, using fallback", e)
             totalToProcess = 1000 // Fallback for progress calculation only
         }
-        
+
         if (totalToProcess == 0) {
             emit(ScanStatus.Success(ScanResult()))
             return@flow
         }
-        
+
         // 3. Stream Process
         val ignoredIds = ignoredContactDao.getAllIds().toSet()
         var processedCount = 0
-        
+
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
             .collect { batchContacts ->
                 // 2026 Best Practice: Use extracted helper to process contacts
                 val entities = batchContacts.map { contact ->
                     processContactToEntity(contact, ignoredIds)
                 }
-                
+
                 allEntities.addAll(entities)
                 processedCount += batchContacts.size
 
@@ -193,10 +193,7 @@ class ContactRepositoryImpl constructor(
                 emit(ScanStatus.Progress(syncProgress.coerceAtMost(0.75f), "Processing contacts (${processedCount.formatWithCommas()})..."))
             }
 
-        // 3.5 Atomic Replace: Delete old + Insert new in single transaction
-        emit(ScanStatus.Progress(0.76f, "Saving contacts to database..."))
-
-        // 2026 Best Practice: Validate data before insert
+        // 3.5 Validate Data Before Analysis
         val validatedEntities = allEntities.filter { contact ->
             val isValid = contact.id > 0 &&
                 (contact.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
@@ -208,25 +205,16 @@ class ContactRepositoryImpl constructor(
             isValid
         }
 
-        contactDao.replaceAllContacts(validatedEntities)
+        // 4. In-Memory Duplicate Detection (⚡ Bolt Optimization: Combine with initial insert)
+        emit(ScanStatus.Progress(0.76f, "Analyzing duplicates..."))
 
-        // 4. Post-Process: Run Advanced Kotlin-based Duplicate Detection (Multi-number support)
-        emit(ScanStatus.Progress(0.82f, "Analyzing duplicates..."))
-        
-        // Fetch all for analysis (using lightweight projection if possible, but full object needed for detector)
-        // ⚡ Bolt Optimization: Reuse in-memory entities to avoid redundant DB read (O(N) savings)
         val allContacts = validatedEntities.map { it.toDomain() }
         val duplicates = duplicateDetector.detectDuplicates(allContacts)
-        
+
         // Map duplicates to a map for O(1) lookup: ContactID -> Pair(Type, Key)
         val duplicateMap = mutableMapOf<Long, Pair<com.ogabassey.contactscleaner.domain.model.DuplicateType, String>>()
         duplicates.forEach { group ->
             group.contacts.forEach { contact ->
-                // Priority: Ensure we don't overwrite if already processed? 
-                // Actually, `detectDuplicates` aggregates well. 
-                // If a contact is in multiple groups, the last one wins in this simple map, 
-                // or we could prioritize NUMBER > EMAIL > NAME.
-                
                 val current = duplicateMap[contact.id]
                 // Priority: NUMBER > EMAIL > NAME
                 val newPriority = when(group.duplicateType) {
@@ -241,48 +229,39 @@ class ContactRepositoryImpl constructor(
                     com.ogabassey.contactscleaner.domain.model.DuplicateType.NAME_MATCH -> 1
                     else -> 0
                 }
-                
+
                 if (newPriority >= currentPriority) {
                      duplicateMap[contact.id] = Pair(group.duplicateType, group.matchingKey)
                 }
             }
         }
-        
-        if (duplicateMap.isNotEmpty()) {
-             // Batch update duplicates
-             // Optimized: Convert to LocalContact updates. 
-             // Since we can't easily do partial updates on varying fields for 1000s of rows efficiently via Room 
-             // without @Update entity, we will fetch, modify, update.
-             // OR use a raw query loop. 
-             
-             // Safer: Fetch affected IDs, apply changes, update.
-             val affectedIds = duplicateMap.keys.toList()
-             val affectedContacts = contactDao.getContactsByIds(affectedIds)
-             val updates = affectedContacts.map { local ->
-                 val info = duplicateMap[local.id]
-                 if (info != null) {
-                     local.copy(
-                         duplicateType = info.first.name,
-                         matchingKey = info.second
-                     )
-                 } else local
-             }
-             contactDao.insertContacts(updates) // @Insert(OnConflict=REPLACE) updates them
-        }
-        
-        // Remove SQL-based logic calls
-        // contactDao.markDuplicateNumbers()
-        // contactDao.markDuplicateEmails()
-        // contactDao.markDuplicateNames()
 
-        
+        // Apply duplicate info to entities before saving to DB
+        // This eliminates a redundant O(N) database read and write cycle
+        val finalEntities = if (duplicateMap.isNotEmpty()) {
+            validatedEntities.map { local ->
+                val info = duplicateMap[local.id]
+                if (info != null) {
+                    local.copy(
+                        duplicateType = info.first.name,
+                        matchingKey = info.second
+                    )
+                } else local
+            }
+        } else validatedEntities
+
+        // 5. Atomic Replace: Delete old + Insert new in single transaction
+        emit(ScanStatus.Progress(0.85f, "Saving contacts to database..."))
+        contactDao.replaceAllContacts(finalEntities)
+
+
         emit(ScanStatus.Progress(0.95f, "Finalizing report..."))
 
         // 5. Build Result
         usageRepository.updateRawScannedCount(totalToProcess)
         updateScanResultSummary()
         val finalResult = scanResultProvider.scanResult ?: ScanResult()
-        
+
         emit(ScanStatus.Progress(1.0f))
         emit(ScanStatus.Success(finalResult))
     }.flowOn(Dispatchers.IO)
@@ -339,14 +318,14 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No contacts to delete"))
             return@flow
         }
-        
+
         // Record for history
         backupRepository.performBackup(
             contacts = contacts,
             actionType = "DELETE",
             description = "Deleted ${contacts.size} contacts from $type"
         )
-        
+
         // 2026 Best Practice: Track processed count accurately for progress
         var successCount = 0
         var processedCount = 0
@@ -362,7 +341,7 @@ class ContactRepositoryImpl constructor(
 
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Successfully deleted $successCount contacts"))
     }
 
@@ -405,7 +384,7 @@ class ContactRepositoryImpl constructor(
             else -> emptyList()
         }
     }
-    
+
     override suspend fun getAccountGroups(): List<com.ogabassey.contactscleaner.domain.model.AccountGroupSummary> {
         return contactDao.getAccountGroups()
     }
@@ -426,7 +405,7 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Success("No duplicates found"))
             return@flow
         }
-        
+
         var successCount = 0
         groups.forEachIndexed { index, group ->
             val contacts = getContactsInGroup(group.groupKey, type)
@@ -437,7 +416,7 @@ class ContactRepositoryImpl constructor(
                     actionType = "MERGE",
                     description = "Merged ${contacts.size} duplicates (${group.groupKey})"
                 )
-                
+
                 val ids = contacts.map { it.id }
                 if (mergeContacts(ids)) {
                     successCount++
@@ -446,18 +425,18 @@ class ContactRepositoryImpl constructor(
             val progress = (index + 1).toFloat() / groups.size.toFloat()
             emit(CleanupStatus.Progress(progress, "Merging group ${index + 1} of ${groups.size}"))
         }
-        
+
         // Refresh summary
         updateScanResultSummary()
-        
+
         emit(CleanupStatus.Success("Merged $successCount groups successfully"))
     }
-        
+
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {
         if (ids.isEmpty()) return true
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
         if (contacts.isEmpty()) return true
-        
+
         val updates = contacts.associate { it.id to (it.normalizedNumber ?: "") }.filterValues { it.isNotBlank() }
         if (updates.isEmpty()) return true
 
@@ -752,32 +731,32 @@ class ContactRepositoryImpl constructor(
             val ids = contacts.map { it.id }
             val whatsAppIds = contactsProviderSource.getWhatsAppContactIds()
             val telegramIds = contactsProviderSource.getTelegramContactIds()
-            
+
             // 1. Fetch fresh data from provider
             val freshContacts = contactsProviderSource.getContactsSnapshot(ids, whatsAppIds, telegramIds)
-            
+
             // 2. Process contacts using extracted helper (2026 Best Practice: DRY)
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
             val entities = freshContacts.map { contact ->
                 processContactToEntity(contact, ignoredIds)
             }
-            
+
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
             val returnedIds = entities.map { it.id }.toSet()
             val deletedIds = ids.filter { it !in returnedIds }
-            
+
             if (deletedIds.isNotEmpty()) {
                 contactDao.deleteContacts(deletedIds)
             }
-            
+
             if (entities.isNotEmpty()) {
                 contactDao.insertContacts(entities)
             }
-            
+
             // 4. Update Summary
             updateScanResultSummary()
-            
+
             return true
         } catch (e: Exception) {
             android.util.Log.e("ContactRepository", "Failed to refresh contacts", e)

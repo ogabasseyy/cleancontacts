@@ -35,7 +35,14 @@ class IosFileService : FileService {
             val cachesDir = cachesPaths.firstOrNull() as? String
                 ?: return Result.failure(Exception("Could not find caches directory"))
 
-            val filePath = "$cachesDir/$fileName"
+            // 2026 Best Practice: Sanitize filename to prevent path traversal attacks
+            val sanitizedName = sanitizeFileName(fileName)
+            val filePath = "$cachesDir/$sanitizedName"
+
+            // Verify the resolved path is inside cache directory (basic iOS check)
+            if (!filePath.startsWith(cachesDir)) {
+                return Result.failure(Exception("Invalid file path: path traversal detected"))
+            }
 
             val nsString = NSString.create(string = content)
 
@@ -60,5 +67,22 @@ class IosFileService : FileService {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * Sanitizes a filename to prevent path traversal attacks.
+     * Throws Exception if a traversal attempt is detected.
+     */
+    private fun sanitizeFileName(fileName: String): String {
+        // 2026 Security Best Practice: Fail fast on obvious traversal attempts
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw Exception("Path traversal attempt detected: $fileName")
+        }
+
+        // Further sanitize to ensure a safe filename (remove leading dots, weird chars)
+        return fileName
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .replace(Regex("^[._]+"), "")
+            .ifEmpty { "export.csv" }
     }
 }

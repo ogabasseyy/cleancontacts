@@ -39,11 +39,6 @@ class IosFileService : FileService {
             val sanitizedName = sanitizeFileName(fileName)
             val filePath = "$cachesDir/$sanitizedName"
 
-            // Verify the resolved path is inside cache directory (basic iOS check)
-            if (!filePath.startsWith(cachesDir)) {
-                return Result.failure(Exception("Invalid file path: path traversal detected"))
-            }
-
             val nsString = NSString.create(string = content)
 
             // 2026 Best Practice: Capture NSError for proper error handling
@@ -76,7 +71,7 @@ class IosFileService : FileService {
     private fun sanitizeFileName(fileName: String): String {
         // 2026 Security Best Practice: Fail fast on obvious traversal attempts
         if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
-            throw Exception("Path traversal attempt detected: $fileName")
+            throw IllegalArgumentException("Invalid filename")
         }
 
         // Further sanitize to ensure a safe filename (remove leading dots, weird chars)

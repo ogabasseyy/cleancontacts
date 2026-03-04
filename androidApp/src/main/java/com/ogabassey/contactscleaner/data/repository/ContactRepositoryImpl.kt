@@ -171,6 +171,8 @@ class ContactRepositoryImpl constructor(
         }
 
         if (totalToProcess == 0) {
+            contactDao.replaceAllContacts(emptyList())
+            updateScanResultSummary()
             emit(ScanStatus.Success(ScanResult()))
             return@flow
         }
@@ -257,8 +259,8 @@ class ContactRepositoryImpl constructor(
 
         emit(ScanStatus.Progress(0.95f, "Finalizing report..."))
 
-        // 5. Build Result
-        usageRepository.updateRawScannedCount(totalToProcess)
+        // 5. Build Result — use actual processed count, not the fallback estimate
+        usageRepository.updateRawScannedCount(finalEntities.size)
         updateScanResultSummary()
         val finalResult = scanResultProvider.scanResult ?: ScanResult()
 
@@ -356,6 +358,7 @@ class ContactRepositoryImpl constructor(
         isJunk = isJunk,
         junkType = junkType?.let { runCatching { com.ogabassey.contactscleaner.domain.model.JunkType.valueOf(it) }.getOrNull() },
         duplicateType = duplicateType?.let { runCatching { com.ogabassey.contactscleaner.domain.model.DuplicateType.valueOf(it) }.getOrNull() },
+        matchingKey = matchingKey,
         accountType = accountType,
         accountName = accountName,
         isSensitive = isSensitive,

@@ -148,3 +148,28 @@ if (hasFancyFont) ...
 # 2026-03-05 - Avoid Algorithms that Alter Duplicate Grouping
 **Learning:** Implementing coarse string-matching (e.g., 'last 7 digits') before E.164 normalization for duplicate phone numbers causes false negatives (misses short numbers) and accidental group splitting. E.164 normalization provides completeness that coarse heuristics break.
 **Action:** When optimizing duplicate detection, use memoization/caching to reduce identical heavy normalization calls (from O(N) to O(U)), preserving the algorithm's correctness while improving speed.
+
+# 2026-03-05 - Multi-Pass Collection Optimization
+
+**Learning:** In Kotlin collection processing (e.g., `DuplicateDetector`), multi-pass functional chains like `groupBy -> filter -> map` over large collections (e.g. 50k+ contacts) allocate large numbers of intermediate Maps, Lists, and Map.Entry objects.
+
+**Action:** Replace multi-pass functional chains with a single-pass loop using `mutableMapOf` or `buildMap` to eliminate intermediate collection allocations. Additionally, always evaluate `isNullOrBlank()` before invoking allocation-heavy string manipulations like `.trim().lowercase()`.
+
+```kotlin
+// ❌ Avoid: Intermediate Maps/Lists and unnecessary lowercasing of blank names
+contacts
+    .groupBy { it.name?.trim()?.lowercase() ?: "" }
+    .filter { it.key.isNotEmpty() && it.value.size > 1 }
+    .map { ... }
+
+// ✅ Prefer: Single-pass iteration with pre-checks
+val groups = mutableMapOf<String, MutableList<Contact>>()
+contacts.forEach { contact ->
+    val name = contact.name
+    if (!name.isNullOrBlank()) {
+        val normalized = name.trim().lowercase()
+        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+    }
+}
+// ... map over groups > 1
+```

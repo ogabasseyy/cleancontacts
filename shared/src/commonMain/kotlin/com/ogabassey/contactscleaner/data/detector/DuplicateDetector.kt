@@ -92,16 +92,28 @@ class DuplicateDetector(
     }
 
     private fun detectNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        return contacts
-            .groupBy { it.name?.trim()?.lowercase() ?: "" }
-            .filter { it.key.isNotEmpty() && it.value.size > 1 }
-            .map { (name, duplicates) ->
-                DuplicateGroup(
-                    matchingKey = name,
-                    duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = duplicates
-                )
+        // ⚡ Bolt Optimization: Replace O(N) multi-pass functional chain (groupBy -> filter -> map)
+        // with a single-pass loop using a pre-allocated map. Avoids creating intermediate
+        // Maps, Lists, and Map.Entry objects. Checks isNullOrBlank BEFORE allocation-heavy
+        // trim() and lowercase() calls.
+        val groups = mutableMapOf<String, MutableList<Contact>>()
+        contacts.forEach { contact ->
+            val name = contact.name
+            if (!name.isNullOrBlank()) {
+                val normalized = name.trim().lowercase()
+                groups.getOrPut(normalized) { mutableListOf() }.add(contact)
             }
+        }
+
+        return groups.mapNotNull { (key, group) ->
+            if (group.size > 1) {
+                DuplicateGroup(
+                    matchingKey = key,
+                    duplicateType = DuplicateType.NAME_MATCH,
+                    contacts = group
+                )
+            } else null
+        }
     }
 
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {

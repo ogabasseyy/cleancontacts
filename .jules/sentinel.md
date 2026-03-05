@@ -43,3 +43,7 @@
 **Vulnerability:** `Contact.toString()` leaked phone numbers because it relied on the default `toString()` of a nested data class (`FormatIssue`) which contained sensitive fields (`normalizedNumber`).
 **Learning:** Redacting PII in a parent object is insufficient if it contains child objects that expose PII in their `toString()` implementation.
 **Prevention:** Override `toString()` in ALL data classes containing sensitive information, even if they are internal or nested, to explicitly redact PII.
+## 2026-10-27 - [Fix] Fix path traversal in Android and iOS ShareLauncher
+**Vulnerability:** The `writeToTempFile` method in both Android and iOS `ShareLauncher` implementations accepted a `fileName` parameter and directly concatenated it into the file path. This allowed an attacker or malicious input to execute a path traversal attack, potentially writing files outside of the intended cache/temp directories.
+**Learning:** Even when functionality seems simple like writing an export file, user-supplied or external filenames must always be sanitized and the final path verified to prevent arbitrary file writes. Unhandled exceptions during file sanitization can also cause unexpected crashes, so it's better to sanitize strings silently using regex replacements.
+**Prevention:** Always implement `sanitizeFileName` logic using regex to replace invalid characters and traversal attempts silently. Furthermore, enforce path boundaries by ensuring the canonical path of the resolved file starts with the canonical path of the intended directory.

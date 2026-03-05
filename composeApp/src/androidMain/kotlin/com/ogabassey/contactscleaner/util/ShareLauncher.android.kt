@@ -125,9 +125,33 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
         // Clean up old export files (older than 1 hour)
         cleanupOldExports(exportsDir)
 
-        val file = File(exportsDir, fileName)
+        // 2026 Best Practice: Sanitize filename to prevent path traversal attacks
+        val sanitizedName = sanitizeFileName(fileName)
+        val file = File(exportsDir, sanitizedName)
+
+        // Verify the resolved path is inside cache directory
+        val exportCanonical = exportsDir.canonicalPath
+        val fileCanonical = file.canonicalPath
+
+        // 2026 Security Fix: Use canonicalPath.startsWith to prevent partial path traversal
+        // in a backwards-compatible way (API < 26)
+        if (!fileCanonical.startsWith(exportCanonical)) {
+            throw SecurityException("Invalid file path: path traversal detected")
+        }
+
         file.writeText(content)
         return file
+    }
+
+    /**
+     * Sanitizes a filename to prevent path traversal attacks.
+     */
+    private fun sanitizeFileName(fileName: String): String {
+        // Sanitize to ensure a safe filename (remove traversal chars, leading dots, weird chars)
+        return fileName
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .replace(Regex("^[._]+"), "")
+            .ifEmpty { "export.csv" }
     }
 
     private fun cleanupOldExports(exportsDir: File) {

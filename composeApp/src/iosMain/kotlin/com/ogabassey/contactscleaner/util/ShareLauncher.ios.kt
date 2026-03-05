@@ -72,8 +72,18 @@ class IosShareLauncher : ShareLauncher {
     @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     private fun writeToTempFile(content: String, fileName: String): NSURL? {
         val tempDir = NSTemporaryDirectory()
+
+        // 2026 Best Practice: Sanitize filename to prevent path traversal attacks
+        val sanitizedName = sanitizeFileName(fileName)
+
         // 2026 Fix: Use NSString.create for proper bridging instead of unsafe cast
-        val nsFilePath = NSString.create(string = tempDir).stringByAppendingPathComponent(fileName)
+        val nsFilePath = NSString.create(string = tempDir).stringByAppendingPathComponent(sanitizedName)
+
+        // Verify the resolved path is inside temp directory (basic iOS check)
+        if (!nsFilePath.startsWith(tempDir)) {
+            println("⚠️ Invalid file path: path traversal detected")
+            return null
+        }
 
         // Write content to file using NSString.create for proper bridging
         val nsContent = NSString.create(string = content)
@@ -90,6 +100,17 @@ class IosShareLauncher : ShareLauncher {
         }
 
         return NSURL.fileURLWithPath(nsFilePath)
+    }
+
+    /**
+     * Sanitizes a filename to prevent path traversal attacks.
+     */
+    private fun sanitizeFileName(fileName: String): String {
+        // Sanitize to ensure a safe filename (remove traversal chars, leading dots, weird chars)
+        return fileName
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .replace(Regex("^[._]+"), "")
+            .ifEmpty { "export.csv" }
     }
 
     @OptIn(ExperimentalForeignApi::class)

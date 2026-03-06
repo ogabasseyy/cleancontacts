@@ -148,3 +148,7 @@ if (hasFancyFont) ...
 # 2026-03-05 - Avoid Algorithms that Alter Duplicate Grouping
 **Learning:** Implementing coarse string-matching (e.g., 'last 7 digits') before E.164 normalization for duplicate phone numbers causes false negatives (misses short numbers) and accidental group splitting. E.164 normalization provides completeness that coarse heuristics break.
 **Action:** When optimizing duplicate detection, use memoization/caching to reduce identical heavy normalization calls (from O(N) to O(U)), preserving the algorithm's correctness while improving speed.
+
+# 2026-03-05 - Avoid Intermediate Collections in High-Frequency List Operations
+**Learning:** Using multi-pass functional chains like `groupBy { ... }.filter { ... }.map { ... }` in high-frequency string list iterations creates unnecessary intermediate memory allocations and iterates over the same data repeatedly.
+**Action:** Replace multi-pass chains with single-pass loops using a `mutableMapOf` for grouping, combined with early checks (e.g., `isNullOrBlank()`) before performing any expensive manipulations like `trim().lowercase()`.

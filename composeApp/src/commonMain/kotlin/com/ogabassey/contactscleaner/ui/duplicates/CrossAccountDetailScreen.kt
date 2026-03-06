@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -357,79 +359,96 @@ private fun CrossAccountContactItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .glassy(radius = 16.dp)
-            .clickable { onContactClick() }
-            .padding(12.dp),
+            .glassy(radius = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Checkbox
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = { onSelectToggle() },
-            colors = CheckboxDefaults.colors(
-                checkedColor = PrimaryNeon,
-                uncheckedColor = TextMedium,
-                checkmarkColor = SpaceBlack
-            )
-        )
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Avatar
+        // Checkbox area
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(SecondaryNeon.copy(alpha = 0.2f)),
+                .semantics(mergeDescendants = true) { role = Role.Checkbox }
+                .clickable(
+                    onClickLabel = if (isSelected) "Deselect ${contact.name ?: "contact"}" else "Select ${contact.name ?: "contact"}"
+                ) { onSelectToggle() }
+                .padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                contact.name?.take(1)?.uppercase() ?: "?",
-                color = SecondaryNeon,
-                fontWeight = FontWeight.Bold
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = null,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = PrimaryNeon,
+                    uncheckedColor = TextMedium,
+                    checkmarkColor = SpaceBlack
+                )
             )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Contact Info
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                contact.name ?: "Unknown",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                contact.primaryNumber ?: contact.primaryEmail ?: "",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            // Account Badges (2026 Fix: Use FlowRow for wrapping multiple accounts)
-            @OptIn(ExperimentalLayoutApi::class)
-            FlowRow(
-                modifier = Modifier.padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+        // Contact info area
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .semantics(mergeDescendants = true) { role = Role.Button }
+                .clickable(onClickLabel = "View details") { onContactClick() }
+                .padding(vertical = 12.dp)
+                .padding(end = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(SecondaryNeon.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
             ) {
-                contact.accounts.forEach { account ->
-                    AccountBadge(account)
+                Text(
+                    contact.name?.take(1)?.uppercase() ?: "?",
+                    color = SecondaryNeon,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Contact Info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    contact.name ?: "Unknown",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    contact.primaryNumber ?: contact.primaryEmail ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // Account Badges (2026 Fix: Use FlowRow for wrapping multiple accounts)
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    contact.accounts.forEach { account ->
+                        AccountBadge(account)
+                    }
                 }
             }
-        }
 
-        // Arrow
-        Icon(
-            Icons.Default.ChevronRight,
-            contentDescription = "View details",
-            tint = TextMedium
-        )
+            // Arrow
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = TextMedium
+            )
+        }
     }
 }
 

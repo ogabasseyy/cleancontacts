@@ -109,11 +109,12 @@ class DuplicateDetector(
         }
 
         return groups.mapNotNull { (name, duplicates) ->
-            if (duplicates.size > 1) {
+            val distinctContacts = duplicates.distinctBy { it.id }
+            if (distinctContacts.size > 1) {
                 DuplicateGroup(
                     matchingKey = name,
                     duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = duplicates
+                    contacts = distinctContacts
                 )
             } else null
         }

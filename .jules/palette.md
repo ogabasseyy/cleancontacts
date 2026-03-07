@@ -1,32 +1,7 @@
-# 2026-01-28 - Custom Clickable Feedback
+# Palette Learnings
 
-**Learning:** When using `clickable(indication = null)` to remove the default ripple, the element becomes static and unresponsive to touch. This violates UX heuristics for feedback.
+## 2024-05-24 - Interactive List Item Accessibility Semantics
 
-**Action:** Always implement an alternative feedback mechanism (e.g., scale animation using `interactionSource.collectIsPressedAsState()`) when disabling default indications on interactive elements.
+**Learning:** In Jetpack Compose, when standard structural layouts like `Row` or `Box` are made interactive via `Modifier.clickable()`, they are not automatically announced as "Buttons" by screen readers like TalkBack or VoiceOver unless a role is explicitly provided. Furthermore, without `mergeDescendants = true`, the screen reader may force the user to focus on each individual internal text or icon node separately, creating a disjointed navigational experience.
 
-## 2026-02-04 - Navigable List Item Pattern
-
-**Learning:** Settings or list items that navigate to other screens must have both semantic (Role.Button) and visual (Chevron) indicators. Without these, users rely on trial-and-error to determine interactivity.
-
-**Action:** For all navigable rows, force `Role.Button` in semantics and append `Icons.AutoMirrored.Filled.KeyboardArrowRight`.
-
-## 2026-05-20 - [Local Feedback for Settings Items]
-**Learning:** Purely informational settings items (e.g., Version) create frustration when they appear interactive but do nothing. Adding micro-interactions (e.g., copy-to-clipboard with Snackbar) confirms system responsiveness and delights users.
-**Action:** Always make static settings items interactive if they contain copyable data, providing immediate local feedback (e.g. Snackbar) instead of navigation.
-
-## 2026-05-25 - [Clickable Card Padding]
-**Learning:** Applying `clickable` after inner padding creates unresponsive edges on cards. Users expect the entire visual container to be interactive.
-**Action:** For cards with inner padding, apply `clickable` *before* the padding modifier but after the visual shape/background (e.g. `glassy -> clickable -> padding`).
-
-## 2026-06-03 - CountryCodePicker Accessibility
-**Learning:** `CountryCodePicker` triggers often lack `Role.Button` and proper `contentDescription` because they are custom composables. Adding `Role.Button` and a merged description ("Change country...") is crucial for blind users.
-**Action:** For custom pickers, always add `semantics(mergeDescendants = true)` with a descriptive label and `Role.Button`. Adding a visual dropdown arrow improves affordance for everyone.
-
-## 2026-02-19 - Haptic Feedback Overload
-**Learning:** Using `HapticFeedbackType.LongPress` for standard tap interactions feels aggressive and unnatural. Users expect visual feedback (ripple) for taps, not strong vibration.
-**Action:** Restore default ripple indications for standard buttons and reserve haptic feedback for gestures or critical errors.
-
-## 2026-02-24 - [Consistent List Iconography]
-
-**Learning:** Raw icons in list items (e.g., in `AccountDialogItem`) feel disconnected and lack visual hierarchy. Wrapping icons in a colored container (CircleShape + translucent background) anchors the list item visually and improves scannability.
-**Action:** When displaying icons representing entities (like Accounts or Issues), always wrap them in a consistent container shape with brand/entity-specific colors.
+**Action:** When creating custom interactive list items (e.g. `DuplicateGroupItem` or `ContactListItem`), configure the `clickable` modifier with `role = Role.Button` (or Role.Tab, etc. as appropriate). Use `.semantics(mergeDescendants = true) {}` only when the item has no separately actionable child controls; if it contains child actions like Edit/Delete `IconButton`s, keep the parent clickable but avoid merging descendants so those controls remain individually focusable. For example, `ContactListItem` can merge the avatar-and-text content into one accessible tap target while leaving trailing action buttons outside that merged semantics tree.

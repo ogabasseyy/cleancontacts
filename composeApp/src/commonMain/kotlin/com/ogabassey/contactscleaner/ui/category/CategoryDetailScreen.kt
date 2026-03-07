@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -1070,7 +1072,8 @@ private fun DuplicateGroupItem(
         modifier = Modifier
             .fillMaxWidth()
             .glassy(radius = 16.dp)
-            .clickable { onGroupClick(group) }
+            .clickable(role = Role.Button) { onGroupClick(group) }
+            .semantics(mergeDescendants = true) {}
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1124,61 +1127,68 @@ private fun ContactListItem(
         modifier = Modifier
             .fillMaxWidth()
             .glassy(radius = 16.dp)
-            .clickable { onContactClick(contact) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(accentColor.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
+                .weight(1f)
+                .clickable(role = Role.Button) { onContactClick(contact) }
+                .semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                contact.name?.take(1)?.uppercase() ?: "?",
-                color = accentColor,
-                fontWeight = FontWeight.Bold
-            )
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                contact.name ?: "Unknown",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Medium
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    contact.name?.take(1)?.uppercase() ?: "?",
+                    color = accentColor,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    contact.name ?: "Unknown",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White,
+                    fontWeight = FontWeight.Medium
+                )
 
-            val normalized = contact.normalizedNumber
-            if (isFormatType && normalized != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                val normalized = contact.normalizedNumber
+                if (isFormatType && normalized != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            contact.numbers.firstOrNull() ?: "",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMedium
+                        )
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(horizontal = 4.dp),
+                            tint = SecondaryNeon
+                        )
+                        Text(
+                            normalized,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SecondaryNeon,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else {
                     Text(
-                        contact.numbers.firstOrNull() ?: "",
+                        contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMedium
                     )
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(16.dp)
-                            .padding(horizontal = 4.dp),
-                        tint = SecondaryNeon
-                    )
-                    Text(
-                        normalized,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SecondaryNeon,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
-            } else {
-                Text(
-                    contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMedium
-                )
             }
         }
 

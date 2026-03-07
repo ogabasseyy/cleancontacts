@@ -53,7 +53,7 @@ jobs:
         cache: 'gradle'
 
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+      uses: github/codeql-action/init@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
       with:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/codeql-config.yml
@@ -75,6 +75,6 @@ jobs:
         echo "::warning::Build failed (likely KSP/Kotlin 2.3.x incompatibility). CodeQL analysis will run on source only — security coverage is degraded. Track: github/codeql#20661"
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e # v4.32.4
+      uses: github/codeql-action/analyze@0d579ffd059c29b07949a3cce3983f0780820c98 # v4.32.6
       with:
         category: "/language:${{matrix.language}}"

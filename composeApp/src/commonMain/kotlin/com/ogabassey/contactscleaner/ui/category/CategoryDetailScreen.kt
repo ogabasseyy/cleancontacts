@@ -22,10 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -1073,7 +1072,8 @@ private fun DuplicateGroupItem(
         modifier = Modifier
             .fillMaxWidth()
             .glassy(radius = 16.dp)
-            .clickable { onGroupClick(group) }
+            .clickable(role = Role.Button) { onGroupClick(group) }
+            .semantics(mergeDescendants = true) {}
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1126,18 +1126,15 @@ private fun ContactListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .glassy(radius = 16.dp),
+            .glassy(radius = 16.dp)
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             modifier = Modifier
                 .weight(1f)
-                .semantics(mergeDescendants = true) { role = Role.Button }
-                .clickable(
-                    onClickLabel = "View contact",
-                    onClick = { onContactClick(contact) }
-                )
-                .padding(16.dp),
+                .clickable(role = Role.Button) { onContactClick(contact) }
+                .semantics(mergeDescendants = true) {},
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -1197,7 +1194,7 @@ private fun ContactListItem(
 
         // Action Icons (Edit & Delete) - 44dp touch targets per Apple HIG
         Row(
-            modifier = Modifier.padding(end = 12.dp),
+            modifier = Modifier.padding(start = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -38,7 +38,7 @@ koin = "4.1.1"
 multiplatformSettings = "1.3.0"
 kotlinxDatetime = "0.7.1"
 ktor = "3.4.1"
-purchasesKmp = "2.4.0+17.30.0"
+purchasesKmp = "2.7.1+"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions
 jose4j = "0.9.6"

@@ -125,8 +125,8 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
         // Clean up old export files (older than 1 hour)
         cleanupOldExports(exportsDir)
 
-        // 2026 Security Fix: Sanitize filename to prevent path traversal attacks silently
-        val sanitizedName = fileName.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
+        // 2026 Security Fix: Sanitize filename to prevent path traversal attacks silently.
+        val sanitizedName = sanitizeFileName(fileName)
 
         val file = File(exportsDir, sanitizedName)
 
@@ -140,6 +140,13 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
 
         file.writeText(content)
         return file
+    }
+
+    private fun sanitizeFileName(fileName: String): String {
+        return fileName
+            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
+            .replace(Regex("^[._]+"), "")
+            .ifEmpty { "export.csv" }
     }
 
     private fun cleanupOldExports(exportsDir: File) {

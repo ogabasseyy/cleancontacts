@@ -114,7 +114,7 @@ class DuplicateDetector(
                 DuplicateGroup(
                     matchingKey = name,
                     duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = distinctContacts
+                    contacts = distinctContacts.sortedBy { it.name }
                 )
             } else null
         }

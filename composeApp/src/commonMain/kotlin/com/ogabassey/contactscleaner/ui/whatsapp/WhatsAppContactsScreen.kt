@@ -27,6 +27,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
 import com.ogabassey.contactscleaner.data.api.BusinessDetectionProgress
 import com.ogabassey.contactscleaner.data.api.WhatsAppContact
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -599,6 +604,11 @@ private fun AnimatedCountingCard(
 
     Surface(
         modifier = modifier
+            .semantics(mergeDescendants = true) {
+                role = Role.Tab
+                selected = isSelected
+                contentDescription = "$label $subtitle, $displayedCount contacts"
+            }
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         color = if (isSelected) color.copy(alpha = 0.15f) else DeepSpace,

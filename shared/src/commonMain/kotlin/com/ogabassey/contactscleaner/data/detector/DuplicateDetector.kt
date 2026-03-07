@@ -72,9 +72,11 @@ class DuplicateDetector(
         val groups = mutableMapOf<String, MutableList<Contact>>()
         contacts.forEach { contact ->
             contact.emails.forEach { email ->
-                val normalized = email.trim().lowercase()
-                if (normalized.isNotBlank()) {
-                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                if (email.isNotBlank()) {
+                    val normalized = email.trim().lowercase()
+                    if (normalized.isNotBlank()) {
+                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                    }
                 }
             }
         }
@@ -92,25 +94,27 @@ class DuplicateDetector(
     }
 
     private fun detectNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        // ⚡ Bolt Optimization: Replace O(N) multi-pass functional chain (groupBy -> filter -> map)
-        // with a single-pass loop using a pre-allocated map. Avoids creating intermediate
-        // Maps, Lists, and Map.Entry objects. Checks isNullOrBlank BEFORE allocation-heavy
-        // trim() and lowercase() calls.
+        // ⚡ Bolt Optimization: Replace multi-pass functional chains with a single-pass loop
+        // to eliminate intermediate collection allocations. Also check isNullOrBlank before
+        // expensive string manipulations.
         val groups = mutableMapOf<String, MutableList<Contact>>()
         contacts.forEach { contact ->
             val name = contact.name
             if (!name.isNullOrBlank()) {
                 val normalized = name.trim().lowercase()
-                groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                if (normalized.isNotEmpty()) {
+                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                }
             }
         }
 
-        return groups.mapNotNull { (key, group) ->
-            if (group.size > 1) {
+        return groups.mapNotNull { (name, duplicates) ->
+            val distinctContacts = duplicates.distinctBy { it.id }
+            if (distinctContacts.size > 1) {
                 DuplicateGroup(
-                    matchingKey = key,
+                    matchingKey = name,
                     duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = group
+                    contacts = distinctContacts.sortedBy { it.name }
                 )
             } else null
         }

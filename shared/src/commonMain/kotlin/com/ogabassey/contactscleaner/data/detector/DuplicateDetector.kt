@@ -72,9 +72,11 @@ class DuplicateDetector(
         val groups = mutableMapOf<String, MutableList<Contact>>()
         contacts.forEach { contact ->
             contact.emails.forEach { email ->
-                val normalized = email.trim().lowercase()
-                if (normalized.isNotBlank()) {
-                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                if (email.isNotBlank()) {
+                    val normalized = email.trim().lowercase()
+                    if (normalized.isNotBlank()) {
+                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                    }
                 }
             }
         }
@@ -92,16 +94,30 @@ class DuplicateDetector(
     }
 
     private fun detectNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
-        return contacts
-            .groupBy { it.name?.trim()?.lowercase() ?: "" }
-            .filter { it.key.isNotEmpty() && it.value.size > 1 }
-            .map { (name, duplicates) ->
+        // ⚡ Bolt Optimization: Replace multi-pass functional chains with a single-pass loop
+        // to eliminate intermediate collection allocations. Also check isNullOrBlank before
+        // expensive string manipulations.
+        val groups = mutableMapOf<String, MutableList<Contact>>()
+        contacts.forEach { contact ->
+            val name = contact.name
+            if (!name.isNullOrBlank()) {
+                val normalized = name.trim().lowercase()
+                if (normalized.isNotEmpty()) {
+                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                }
+            }
+        }
+
+        return groups.mapNotNull { (name, duplicates) ->
+            val distinctContacts = duplicates.distinctBy { it.id }
+            if (distinctContacts.size > 1) {
                 DuplicateGroup(
                     matchingKey = name,
                     duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = duplicates
+                    contacts = distinctContacts.sortedBy { it.name }
                 )
-            }
+            } else null
+        }
     }
 
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {

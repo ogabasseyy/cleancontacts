@@ -149,7 +149,34 @@ if (hasFancyFont) ...
 **Learning:** Implementing coarse string-matching (e.g., 'last 7 digits') before E.164 normalization for duplicate phone numbers causes false negatives (misses short numbers) and accidental group splitting. E.164 normalization provides completeness that coarse heuristics break.
 **Action:** When optimizing duplicate detection, use memoization/caching to reduce identical heavy normalization calls (from O(N) to O(U)), preserving the algorithm's correctness while improving speed.
 
-
 # 2026-03-05 - Avoid Intermediate Collections in High-Frequency List Operations
 **Learning:** Using multi-pass functional chains like `groupBy { ... }.filter { ... }.map { ... }` in high-frequency string list iterations creates unnecessary intermediate memory allocations and iterates over the same data repeatedly.
 **Action:** Replace multi-pass chains with single-pass loops using a `mutableMapOf` for grouping, combined with early checks (e.g., `isNullOrBlank()`) before performing any expensive manipulations like `trim().lowercase()`.
+
+# 2026-03-10 - Two-Pass String Filtering
+
+**Learning:** When looking for a character in a string and then extracting a subset of characters (like finding a specific digit then removing non-digits), doing `string.firstOrNull { ... }` followed by `string.filter { ... }` traverses the string twice and creates intermediate `List`/`String` objects.
+
+**Action:** Combine conditions into a single O(N) loop with a pre-sized `StringBuilder` to eliminate intermediate allocations and multiple traversals.
+
+```kotlin
+// ❌ Avoid: Iterates string twice, creates temporary objects
+val firstDigit = number.firstOrNull { it.isDigit() }
+if (firstDigit == '0') return null
+val cleaned = number.filter { it.isDigit() }
+
+// ✅ Prefer: Single pass, no intermediate strings
+var firstDigit: Char? = null
+val sb = java.lang.StringBuilder(number.length)
+for (i in number.indices) {
+    val c = number[i]
+    if (c.isDigit()) {
+        if (firstDigit == null) {
+            firstDigit = c
+            if (c == '0') return null
+        }
+        sb.append(c)
+    }
+}
+val cleaned = sb.toString()
+```

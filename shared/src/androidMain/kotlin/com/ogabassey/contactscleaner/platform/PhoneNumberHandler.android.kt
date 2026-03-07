@@ -37,25 +37,24 @@ actual class PhoneNumberHandler actual constructor() {
         // If it already starts with +, it's already international format
         if (rawNumber.startsWith("+")) return null
 
-        // ⚡ Bolt Optimization: E.164 country codes never start with 0.
-        // If the first digit is '0', adding '+' will result in '+0...', which is invalid.
-        // We can skip expensive cleaning and parsing.
+        // ⚡ Bolt Optimization: Single pass character loop
+        // Combines first digit check (O(N) search) and digit filtering (O(N) + allocations) into one pass.
+        // This eliminates the intermediate List/String allocations of `filter` and iterates the string once.
         var firstDigit: Char? = null
+        val sb = StringBuilder(rawNumber.length)
         for (i in rawNumber.indices) {
             val c = rawNumber[i]
             if (c in '0'..'9') {
-                firstDigit = c
-                break
+                if (firstDigit == null) {
+                    firstDigit = c
+                    if (c == '0') return null // Local number, not a "missing plus" issue
+                }
+                sb.append(c)
             }
         }
 
         if (firstDigit == null) return null // No digits found
-        if (firstDigit == '0') return null // Local number, not a "missing plus" issue
-
-        // Clean the number: keep ASCII digits only (avoids Regex compilation overhead)
-        val cleanedNumber = rawNumber.filter { it in '0'..'9' }
-
-        if (cleanedNumber.isEmpty()) return null
+        val cleanedNumber = sb.toString()
 
         // Special case: Nigerian numbers starting with 234
         if (cleanedNumber.startsWith("234") && cleanedNumber.length == 13) {

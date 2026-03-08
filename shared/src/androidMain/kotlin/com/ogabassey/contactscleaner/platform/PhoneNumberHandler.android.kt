@@ -15,11 +15,26 @@ actual class PhoneNumberHandler actual constructor() {
             if (phoneUtil.isValidNumber(parsedNumber)) {
                 phoneUtil.format(parsedNumber, PhoneNumberUtil.PhoneNumberFormat.E164)
             } else {
-                number.filter { it.isDigit() || it == '+' }
+                fallbackNormalize(number)
             }
         } catch (e: Exception) {
-            number.filter { it.isDigit() || it == '+' }
+            fallbackNormalize(number)
         }
+    }
+
+    // ⚡ Bolt Optimization: Single pass character loop for fallback normalization.
+    // Replaces number.filter { it.isDigit() || it == '+' }
+    // Eliminates intermediate String and List allocations.
+    private fun fallbackNormalize(number: String): String {
+        if (number.isEmpty()) return ""
+        val sb = StringBuilder(number.length)
+        for (i in number.indices) {
+            val c = number[i]
+            if (c in '0'..'9' || c == '+') {
+                sb.append(c)
+            }
+        }
+        return sb.toString()
     }
 
     actual fun isValidNumber(number: String, region: String): Boolean {

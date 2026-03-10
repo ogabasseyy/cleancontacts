@@ -131,7 +131,8 @@ class AndroidShareLauncher(private val context: Context) : ShareLauncher {
         val file = File(exportsDir, sanitizedName)
 
         // Final canonical path check to guarantee it doesn't escape the directory
-        if (!file.canonicalPath.startsWith(exportsDir.canonicalPath)) {
+        val safeDir = if (exportsDir.canonicalPath.endsWith(File.separator)) exportsDir.canonicalPath else exportsDir.canonicalPath + File.separator
+        if (!file.canonicalPath.startsWith(safeDir)) {
             // Silently fall back to a safe default name if the check fails, per security pattern
             val fallbackFile = File(exportsDir, "export.csv")
             fallbackFile.writeText(content)

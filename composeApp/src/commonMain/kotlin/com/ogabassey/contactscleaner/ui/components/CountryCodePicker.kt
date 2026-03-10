@@ -21,7 +21,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.ui.theme.PrimaryNeon
@@ -92,6 +96,8 @@ private fun CountrySelectionContent(
     onSelected: (CountryCode) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
     val filteredCountries = remember(searchQuery) {
         if (searchQuery.isBlank()) {
             CountryResources.countries
@@ -140,6 +146,14 @@ private fun CountrySelectionContent(
             },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                }
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = PrimaryNeon,
                 unfocusedBorderColor = TextLow,

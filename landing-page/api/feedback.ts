@@ -1,5 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FEEDBACK_EMAIL = process.env.FEEDBACK_EMAIL;
 
@@ -14,7 +12,7 @@ function escapeHtml(str: string): string {
     .replace(/\n/g, "<br>");
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   // CORS headers for mobile app requests
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");

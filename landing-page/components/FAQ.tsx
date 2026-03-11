@@ -52,10 +52,11 @@ export const FAQ: React.FC = () => {
               <button
                 type="button"
                 onClick={() => toggle(index)}
-                className="w-full flex items-center justify-between p-6 text-left gap-4"
+                className="w-full flex items-center justify-between p-6 text-left gap-4 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors"
                 aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
               >
-                <h3 className="text-base md:text-lg font-semibold text-white">{faq.question}</h3>
+                <h3 id={`faq-question-${index}`} className="text-base md:text-lg font-semibold text-white">{faq.question}</h3>
                 <svg
                   className={`w-5 h-5 text-brand shrink-0 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}
                   fill="none"
@@ -67,6 +68,9 @@ export const FAQ: React.FC = () => {
                 </svg>
               </button>
               <div
+                id={`faq-answer-${index}`}
+                role="region"
+                aria-labelledby={`faq-question-${index}`}
                 className={`overflow-hidden transition-all duration-300 ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
               >
                 <p className="px-6 pb-6 text-gray-400 leading-relaxed">{faq.answer}</p>

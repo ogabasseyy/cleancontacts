@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.data.db.entity.IgnoredContact
@@ -135,33 +136,40 @@ private fun IgnoredContactCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryNeon.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                    .weight(1f)
+                    .semantics(mergeDescendants = true) {},
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    contact.displayName.take(1).uppercase(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = PrimaryNeon,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    contact.displayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    contact.reason,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextMedium
-                )
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(PrimaryNeon.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        contact.displayName.take(1).uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = PrimaryNeon,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        contact.displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        contact.reason,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMedium
+                    )
+                }
             }
             IconButton(onClick = onUnignore) {
                 Icon(

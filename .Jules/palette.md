@@ -1,0 +1,3 @@
+## 2026-03-12 - [Accessible Cards with Actions]
+**Learning:** Applying `semantics(mergeDescendants = true)` to a parent container (like `Surface` or `Card`) incorrectly merges the interactive area of child buttons (like `IconButton` for delete or clear actions), making them harder for screen readers to target directly or obscuring their `contentDescription`.
+**Action:** For list items with multiple actions, apply `semantics(mergeDescendants = true)` only to the nested container (e.g., a `Row` or `Column`) holding the static primary content (avatar, title, subtitle). Keep actionable `IconButton` or secondary interactive components as sibling elements outside of the merged semantics block.

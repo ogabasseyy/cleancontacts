@@ -180,3 +180,26 @@ for (i in number.indices) {
 }
 val cleaned = sb.toString()
 ```
+
+# 2026-03-15 - Eliminate Intermediate List Allocation in Transformation Pipelines
+
+**Learning:** Using multi-pass functional chains like `.filter { ... }.map { ... }.sortedBy { ... }` creates multiple intermediate `List` allocations, causing memory pressure and garbage collection overhead during large iterations.
+
+**Action:** Replace `filter` and `map` chains with a single loop that iterates over the source collection, applies conditions, and populates a pre-sized `ArrayList`.
+
+```kotlin
+// ❌ Avoid: Creates two intermediate List allocations before sorting
+val results = items
+    .filter { isValid(it) }
+    .map { transform(it) }
+    .sortedBy { it.key }
+
+// ✅ Prefer: Single-pass loop with one pre-sized collection
+val results = ArrayList<ResultType>(items.size)
+for (item in items) {
+    if (isValid(item)) {
+        results.add(transform(item))
+    }
+}
+results.sortBy { it.key }
+```

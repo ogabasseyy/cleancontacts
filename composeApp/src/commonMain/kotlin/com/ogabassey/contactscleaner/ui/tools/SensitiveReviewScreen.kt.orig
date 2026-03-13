@@ -166,7 +166,7 @@ fun SensitiveReviewScreen(
             }
 
             if (contacts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().semantics(mergeDescendants = true) {}, contentAlignment = Alignment.Center) {
                     Text("No sensitive data found", color = TextMedium)
                 }
             } else {

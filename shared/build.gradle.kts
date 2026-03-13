@@ -112,13 +112,16 @@ kotlin {
                 // Ktor CIO engine for Android
                 implementation(libs.ktor.client.cio)
             }
-            // Register generated secrets
-            kotlin.srcDir(secretsDir)
         }
 
         iosMain.dependencies {
             // Ktor Darwin engine for iOS
             implementation(libs.ktor.client.darwin)
+        }
+
+        // 2026 Security Fix: Make Secrets available to all targets
+        commonMain {
+            kotlin.srcDir(secretsDir)
         }
     }
 

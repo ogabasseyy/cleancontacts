@@ -75,7 +75,7 @@ kotlin {
             implementation(libs.sqlite.bundled)
 
             // Paging KMP
-            implementation("androidx.paging:paging-common:3.3.6")
+            implementation("androidx.paging:paging-common:3.4.2")
 
             // Multiplatform Settings
             implementation(libs.multiplatform.settings)

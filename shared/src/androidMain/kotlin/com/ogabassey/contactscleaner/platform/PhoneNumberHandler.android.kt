@@ -23,15 +23,15 @@ actual class PhoneNumberHandler actual constructor() {
     }
 
     // ⚡ Bolt Optimization: Single pass character loop for fallback normalization.
-    // Replaces number.filter { it.isDigit() || it == '+' }
-    // Eliminates intermediate String and List allocations.
+    // Replaces number.filter { it.isDigit() || it == '+' } while preserving
+    // Unicode digit handling by normalizing accepted digits to ASCII.
     private fun fallbackNormalize(number: String): String {
         if (number.isEmpty()) return ""
         val sb = StringBuilder(number.length)
-        for (i in number.indices) {
-            val c = number[i]
-            if (c in '0'..'9' || c == '+') {
-                sb.append(c)
+        for (c in number) {
+            when {
+                c == '+' -> sb.append(c)
+                c.isDigit() -> sb.append(c.digitToInt().digitToChar())
             }
         }
         return sb.toString()

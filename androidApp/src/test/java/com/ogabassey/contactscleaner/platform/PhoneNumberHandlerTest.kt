@@ -79,4 +79,10 @@ class PhoneNumberHandlerTest {
         val result = phoneNumberHandler.analyzeFormatIssue("00447700900000", "GB")
         assertNull(result)
     }
+
+    @Test
+    fun normalizeToE164_unicodeDigitsFallback_normalizesToAsciiDigits() {
+        val result = phoneNumberHandler.normalizeToE164("٠٨٠١٢٣٤٥٦٧٨", "ZZ")
+        assertEquals("08012345678", result)
+    }
 }

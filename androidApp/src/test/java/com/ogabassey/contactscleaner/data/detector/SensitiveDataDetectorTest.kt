@@ -110,4 +110,14 @@ class SensitiveDataDetectorTest {
         assertNotNull("Should process input at exactly max length", match)
         assertEquals(SensitiveType.USA_SSN, match?.type)
     }
+
+    @Test
+    fun `returns null for empty string`() {
+        assertNull(detector.analyze(""))
+    }
+
+    @Test
+    fun `returns null for whitespace-only string`() {
+        assertNull(detector.analyze("   "))
+    }
 }

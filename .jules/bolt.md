@@ -203,3 +203,18 @@ for (item in items) {
 }
 results.sortBy { it.key }
 ```
+
+# 2026-10-18 - Unnecessary Allocations with trim()
+
+**Learning:** Calling `trim()` on whitespace-only strings creates new empty-string allocations. When a string is already trimmed, `trim()` returns the original value, so the optimization mainly benefits whitespace-only inputs while also skipping the follow-up work in high-frequency loops like contact scanning.
+
+**Action:** Always evaluate `isBlank()` (or `isNullOrBlank()` if nullable) before invoking allocation-heavy string manipulations like `trim()` or `lowercase()` inside loops to prevent wasting memory and CPU cycles on empty strings.
+
+```kotlin
+// ❌ Avoid: Unconditionally creates a new object
+val cleanValue = value.trim()
+
+// ✅ Prefer: Avoids allocation for blank strings
+if (value.isBlank()) return null
+val cleanValue = value.trim()
+```

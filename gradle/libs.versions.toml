@@ -29,7 +29,7 @@ paging = "3.4.1"
 work = "2.10.0"
 revenuecat = "9.20.1"
 libphonenumber = "8.13.26"
-datastore = "1.2.0"
+datastore = "1.2.1"
 mockito = "5.21.0"
 mockitoKotlin = "6.2.3"
 

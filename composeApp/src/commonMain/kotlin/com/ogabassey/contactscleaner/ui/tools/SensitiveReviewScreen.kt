@@ -21,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.domain.model.Contact
@@ -105,6 +107,7 @@ fun SensitiveReviewScreen(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
+                            .semantics(mergeDescendants = true) {}
                     ) {
                         Text(
                             text = contactName,
@@ -147,7 +150,7 @@ fun SensitiveReviewScreen(
             // Warning Banner
             Surface(
                 color = WarningNeon.copy(alpha = 0.1f),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -197,9 +200,12 @@ private fun SensitiveContactCard(
         color = SurfaceSpaceElevated
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.semantics(mergeDescendants = true) {},
+                verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
+                        .clearAndSetSemantics { }
                         .size(48.dp)
                         .clip(CircleShape)
                         .background(WarningNeon.copy(alpha = 0.2f)),

@@ -53,7 +53,6 @@
 **Vulnerability:** Android and iOS cache/export helpers used string prefix checks without forcing a trailing directory separator, so sibling paths like `/cache_secret` could still match `/cache`.
 **Learning:** Canonicalization alone is not enough when you compare paths as strings; the directory boundary has to be explicit for the prefix check to be safe.
 **Prevention:** When `Path.startsWith(...)` is not available or not compatible, append the platform separator to the canonical base directory before calling `startsWith`, and standardize iOS paths before comparing them.
-
 ## 2026-10-24 - [CRITICAL] Prevent Hardcoded Server/External API Keys Exposure
 **Vulnerability:** A critical, hardcoded API Key for the WhatsApp Detector Service (`WHATSAPP_DETECTOR_API_KEY`) was accidentally committed and exposed as a fallback value in `WhatsAppDetectorConfig.ios.kt` (`"e59ec0ca77c64b123d56e683c92e7009c0cbaf0d393dc916b1856ead3b063332"`).
 **Learning:** Hardcoded external service API keys represent critical vulnerabilities. However, there is a distinction between public SDK keys (like RevenueCat `appl_...`) and sensitive service keys. The iOS source set was originally configured independently, bypassing the `Secrets` generated object available to Android.

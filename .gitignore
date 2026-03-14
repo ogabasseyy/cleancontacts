@@ -34,3 +34,4 @@ local-whatsapp-detector/
 **/xcuserdata/
 
 build_log.txt
+*.orig

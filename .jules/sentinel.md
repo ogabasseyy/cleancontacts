@@ -48,3 +48,8 @@
 **Vulnerability:** `writeToTempFile` in Android and iOS ShareLauncher accepted a caller-provided `fileName` and used it directly when building the output path, which could allow path traversal or unsafe hidden-file names.
 **Learning:** Export and temp-file helpers need filename sanitization and a final path-boundary check even when they only write into cache or temp directories.
 **Prevention:** Sanitize filenames by replacing non-safe characters, strip leading dots/underscores that can produce hidden or ambiguous paths, default empty results to `export.csv`, and verify the resolved path still lives under the intended export directory before writing.
+
+## 2026-10-24 - [CRITICAL] Prevent Hardcoded Server/External API Keys Exposure
+**Vulnerability:** A critical, hardcoded API Key for the WhatsApp Detector Service (`WHATSAPP_DETECTOR_API_KEY`) was accidentally committed and exposed as a fallback value in `WhatsAppDetectorConfig.ios.kt` (`"e59ec0ca77c64b123d56e683c92e7009c0cbaf0d393dc916b1856ead3b063332"`).
+**Learning:** Hardcoded external service API keys represent critical vulnerabilities. However, there is a distinction between public SDK keys (like RevenueCat `appl_...`) and sensitive service keys. The iOS source set was originally configured independently, bypassing the `Secrets` generated object available to Android.
+**Prevention:** Remove hardcoded sensitive keys immediately. Configure KMP build scripts to expose securely generated `Secrets` across all targets by adding `kotlin.srcDir(secretsDir)` to the `commonMain` configuration block in `build.gradle.kts`. This ensures all platforms access securely injected properties.

@@ -126,10 +126,17 @@ class DuplicateDetector(
 
         // 2026 Optimization: Pre-calculate normalized names to avoid O(N * W) allocations
         // W = Window Size (50). This reduces String allocations by ~50x in the hot loop.
-        val processedContacts = contacts
-            .filter { !it.name.isNullOrEmpty() }
-            .map { ProcessedContact(it, it.name!!.trim().lowercase()) }
-            .sortedBy { it.cleanName }
+        // ⚡ Bolt Optimization: Replace multi-pass functional chains with a single-pass loop
+        // to eliminate intermediate collection allocations (filter -> map).
+        val processedContacts = ArrayList<ProcessedContact>(contacts.size)
+        for (contact in contacts) {
+            val name = contact.name
+            if (!name.isNullOrBlank()) {
+                val cleanName = name.trim().lowercase()
+                processedContacts.add(ProcessedContact(contact, cleanName))
+            }
+        }
+        processedContacts.sortBy { it.cleanName }
 
         // Reuse buffers for Levenshtein distance to avoid frequent allocations
         val buffer1 = IntArray(MAX_NAME_LENGTH + 1)

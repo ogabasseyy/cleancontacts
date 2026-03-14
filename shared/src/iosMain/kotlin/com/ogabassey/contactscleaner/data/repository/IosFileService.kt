@@ -12,6 +12,7 @@ import platform.Foundation.NSError
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
+import platform.Foundation.stringByStandardizingPath
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.create
 import platform.Foundation.writeToFile
@@ -40,7 +41,11 @@ class IosFileService : FileService {
             val filePath = "$cachesDir/$sanitizedName"
 
             // Verify the resolved path is inside cache directory (basic iOS check)
-            if (!filePath.startsWith(cachesDir)) {
+            val safeCachesDir = if (cachesDir.endsWith("/")) cachesDir else "$cachesDir/"
+            val nsFilePath = NSString.create(string = filePath)
+            val standardizedPath = nsFilePath.stringByStandardizingPath
+
+            if (!standardizedPath.startsWith(safeCachesDir)) {
                 return Result.failure(Exception("Invalid file path: path traversal detected"))
             }
 

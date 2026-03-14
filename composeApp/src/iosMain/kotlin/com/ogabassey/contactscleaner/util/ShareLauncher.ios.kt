@@ -10,6 +10,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.stringByAppendingPathComponent
+import platform.Foundation.stringByStandardizingPath
 import platform.Foundation.writeToFile
 import platform.Foundation.create
 import kotlinx.cinterop.useContents
@@ -75,8 +76,11 @@ class IosShareLauncher : ShareLauncher {
         val sanitizedName = sanitizeFileName(fileName)
         // 2026 Fix: Use NSString.create for proper bridging instead of unsafe cast
         val nsFilePath = NSString.create(string = tempDir).stringByAppendingPathComponent(sanitizedName)
+        val nsStringFilePath = NSString.create(string = nsFilePath)
+        val standardizedPath = nsStringFilePath.stringByStandardizingPath
 
-        if (!nsFilePath.startsWith(tempDir)) {
+        val safeTempDir = if (tempDir.endsWith("/")) tempDir else "$tempDir/"
+        if (!standardizedPath.startsWith(safeTempDir)) {
             println("⚠️ Invalid file path: path traversal detected")
             return null
         }

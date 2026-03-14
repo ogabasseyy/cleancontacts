@@ -38,6 +38,8 @@ class SensitiveDataDetector(
     }
 
     fun analyze(value: String, defaultRegion: String? = "NG"): SensitiveMatch? {
+        if (value.isBlank()) return null
+
         val cleanValue = value.trim()
 
         // 2026 Security Fix: Prevent ReDoS by limiting input length

@@ -3,6 +3,26 @@ const FEEDBACK_EMAIL = process.env.FEEDBACK_EMAIL;
 
 const VALID_CATEGORIES = ["Bug Report", "Feature Request", "General Feedback"];
 
+type FeedbackRequestBody = {
+  category?: string;
+  message?: string;
+  email?: string;
+  deviceInfo?: string;
+};
+
+type FeedbackRequest = {
+  method?: string;
+  body?: FeedbackRequestBody;
+};
+
+type FeedbackResponse = {
+  setHeader(name: string, value: string): void;
+  status(code: number): {
+    json(payload: unknown): unknown;
+    end(): unknown;
+  };
+};
+
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -12,7 +32,7 @@ function escapeHtml(str: string): string {
     .replace(/\n/g, "<br>");
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: FeedbackRequest, res: FeedbackResponse) {
   // CORS headers for mobile app requests
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");

@@ -202,7 +202,8 @@ private fun SensitiveContactCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.semantics(mergeDescendants = true) {},
-                verticalAlignment = Alignment.CenterVertically) {
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .clearAndSetSemantics { }

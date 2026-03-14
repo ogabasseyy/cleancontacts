@@ -24,6 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,6 +41,7 @@ import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.ExportFormat
@@ -61,6 +66,7 @@ fun CategoryDetailScreen(
     onNavigateToResultsWithRescan: () -> Unit = {}
 ) {
     val clipboard = LocalClipboardManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val shareLauncher = rememberShareLauncher()
     val uiState by viewModel.uiState.collectAsState()
     val contacts by viewModel.contacts.collectAsState()
@@ -426,7 +432,16 @@ fun CategoryDetailScreen(
                             focusedLabelColor = PrimaryNeon,
                             unfocusedLabelColor = TextMedium
                         ),
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                keyboardController?.hide()
+                            }
+                        )
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }

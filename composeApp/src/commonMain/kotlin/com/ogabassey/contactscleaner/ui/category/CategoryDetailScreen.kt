@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
@@ -1262,7 +1263,8 @@ private fun FreeActionsExhaustedBanner(
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
-            .clickable { onUpgradeClick() }
+            .semantics(mergeDescendants = true) { role = Role.Button }
+            .clickable(onClickLabel = "Upgrade to premium") { onUpgradeClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween

@@ -436,8 +436,8 @@ private fun SubscriptionLegalText() {
                 color = PrimaryNeon,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .semantics { role = Role.Button }
-                    .clickable { UrlOpener.openUrl(LegalUrls.TERMS_OF_USE) }
+                    .semantics(mergeDescendants = true) { role = Role.Button }
+                    .clickable(onClickLabel = "Open Terms of Use") { UrlOpener.openUrl(LegalUrls.TERMS_OF_USE) }
             )
 
             Text(
@@ -452,8 +452,8 @@ private fun SubscriptionLegalText() {
                 color = PrimaryNeon,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .semantics { role = Role.Button }
-                    .clickable { UrlOpener.openUrl(LegalUrls.PRIVACY_POLICY) }
+                    .semantics(mergeDescendants = true) { role = Role.Button }
+                    .clickable(onClickLabel = "Open Privacy Policy") { UrlOpener.openUrl(LegalUrls.PRIVACY_POLICY) }
             )
         }
     }

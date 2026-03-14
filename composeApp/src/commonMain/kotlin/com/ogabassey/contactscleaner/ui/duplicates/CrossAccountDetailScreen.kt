@@ -664,6 +664,7 @@ private fun AccountSelectionItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
             .selectable(
                 selected = isSelected,
                 onClick = onSelect,

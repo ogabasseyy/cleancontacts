@@ -35,7 +35,11 @@ targets:
     preBuildScripts:
       - name: Compile Kotlin Framework
         script: |
-          export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
+          if [ -d "/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home" ]; then
+            export JAVA_HOME="/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home"
+          elif [ -d "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home" ]; then
+            export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+          fi
           cd "$SRCROOT/.."
           ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
         basedOnDependencyAnalysis: false

@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -35,6 +36,7 @@ fun App() {
                 FloatingFeedbackButton(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
+                        .navigationBarsPadding()
                         .padding(start = 16.dp, bottom = 24.dp),
                     onOpenSheet = { showFeedbackSheet = true }
                 )

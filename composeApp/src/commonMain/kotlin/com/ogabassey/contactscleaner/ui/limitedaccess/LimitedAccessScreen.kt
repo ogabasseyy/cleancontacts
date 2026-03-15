@@ -63,6 +63,7 @@ fun LimitedAccessScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .safeDrawingPadding()
     ) {
         Column(
             modifier = Modifier

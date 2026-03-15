@@ -1,11 +1,14 @@
 #!/bin/sh
 
 # Xcode Cloud post-clone script
-# Installs Java for KMP Gradle builds
+# Installs Java for KMP Gradle builds and prepares iOS versioning.
 
 set -e
 
 echo "=== Installing Java for Xcode Cloud ==="
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Install Java via Homebrew (Homebrew is pre-installed on Xcode Cloud)
 if command -v brew >/dev/null 2>&1; then
@@ -17,11 +20,17 @@ if command -v brew >/dev/null 2>&1; then
             if [ -d "$JAVA_PATH" ]; then
                 echo "✓ Installed openjdk@$VERSION at: $JAVA_PATH"
                 "$JAVA_PATH/bin/java" -version
-                exit 0
+                break
             fi
         fi
     done
 fi
 
-echo "⚠️ Could not install Java via Homebrew. Build phase will attempt fallback."
+if [ ! -x "${JAVA_PATH:-}/bin/java" ]; then
+    echo "⚠️ Could not install Java via Homebrew. Build phase will attempt fallback."
+fi
+
+echo "=== Syncing iOS versioning for Xcode Cloud ==="
+"$REPO_ROOT/scripts/sync-version.sh"
+
 exit 0

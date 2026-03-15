@@ -47,9 +47,6 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-    defaults:
-      run:
-        working-directory: landing-page
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -59,14 +56,14 @@ jobs:
           cache: "npm"
           cache-dependency-path: landing-page/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --prefix landing-page
 
       - run: npx vercel@50.13.2 pull --yes --environment=production --token="${{ env.VERCEL_TOKEN }}"
 
       - run: npx vercel@50.13.2 build --yes --prod --token="${{ env.VERCEL_TOKEN }}"
 
       - name: Deploy to Vercel (with retry)
-        run: ../.github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --prod --archive=tgz --token="${{ env.VERCEL_TOKEN }}"
+        run: .github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --prod --archive=tgz --token="${{ env.VERCEL_TOKEN }}"
 
   deploy-preview:
     needs: [changes]
@@ -81,9 +78,6 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-    defaults:
-      run:
-        working-directory: landing-page
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -93,11 +87,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: landing-page/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --prefix landing-page
 
       - run: npx vercel@50.13.2 pull --yes --environment=preview --token="${{ env.VERCEL_TOKEN }}"
 
       - run: npx vercel@50.13.2 build --yes --token="${{ env.VERCEL_TOKEN }}"
 
       - name: Deploy to Vercel (with retry)
-        run: ../.github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --archive=tgz --token="${{ env.VERCEL_TOKEN }}"
+        run: .github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --archive=tgz --token="${{ env.VERCEL_TOKEN }}"

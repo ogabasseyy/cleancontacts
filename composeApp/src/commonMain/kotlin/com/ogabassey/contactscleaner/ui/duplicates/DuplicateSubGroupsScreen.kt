@@ -165,6 +165,8 @@ private fun SubGroupCard(
     description: String,
     onClick: () -> Unit
 ) {
+    val itemCountDescription = "${count.formatWithCommas()} ${if (count == 1) "item" else "items"}"
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
@@ -173,7 +175,7 @@ private fun SubGroupCard(
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                contentDescription = "$title, $count items, $description"
+                contentDescription = "$title, $itemCountDescription, $description"
             }
     ) {
         Row(

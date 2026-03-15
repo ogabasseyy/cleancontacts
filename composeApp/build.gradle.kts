@@ -8,8 +8,8 @@ plugins {
 }
 
 kotlin {
-    // 2026 AGP 9.0: androidLibrary block replaces separate android {} block
-    androidLibrary {
+    // 2026 Kotlin KMP: use the current Android target DSL
+    android {
         namespace = "com.ogabassey.contactscleaner.composeapp"
         compileSdk = 36
         minSdk = 26
@@ -17,7 +17,6 @@ kotlin {
 
     // iOS targets with 2026 Best Practice compiler flags
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -115,4 +114,3 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
-

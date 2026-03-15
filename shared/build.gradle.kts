@@ -49,8 +49,8 @@ val generateSecrets by tasks.registering {
 }
 
 kotlin {
-    // 2026 AGP 9.0: androidLibrary block replaces separate android {} block
-    androidLibrary {
+    // 2026 Kotlin KMP: use the current Android target DSL
+    android {
         namespace = "com.ogabassey.contactscleaner.shared"
         compileSdk = 36
         minSdk = 26
@@ -127,7 +127,6 @@ kotlin {
 
     // iOS targets with 2026 Best Practice compiler flags
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -176,6 +175,5 @@ dependencies {
     // Room KSP for all targets
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosX64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
 }

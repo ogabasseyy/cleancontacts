@@ -218,3 +218,9 @@ val cleanValue = value.trim()
 if (value.isBlank()) return null
 val cleanValue = value.trim()
 ```
+
+# 2026-03-20 - Eliminate String Allocations from Chained Replace Calls
+
+**Learning:** Using chained `.replace("-", "").replace(" ", "")` calls creates a new `String` object for every call in the chain. In high-frequency parsing paths like PII detection, this wastes CPU cycles and generates unnecessary garbage.
+
+**Action:** Replace chained `.replace()` calls with a single-pass `StringBuilder` loop that filters out unwanted characters in one go, drastically reducing intermediate allocations and improving performance.

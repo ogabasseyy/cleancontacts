@@ -123,7 +123,15 @@ class SensitiveDataDetector(
 
         // 5. Check for Credit Card
         if (digitCount >= 13) {
-            val cleanedForCC = cleanValue.replace("-", "").replace(" ", "")
+            // ⚡ Bolt Optimization: Avoid multiple allocations from chained replace calls.
+            // Use a single-pass character filter to build the cleaned string.
+            val sb = StringBuilder(cleanValue.length)
+            for (i in 0 until cleanValue.length) {
+                val c = cleanValue[i]
+                if (c != '-' && c != ' ') sb.append(c)
+            }
+            val cleanedForCC = sb.toString()
+
             if (CREDIT_CARD_REGEX.containsMatchIn(cleanedForCC)) {
                 return SensitiveMatch(cleanValue, SensitiveType.CREDIT_CARD, 0.8f, "Possible Credit Card Number")
             }
@@ -133,7 +141,15 @@ class SensitiveDataDetector(
         // 2026 Fix: Redundant phone validation removed - already checked at line 62
         // Bolt Optimization: NIN must be exactly 11 digits and strictly numeric
         if (digitCount == 11 && letterCount == 0 && otherCount == 0) {
-            val cleanedForNIN = cleanValue.replace(" ", "")
+            // ⚡ Bolt Optimization: Avoid allocation from replace.
+            // Use a single-pass character filter to build the cleaned string.
+            val sbNin = StringBuilder(cleanValue.length)
+            for (i in 0 until cleanValue.length) {
+                val c = cleanValue[i]
+                if (c != ' ') sbNin.append(c)
+            }
+            val cleanedForNIN = sbNin.toString()
+
             if (NIGERIA_11_DIGIT_REGEX.matches(cleanedForNIN)) {
                 // It's 11 digits but NOT a valid phone number - high probability of NIN/BVN
                 return SensitiveMatch(

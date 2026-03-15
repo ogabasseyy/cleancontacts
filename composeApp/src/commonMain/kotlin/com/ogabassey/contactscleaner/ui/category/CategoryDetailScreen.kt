@@ -378,7 +378,11 @@ fun CategoryDetailScreen(
             sheetState = sheetState,
             containerColor = SurfaceSpaceElevated
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .imePadding()
+            ) {
                 // Header Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),

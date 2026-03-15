@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -170,7 +171,10 @@ private fun SubGroupCard(
         color = Color.White.copy(alpha = 0.05f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = "$title, $count items, $description"
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

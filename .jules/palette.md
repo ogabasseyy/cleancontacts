@@ -32,3 +32,7 @@
 **Learning:** Applying `semantics(mergeDescendants = true)` to a parent container (like `Surface` or `Card`) incorrectly merges the interactive area of child buttons (like an `IconButton` for delete or clear actions), making them harder for screen readers to target directly or obscuring their `contentDescription`.
 
 **Action:** For list items with multiple actions, apply `semantics(mergeDescendants = true)` only to the nested container (e.g. a `Row` or `Column`) holding the static primary content (avatar, title, subtitle). Keep actionable `IconButton` or secondary interactive components as sibling elements outside of the merged semantics block.
+
+## 2026-03-20 - Explicit Content Descriptions for Merged Semantics
+**Learning:** When grouping child components with `semantics(mergeDescendants = true)` (e.g., inside complex cards or list items), screen readers will automatically and clunkily concatenate the inner texts.
+**Action:** Explicitly provide a properly formatted `contentDescription` on the parent modifier to ensure screen readers read a cohesive, structured sentence rather than disjointed inner text values.

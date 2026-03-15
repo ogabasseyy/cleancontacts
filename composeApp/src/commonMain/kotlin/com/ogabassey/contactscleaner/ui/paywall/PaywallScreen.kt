@@ -63,7 +63,8 @@ fun PaywallScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SpaceBlack.copy(alpha = 0.95f)),
+            .background(SpaceBlack.copy(alpha = 0.95f))
+            .safeDrawingPadding(),
         contentAlignment = Alignment.Center
     ) {
         Card(

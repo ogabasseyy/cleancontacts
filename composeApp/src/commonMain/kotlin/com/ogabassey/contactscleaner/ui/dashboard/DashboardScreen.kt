@@ -111,7 +111,8 @@ fun DashboardScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 24.dp), // Increased vertical padding to bring it down
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 IconButton(onClick = { showSettingsSheet = true }) {

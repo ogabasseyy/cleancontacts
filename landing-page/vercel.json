@@ -1,4 +1,8 @@
 {
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "ignoreCommand": "exit 0",
   "headers": [
     {
       "source": "/(.*)",

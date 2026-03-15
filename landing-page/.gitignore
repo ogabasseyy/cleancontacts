@@ -27,3 +27,4 @@ public/rss.xml
 *.njsproj
 *.sln
 *.sw?
+.vercel

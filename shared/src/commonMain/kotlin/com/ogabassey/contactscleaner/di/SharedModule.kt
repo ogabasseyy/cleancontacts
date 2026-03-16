@@ -12,6 +12,7 @@ import com.ogabassey.contactscleaner.data.detector.FormatDetector
 import com.ogabassey.contactscleaner.data.detector.JunkDetector
 import com.ogabassey.contactscleaner.data.detector.SensitiveDataDetector
 import com.ogabassey.contactscleaner.data.repository.BackupRepositoryImpl
+import com.ogabassey.contactscleaner.data.repository.DisabledWhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.data.repository.UsageRepositoryImpl
 import com.ogabassey.contactscleaner.data.repository.WhatsAppDetectorRepositoryImpl
 import com.ogabassey.contactscleaner.data.util.ScanResultProvider
@@ -85,16 +86,22 @@ val sharedModule = module {
 
     // WhatsApp Detector (VPS-hosted Baileys service)
     // 2026 Best Practice: Local caching for 51k+ WhatsApp contacts
-    single { WhatsAppDetectorApi(
-        baseUrl = WhatsAppDetectorConfig.baseUrl,
-        apiKey = WhatsAppDetectorConfig.apiKey
-    ) }
+    single {
+        WhatsAppDetectorApi(
+            baseUrl = WhatsAppDetectorConfig.baseUrl,
+            apiKey = WhatsAppDetectorConfig.apiKey
+        )
+    }
     // 2026 Fix: Explicit type parameters for improved readability
     single<WhatsAppDetectorRepository> {
-        WhatsAppDetectorRepositoryImpl(
-            api = get<WhatsAppDetectorApi>(),
-            cacheDao = get<WhatsAppCacheDao>()
-        )
+        if (WhatsAppDetectorConfig.isConfigured) {
+            WhatsAppDetectorRepositoryImpl(
+                api = get<WhatsAppDetectorApi>(),
+                cacheDao = get<WhatsAppCacheDao>()
+            )
+        } else {
+            DisabledWhatsAppDetectorRepository()
+        }
     }
 }
 

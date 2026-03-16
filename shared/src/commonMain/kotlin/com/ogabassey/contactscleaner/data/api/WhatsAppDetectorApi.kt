@@ -49,7 +49,9 @@ class WhatsAppDetectorApi(
         }
         // 2026 Security: API Key Authentication
         defaultRequest {
-            header(API_KEY_HEADER, apiKey)
+            if (apiKey.isNotBlank()) {
+                header(API_KEY_HEADER, apiKey)
+            }
         }
     }
 

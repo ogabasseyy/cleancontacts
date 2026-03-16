@@ -11,12 +11,5 @@ actual object WhatsAppDetectorConfig {
 
     actual val baseUrl: String = Secrets.WHATSAPP_DETECTOR_BASE_URL
 
-    init {
-        if (apiKey.isEmpty()) {
-            throw IllegalStateException(
-                "WhatsApp Detector API key not configured. " +
-                "Set WHATSAPP_DETECTOR_API_KEY in local.properties or as an environment variable."
-            )
-        }
-    }
+    actual val isConfigured: Boolean = apiKey.isNotBlank() && baseUrl.isNotBlank()
 }

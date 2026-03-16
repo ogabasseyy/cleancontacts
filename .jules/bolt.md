@@ -224,3 +224,13 @@ val cleanValue = value.trim()
 **Learning:** Using chained `.replace("-", "").replace(" ", "")` calls creates a new `String` object for every call in the chain. In high-frequency parsing paths like PII detection, this wastes CPU cycles and generates unnecessary garbage.
 
 **Action:** Replace chained `.replace()` calls with a single-pass `StringBuilder` loop that filters out unwanted characters in one go, drastically reducing intermediate allocations and improving performance.
+
+# 2026-03-30 - The `forEach` Placebo Optimization
+
+**Learning:** In Kotlin, `Iterable<T>.forEach { ... }` is an `inline` function that generates the exact same underlying `for (item in list)` bytecode during compilation. Replacing it with a manual `for` loop provides absolutely zero performance benefit and is a placebo optimization.
+**Action:** Do not refactor `forEach` to `for` loops under the guise of performance. Focus on actual algorithmic improvements or avoiding allocations.
+
+# 2026-03-30 - Eager Size Checks to Avoid Collection Allocation
+
+**Learning:** Operations like `distinctBy { it.id }` internally allocate a new `HashSet` and `ArrayList`. Applying this operation to every group in a collection (e.g., when identifying duplicates) results in massive allocation overhead, especially since the vast majority of groups will only have a single item (size = 1).
+**Action:** When finding duplicates or processing groups, always check `if (group.size > 1)` *before* applying expensive functional transformations like `distinctBy` to eliminate unnecessary set and list allocations for single-item groups.

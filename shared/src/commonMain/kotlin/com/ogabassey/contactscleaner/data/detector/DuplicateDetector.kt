@@ -56,16 +56,22 @@ class DuplicateDetector(
             }
         }
 
-        return groups.mapNotNull { (key, group) ->
-            val distinctContacts = group.distinctBy { it.id }
-            if (distinctContacts.size > 1) {
-                DuplicateGroup(
-                    matchingKey = key,
-                    duplicateType = DuplicateType.NUMBER_MATCH,
-                    contacts = distinctContacts.sortedBy { it.name }
-                )
-            } else null
+        val result = ArrayList<DuplicateGroup>(groups.size)
+        for ((key, group) in groups) {
+            if (group.size > 1) {
+                val distinctContacts = group.distinctBy { it.id }
+                if (distinctContacts.size > 1) {
+                    result.add(
+                        DuplicateGroup(
+                            matchingKey = key,
+                            duplicateType = DuplicateType.NUMBER_MATCH,
+                            contacts = distinctContacts.sortedBy { it.name }
+                        )
+                    )
+                }
+            }
         }
+        return result
     }
 
     private fun detectEmailDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
@@ -81,16 +87,22 @@ class DuplicateDetector(
             }
         }
 
-        return groups.mapNotNull { (key, group) ->
-            val distinctContacts = group.distinctBy { it.id }
-            if (distinctContacts.size > 1) {
-                DuplicateGroup(
-                    matchingKey = key,
-                    duplicateType = DuplicateType.EMAIL_MATCH,
-                    contacts = distinctContacts.sortedBy { it.name }
-                )
-            } else null
+        val result = ArrayList<DuplicateGroup>(groups.size)
+        for ((key, group) in groups) {
+            if (group.size > 1) {
+                val distinctContacts = group.distinctBy { it.id }
+                if (distinctContacts.size > 1) {
+                    result.add(
+                        DuplicateGroup(
+                            matchingKey = key,
+                            duplicateType = DuplicateType.EMAIL_MATCH,
+                            contacts = distinctContacts.sortedBy { it.name }
+                        )
+                    )
+                }
+            }
         }
+        return result
     }
 
     private fun detectNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
@@ -108,16 +120,22 @@ class DuplicateDetector(
             }
         }
 
-        return groups.mapNotNull { (name, duplicates) ->
-            val distinctContacts = duplicates.distinctBy { it.id }
-            if (distinctContacts.size > 1) {
-                DuplicateGroup(
-                    matchingKey = name,
-                    duplicateType = DuplicateType.NAME_MATCH,
-                    contacts = distinctContacts.sortedBy { it.name }
-                )
-            } else null
+        val result = ArrayList<DuplicateGroup>(groups.size)
+        for ((name, duplicates) in groups) {
+            if (duplicates.size > 1) {
+                val distinctContacts = duplicates.distinctBy { it.id }
+                if (distinctContacts.size > 1) {
+                    result.add(
+                        DuplicateGroup(
+                            matchingKey = name,
+                            duplicateType = DuplicateType.NAME_MATCH,
+                            contacts = distinctContacts.sortedBy { it.name }
+                        )
+                    )
+                }
+            }
         }
+        return result
     }
 
     fun detectSimilarNameDuplicates(contacts: List<Contact>): List<DuplicateGroup> {

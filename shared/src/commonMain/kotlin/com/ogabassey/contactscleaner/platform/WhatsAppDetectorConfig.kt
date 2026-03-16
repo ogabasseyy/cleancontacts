@@ -19,4 +19,10 @@ expect object WhatsAppDetectorConfig {
      * e.g., "https://api.contactscleaner.tech"
      */
     val baseUrl: String
+
+    /**
+     * Whether the WhatsApp detector is configured for this build.
+     * Used to keep the app launchable when the integration is intentionally absent.
+     */
+    val isConfigured: Boolean
 }

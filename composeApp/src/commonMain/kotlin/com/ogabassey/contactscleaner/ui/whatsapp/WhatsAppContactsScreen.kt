@@ -463,7 +463,7 @@ private fun AnimatedCategoryCards(
                 color = TextMedium,
                 isSelected = false,
                 isAnimating = false,
-                onClick = { /* Non-clickable - informational only */ }
+                onClick = null
             )
         }
 
@@ -560,7 +560,7 @@ private fun AnimatedCountingCard(
     color: Color,
     isSelected: Boolean,
     isAnimating: Boolean,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
     compact: Boolean = false
 ) {
     // 2026 Best Practice: Continuous interpolation animation
@@ -605,11 +605,15 @@ private fun AnimatedCountingCard(
     Surface(
         modifier = modifier
             .semantics(mergeDescendants = true) {
-                role = Role.Tab
-                selected = isSelected
+                if (onClick != null) {
+                    role = Role.Tab
+                    selected = isSelected
+                }
                 contentDescription = "$label $subtitle, $displayedCount contacts"
             }
-            .clickable(onClick = onClick),
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
+            ),
         shape = RoundedCornerShape(16.dp),
         color = if (isSelected) color.copy(alpha = 0.15f) else DeepSpace,
         border = if (isSelected) BorderStroke(2.dp, color) else null

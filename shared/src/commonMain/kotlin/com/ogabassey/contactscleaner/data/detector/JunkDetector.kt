@@ -34,7 +34,7 @@ class JunkDetector(
     fun detectJunk(contacts: List<Contact>): List<JunkContact> {
         val junkContacts = mutableListOf<JunkContact>()
 
-        for (contact in contacts) {
+        contacts.forEach { contact ->
             val type = getJunkType(contact.name, contact.numbers.firstOrNull())
             if (type != null) {
                 junkContacts.add(

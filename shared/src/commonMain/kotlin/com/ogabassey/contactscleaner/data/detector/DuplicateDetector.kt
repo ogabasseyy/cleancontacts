@@ -43,8 +43,8 @@ class DuplicateDetector(
         // Caching reduces O(N) JNI/parsing calls to O(U) where U is unique raw strings.
         val normalizationCache = mutableMapOf<String, String>()
 
-        for (contact in contacts) {
-            for (number in contact.numbers) {
+        contacts.forEach { contact ->
+            contact.numbers.forEach { number ->
                 if (number.isNotBlank()) {
                     val normalized = normalizationCache.getOrPut(number) {
                         phoneNumberHandler.normalizeToE164(number, defaultRegion)
@@ -76,8 +76,8 @@ class DuplicateDetector(
 
     private fun detectEmailDuplicates(contacts: List<Contact>): List<DuplicateGroup> {
         val groups = mutableMapOf<String, MutableList<Contact>>()
-        for (contact in contacts) {
-            for (email in contact.emails) {
+        contacts.forEach { contact ->
+            contact.emails.forEach { email ->
                 if (email.isNotBlank()) {
                     val normalized = email.trim().lowercase()
                     if (normalized.isNotBlank()) {
@@ -110,7 +110,7 @@ class DuplicateDetector(
         // to eliminate intermediate collection allocations. Also check isNullOrBlank before
         // expensive string manipulations.
         val groups = mutableMapOf<String, MutableList<Contact>>()
-        for (contact in contacts) {
+        contacts.forEach { contact ->
             val name = contact.name
             if (!name.isNullOrBlank()) {
                 val normalized = name.trim().lowercase()

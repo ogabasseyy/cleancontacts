@@ -42,3 +42,7 @@
 
 **Learning:** Using an empty lambda (`{ /* no-op */ }`) for an `onClick` parameter on a reusable card component applies a `clickable` modifier, creating a "false affordance." Screen readers will announce it as a button or tab, and it will respond to touch/clicks (with ripples), confusing users when no action occurs.
 **Action:** Make `onClick` parameters nullable (`(() -> Unit)? = null`) for reusable cards that may act as informational displays. Conditionally apply the `clickable` modifier and any interactive semantic roles (`Role.Button`, `Role.Tab`) ONLY when `onClick` is not null.
+
+## 2026-03-22 - Explicit Content Descriptions for Dashboard Summary
+**Learning:** For dashboard summary cards containing multiple disjoint values (like total issues and accounts), simply using `semantics(mergeDescendants = true)` can result in screen readers reading the numbers and text incohesively.
+**Action:** When creating complex summary cards, provide a clear, synthesized sentence as the `contentDescription` on the parent container to ensure the user gets a meaningful overview.

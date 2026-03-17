@@ -387,6 +387,10 @@ private fun ResultsSummaryCard(
             .padding(horizontal = 24.dp)
             .glassy(radius = 16.dp)
             .padding(16.dp)
+            .semantics(mergeDescendants = true) {
+                val totalIssues = result.junkCount + result.duplicateCount + result.formatIssueCount + result.sensitiveCount
+                contentDescription = "Last scan summary. ${result.accountCount.formatWithCommas()} Accounts, ${totalIssues.formatWithCommas()} Total Issues. Tap View Details or Recent Actions."
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

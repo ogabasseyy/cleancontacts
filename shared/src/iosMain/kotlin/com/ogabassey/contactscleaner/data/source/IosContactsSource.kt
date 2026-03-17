@@ -102,7 +102,6 @@ class IosContactsSource {
                 CNContactMiddleNameKey,
                 CNContactPhoneNumbersKey,
                 CNContactEmailAddressesKey,
-                CNContactSocialProfilesKey,
                 CNContactInstantMessageAddressesKey,
                 CNContactOrganizationNameKey
             )
@@ -209,18 +208,7 @@ class IosContactsSource {
             labeledValue.value?.toString()?.let { emails.add(it) }
         }
 
-        // 3. Check Social Profiles
-        @Suppress("UNCHECKED_CAST")
-        val socialProfiles = cnContact.socialProfiles as? List<CNLabeledValue> ?: emptyList()
-        for (profile in socialProfiles) {
-            val value = profile.value as? CNSocialProfile ?: continue
-            val service = value.service.lowercase()
-            val profileLabel = profile.label?.lowercase() ?: ""
-            if (service.contains("whatsapp") || profileLabel.contains("whatsapp")) isWhatsApp = true
-            if (service.contains("telegram") || profileLabel.contains("telegram")) isTelegram = true
-        }
-
-        // 4. Check Instant Message Addresses
+        // 3. Check Instant Message Addresses
         @Suppress("UNCHECKED_CAST")
         val imAddresses = cnContact.instantMessageAddresses as? List<CNLabeledValue> ?: emptyList()
         for (im in imAddresses) {
@@ -231,7 +219,7 @@ class IosContactsSource {
             if (service.contains("telegram") || imLabel.contains("telegram")) isTelegram = true
         }
 
-        // 5. Check organization name (some synced contacts have app name as org)
+        // 4. Check organization name (some synced contacts have app name as org)
         val orgName = cnContact.organizationName.lowercase()
         if (orgName.contains("whatsapp")) isWhatsApp = true
         if (orgName.contains("telegram")) isTelegram = true
@@ -428,7 +416,6 @@ class IosContactsSource {
                 CNContactMiddleNameKey,
                 CNContactPhoneNumbersKey,
                 CNContactEmailAddressesKey,
-                CNContactSocialProfilesKey,
                 CNContactInstantMessageAddressesKey,
                 CNContactOrganizationNameKey
             )
@@ -681,7 +668,6 @@ class IosContactsSource {
                 CNContactMiddleNameKey,
                 CNContactPhoneNumbersKey,
                 CNContactEmailAddressesKey,
-                CNContactSocialProfilesKey,
                 CNContactInstantMessageAddressesKey,
                 CNContactOrganizationNameKey
             )

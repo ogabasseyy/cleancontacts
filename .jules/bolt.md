@@ -234,3 +234,24 @@ val cleanValue = value.trim()
 
 **Learning:** Operations like `distinctBy { it.id }` internally allocate a new `HashSet` and `ArrayList`. Applying this operation to every group in a collection (e.g., when identifying duplicates) results in massive allocation overhead, especially since the vast majority of groups will only have a single item (size = 1).
 **Action:** When finding duplicates or processing groups, always check `if (group.size > 1)` *before* applying expensive functional transformations like `distinctBy` to eliminate unnecessary set and list allocations for single-item groups.
+
+# 2026-03-18 - Fast Path Pre-checks for String Builder Loops
+
+**Learning:** When using single-pass `StringBuilder` loops to perform string escaping or character replacement, instantiating the `StringBuilder` itself allocates memory and uses CPU. If the string often doesn't contain any characters that need to be replaced, this setup is wasted.
+
+**Action:** Always add a fast-path pre-check loop that scans for target characters first. If none are found, return the original string object directly, avoiding any `StringBuilder` allocation.
+
+```kotlin
+// ❌ Avoid: Always allocates a StringBuilder even for safe strings
+val sb = java.lang.StringBuilder(value.length)
+for (i in value.indices) { ... }
+
+// ✅ Prefer: 0 Allocations for the majority of safe strings
+var needsEscape = false
+for (i in value.indices) {
+    if (value[i] == '\\\\') { needsEscape = true; break }
+}
+if (!needsEscape) return value
+val sb = java.lang.StringBuilder(value.length)
+// ...
+```

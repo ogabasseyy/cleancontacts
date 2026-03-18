@@ -59,13 +59,41 @@ object ExportUtils {
      * Escapes backslash, semicolon, comma, and newlines per vCard 3.0/4.0 spec.
      */
     fun escapeVCardValue(value: String): String {
-        return value
-            .replace("\\", "\\\\")  // Escape backslash first
-            .replace(";", "\\;")
-            .replace(",", "\\,")
-            .replace("\r\n", "\\n")
-            .replace("\n", "\\n")
-            .replace("\r", "\\n")
+        // ⚡ Bolt Optimization: Single pass character loop
+        // Replaces 6 chained `.replace()` calls that create multiple intermediate String allocations.
+        // First check if any escape is needed to return early (0 allocations for safe strings).
+        var needsEscape = false
+        for (i in value.indices) {
+            val c = value[i]
+            if (c == '\\' || c == ';' || c == ',' || c == '\r' || c == '\n') {
+                needsEscape = true
+                break
+            }
+        }
+        if (!needsEscape) return value
+
+        val sb = StringBuilder(value.length + 8)
+        var i = 0
+        while (i < value.length) {
+            val c = value[i]
+            when (c) {
+                '\\' -> sb.append("\\\\")
+                ';' -> sb.append("\\;")
+                ',' -> sb.append("\\,")
+                '\r' -> {
+                    if (i + 1 < value.length && value[i + 1] == '\n') {
+                        sb.append("\\n")
+                        i++ // Skip the \n
+                    } else {
+                        sb.append("\\n")
+                    }
+                }
+                '\n' -> sb.append("\\n")
+                else -> sb.append(c)
+            }
+            i++
+        }
+        return sb.toString()
     }
 
     /**

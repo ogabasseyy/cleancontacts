@@ -387,6 +387,9 @@ private fun ResultsSummaryCard(
             .padding(horizontal = 24.dp)
             .glassy(radius = 16.dp)
             .padding(16.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Last scan summary. ${result.accountCount.formatWithCommas()} Accounts, ${result.totalIssues.formatWithCommas()} Total Issues. Tap View Details or Recent Actions."
+            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -415,10 +418,8 @@ private fun ResultsSummaryCard(
                 onClick = onViewDetails
             )
             
-            // Sum of all issues for the summary view
-            val totalIssues = result.junkCount + result.duplicateCount + result.formatIssueCount + result.sensitiveCount
             ResultMiniStat(
-                count = totalIssues,
+                count = result.totalIssues,
                 label = "TOTAL ISSUES",
                 color = ErrorNeon,
                 onClick = onViewDetails

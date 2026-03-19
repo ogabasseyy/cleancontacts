@@ -77,7 +77,10 @@ data class ScanResult(
     val formatIssueCount: Int = 0,
     val sensitiveCount: Int = 0,
     val crossAccountDuplicateCount: Int = 0
-)
+) {
+    val totalIssues: Int
+        get() = junkCount + duplicateCount + formatIssueCount + sensitiveCount + fancyFontCount
+}
 
 enum class ContactType {
     ALL, WHATSAPP, TELEGRAM, NON_WHATSAPP, JUNK, DUPLICATE, ACCOUNT,

@@ -38,7 +38,7 @@
 **Learning:** When grouping child components with `semantics(mergeDescendants = true)` (e.g., inside complex cards or list items), screen readers will automatically and clunkily concatenate the inner texts.
 **Action:** Explicitly provide a properly formatted `contentDescription` on the parent modifier to ensure screen readers read a cohesive, structured sentence rather than disjointed inner text values.
 
-## 2026-03-24 - Contextual Empty States
+## 2026-03-19 - Contextual Empty States
 
 **Learning:** Empty states should match their context. In a cleaning app, finding "No Contacts" in a junk or duplicates category isn't just an empty state—it's a success state (the user has finished cleaning!). Displaying generic "No items found" misses an opportunity to provide positive reinforcement and can feel like an error.
 **Action:** When designing empty states for action-driven lists (like error reports or cleanup tasks), always evaluate if "empty" means "success." If so, celebrate it with a distinct success icon, positive messaging ("All Clear!"), and brand colors to reward the user.

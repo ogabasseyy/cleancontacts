@@ -316,7 +316,7 @@ fun CategoryDetailScreen(
                             }
                         }
                         contacts.isEmpty() && uiState is CategoryUiState.Success -> {
-                            EmptySuccessState(type = type, accentColor = accentColor)
+                            EmptyCategoryState(type = type, accentColor = accentColor)
                         }
                         else -> {
                             // Show flat contact list for non-duplicate types
@@ -1076,10 +1076,96 @@ private fun DuplicateGroupList(
     }
 }
 
+private data class EmptyStateContent(
+    val headline: String,
+    val message: String,
+    val iconTint: Color,
+    val iconAlpha: Float,
+    val isSuccess: Boolean
+)
+
+private fun ContactType.isCleanupCategory(): Boolean = when (this) {
+    ContactType.JUNK,
+    ContactType.DUPLICATE,
+    ContactType.DUP_EMAIL,
+    ContactType.DUP_NUMBER,
+    ContactType.DUP_NAME,
+    ContactType.DUP_SIMILAR_NAME,
+    ContactType.DUP_CROSS_ACCOUNT,
+    ContactType.FORMAT_ISSUE,
+    ContactType.SENSITIVE,
+    ContactType.JUNK_NO_NAME,
+    ContactType.JUNK_NO_NUMBER,
+    ContactType.JUNK_SUSPICIOUS,
+    ContactType.JUNK_INVALID_CHAR,
+    ContactType.JUNK_LONG_NUMBER,
+    ContactType.JUNK_SHORT_NUMBER,
+    ContactType.JUNK_REPETITIVE,
+    ContactType.JUNK_SYMBOL,
+    ContactType.JUNK_NUMERICAL_NAME,
+    ContactType.JUNK_EMOJI_NAME,
+    ContactType.JUNK_FANCY_FONT -> true
+    else -> false
+}
+
+private fun ContactType.emptyStateLabel(): String = when (this) {
+    ContactType.WHATSAPP -> "WhatsApp contacts"
+    ContactType.TELEGRAM -> "Telegram contacts"
+    ContactType.NON_WHATSAPP -> "non-WhatsApp contacts"
+    ContactType.ACCOUNT -> "account groups"
+    ContactType.JUNK -> "junk contacts"
+    ContactType.DUPLICATE -> "duplicate contacts"
+    ContactType.DUP_EMAIL -> "duplicate emails"
+    ContactType.DUP_NUMBER -> "duplicate numbers"
+    ContactType.DUP_NAME -> "duplicate names"
+    ContactType.DUP_SIMILAR_NAME -> "similar names"
+    ContactType.DUP_CROSS_ACCOUNT -> "cross-account duplicates"
+    ContactType.FORMAT_ISSUE -> "format issues"
+    ContactType.SENSITIVE -> "sensitive data"
+    ContactType.JUNK_NO_NAME -> "contacts without names"
+    ContactType.JUNK_NO_NUMBER -> "contacts without numbers"
+    ContactType.JUNK_SUSPICIOUS -> "suspicious contacts"
+    ContactType.JUNK_INVALID_CHAR -> "invalid characters"
+    ContactType.JUNK_LONG_NUMBER -> "long numbers"
+    ContactType.JUNK_SHORT_NUMBER -> "short numbers"
+    ContactType.JUNK_REPETITIVE -> "repetitive digits"
+    ContactType.JUNK_SYMBOL -> "symbolic names"
+    ContactType.JUNK_NUMERICAL_NAME -> "numerical names"
+    ContactType.JUNK_EMOJI_NAME -> "emoji names"
+    ContactType.JUNK_FANCY_FONT -> "fancy fonts"
+    else -> "contacts"
+}
+
+private fun emptyStateContent(type: ContactType, accentColor: Color): EmptyStateContent {
+    val label = type.emptyStateLabel()
+    return if (type.isCleanupCategory()) {
+        EmptyStateContent(
+            headline = "All Clear!",
+            message = "No $label found",
+            iconTint = accentColor,
+            iconAlpha = 0.5f,
+            isSuccess = true
+        )
+    } else {
+        EmptyStateContent(
+            headline = "Nothing Here Yet",
+            message = "No $label found",
+            iconTint = TextMedium,
+            iconAlpha = 0.7f,
+            isSuccess = false
+        )
+    }
+}
+
 @Composable
-private fun EmptySuccessState(type: ContactType, accentColor: Color) {
+private fun EmptyCategoryState(type: ContactType, accentColor: Color) {
+    val emptyState = remember(type, accentColor) { emptyStateContent(type, accentColor) }
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${emptyState.headline}. ${emptyState.message}"
+            },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1087,26 +1173,32 @@ private fun EmptySuccessState(type: ContactType, accentColor: Color) {
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.1f)),
+                    .background(
+                        if (emptyState.isSuccess) {
+                            accentColor.copy(alpha = 0.1f)
+                        } else {
+                            Color.White.copy(alpha = 0.06f)
+                        }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.CheckCircle,
+                    if (emptyState.isSuccess) Icons.Default.CheckCircle else Icons.Default.Info,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = accentColor.copy(alpha = 0.5f)
+                    tint = emptyState.iconTint.copy(alpha = emptyState.iconAlpha)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "All Clear!",
+                emptyState.headline,
                 style = MaterialTheme.typography.titleMedium,
                 color = TextMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                "No ${type.name.lowercase().replace("_", " ")} found",
+                emptyState.message,
                 style = MaterialTheme.typography.bodySmall,
                 color = TextLow
             )

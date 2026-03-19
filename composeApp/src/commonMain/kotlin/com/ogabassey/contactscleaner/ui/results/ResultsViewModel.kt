@@ -132,9 +132,7 @@ class ResultsViewModel(
     // Expose counts for UI
     val accountsCount: Flow<Int> = contactRepository.getAccountCount()
     
-    val allIssuesCount: Flow<Int> = scanResult.map { it?.let { res ->
-        res.junkCount + res.duplicateCount + res.formatIssueCount + res.sensitiveCount + res.fancyFontCount
-    } ?: 0 }
+    val allIssuesCount: Flow<Int> = scanResult.map { it?.totalIssues ?: 0 }
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()

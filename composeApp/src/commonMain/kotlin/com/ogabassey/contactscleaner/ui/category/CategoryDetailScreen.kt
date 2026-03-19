@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.text.KeyboardOptions
@@ -315,12 +316,7 @@ fun CategoryDetailScreen(
                             }
                         }
                         contacts.isEmpty() && uiState is CategoryUiState.Success -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("No contacts found", color = TextMedium)
-                            }
+                            EmptySuccessState(type = type, accentColor = accentColor)
                         }
                         else -> {
                             // Show flat contact list for non-duplicate types
@@ -1081,6 +1077,44 @@ private fun DuplicateGroupList(
 }
 
 @Composable
+private fun EmptySuccessState(type: ContactType, accentColor: Color) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = accentColor.copy(alpha = 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "All Clear!",
+                style = MaterialTheme.typography.titleMedium,
+                color = TextMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "No ${type.name.lowercase().replace("_", " ")} found",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextLow
+            )
+        }
+    }
+}
+
+@Composable
 private fun DuplicateGroupItem(
     group: DuplicateGroupSummary,
     accentColor: Color,
@@ -1093,7 +1127,9 @@ private fun DuplicateGroupItem(
             .fillMaxWidth()
             .glassy(radius = 16.dp)
             .clickable(role = Role.Button) { onGroupClick(group) }
-            .semantics(mergeDescendants = true) {}
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Group ${group.groupKey}, ${group.count} contacts. ${group.previewNames}"
+            }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1154,7 +1190,10 @@ private fun ContactListItem(
             modifier = Modifier
                 .weight(1f)
                 .clickable(role = Role.Button) { onContactClick(contact) }
-                .semantics(mergeDescendants = true) {},
+                .semantics(mergeDescendants = true) {
+                    val phoneDesc = contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number"
+                    contentDescription = "Contact ${contact.name ?: "Unknown"}, phone number $phoneDesc"
+                },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

@@ -604,6 +604,9 @@ private fun SummaryCard(
                 modifier = Modifier
                     .padding(start = 8.dp) // Subtle lead-in padding
                     .padding(bottom = 16.dp)
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "${totalScanned.formatWithCommas()} contacts found"
+                    }
             ) {
                 Box(
                     modifier = Modifier
@@ -652,6 +655,9 @@ private fun SummaryCard(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "${accountsCount.formatWithCommas()} Accounts"
+                        }
                         .clickable(
                             role = Role.Button,
                             onClickLabel = "manage accounts"

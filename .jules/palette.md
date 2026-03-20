@@ -57,3 +57,7 @@
 
 **Learning:** Even for non-interactive list items (like `FeatureRow` displaying checkmarks and feature descriptions in a Paywall), screen readers will announce each element (the icon, the text) individually. This leads to disjointed "Check... Unlimited cleanups" announcements that disrupt the user's flow and cognitive understanding.
 **Action:** Apply `.semantics(mergeDescendants = true) {}` to the outer container (e.g., `Row`) of informational list items grouping descriptive icons and text labels to ensure screen readers announce them as a single cohesive unit.
+
+## 2026-03-20 - Explicit Content Descriptions for Dashboard Summary
+**Learning:** For dashboard summary cards containing multiple disjoint values (like total issues and accounts), simply using `semantics(mergeDescendants = true)` can result in screen readers reading the numbers and text incohesively.
+**Action:** When creating complex summary cards, provide a clear, synthesized sentence as the `contentDescription` on the parent container to ensure the user gets a meaningful overview.

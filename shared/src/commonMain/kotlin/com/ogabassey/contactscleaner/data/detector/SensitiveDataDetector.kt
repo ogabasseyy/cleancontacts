@@ -123,14 +123,20 @@ class SensitiveDataDetector(
 
         // 5. Check for Credit Card
         if (digitCount >= 13) {
-            // ⚡ Bolt Optimization: Avoid multiple allocations from chained replace calls.
-            // Use a single-pass character filter to build the cleaned string.
-            val sb = StringBuilder(cleanValue.length)
-            for (i in 0 until cleanValue.length) {
-                val c = cleanValue[i]
-                if (c != '-' && c != ' ') sb.append(c)
+            // ⚡ Bolt Optimization: Fast-path to avoid StringBuilder instantiation.
+            // We already know from the single-pass character scan above if the string has a hyphen.
+            // We can also quickly check if the string contains a space before allocating.
+            val hasSpace = cleanValue.contains(' ')
+            val cleanedForCC = if (hasSpace || hasHyphen) {
+                val sb = StringBuilder(cleanValue.length)
+                for (i in 0 until cleanValue.length) {
+                    val c = cleanValue[i]
+                    if (c != '-' && c != ' ') sb.append(c)
+                }
+                sb.toString()
+            } else {
+                cleanValue
             }
-            val cleanedForCC = sb.toString()
 
             if (CREDIT_CARD_REGEX.containsMatchIn(cleanedForCC)) {
                 return SensitiveMatch(cleanValue, SensitiveType.CREDIT_CARD, 0.8f, "Possible Credit Card Number")
@@ -141,14 +147,18 @@ class SensitiveDataDetector(
         // 2026 Fix: Redundant phone validation removed - already checked at line 62
         // Bolt Optimization: NIN must be exactly 11 digits and strictly numeric
         if (digitCount == 11 && letterCount == 0 && otherCount == 0) {
-            // ⚡ Bolt Optimization: Avoid allocation from replace.
-            // Use a single-pass character filter to build the cleaned string.
-            val sbNin = StringBuilder(cleanValue.length)
-            for (i in 0 until cleanValue.length) {
-                val c = cleanValue[i]
-                if (c != ' ') sbNin.append(c)
+            // ⚡ Bolt Optimization: Fast-path to avoid StringBuilder instantiation.
+            // Check if string contains spaces before attempting to remove them.
+            val cleanedForNIN = if (cleanValue.contains(' ')) {
+                val sbNin = StringBuilder(cleanValue.length)
+                for (i in 0 until cleanValue.length) {
+                    val c = cleanValue[i]
+                    if (c != ' ') sbNin.append(c)
+                }
+                sbNin.toString()
+            } else {
+                cleanValue
             }
-            val cleanedForNIN = sbNin.toString()
 
             if (NIGERIA_11_DIGIT_REGEX.matches(cleanedForNIN)) {
                 // It's 11 digits but NOT a valid phone number - high probability of NIN/BVN

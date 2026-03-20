@@ -1,4 +1,4 @@
-name: Deploy Web to Vercel
+name: Deploy Web to VPS
 
 on:
   push:
@@ -6,12 +6,14 @@ on:
     paths:
       - "landing-page/**"
       - ".github/workflows/deploy-web.yml"
+      - ".github/scripts/deploy-static-site.sh"
       - ".github/actionlint.yaml"
   pull_request:
     branches: [main]
     paths:
       - "landing-page/**"
       - ".github/workflows/deploy-web.yml"
+      - ".github/scripts/deploy-static-site.sh"
       - ".github/actionlint.yaml"
 
 permissions:
@@ -36,6 +38,7 @@ jobs:
             web:
               - 'landing-page/**'
               - '.github/workflows/deploy-web.yml'
+              - '.github/scripts/deploy-static-site.sh'
               - '.github/actionlint.yaml'
 
   deploy-production:
@@ -44,9 +47,7 @@ jobs:
     runs-on: cleancontacts-deploy
     timeout-minutes: 20
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      WEB_DEPLOY_DIR: /var/www/html/contactscleaner-tech
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -58,14 +59,17 @@ jobs:
 
       - run: npm ci --prefix landing-page
 
-      - run: npx vercel@50.13.2 pull --yes --environment=production --token="${{ env.VERCEL_TOKEN }}"
+      - run: npm run build --prefix landing-page
 
-      - run: npx vercel@50.13.2 build --yes --prod --token="${{ env.VERCEL_TOKEN }}"
+      - name: Publish static site to VPS webroot
+        run: .github/scripts/deploy-static-site.sh landing-page/dist
 
-      - name: Deploy to Vercel (with retry)
-        run: .github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --prod --archive=tgz --token="${{ env.VERCEL_TOKEN }}"
+      - name: Verify deployed files exist
+        run: |
+          test -f "${WEB_DEPLOY_DIR}/index.html"
+          test -f "${WEB_DEPLOY_DIR}/.well-known/assetlinks.json"
 
-  deploy-preview:
+  preview-build:
     needs: [changes]
     if: >-
       github.event_name == 'pull_request'
@@ -74,10 +78,6 @@ jobs:
       && github.actor != 'dependabot[bot]'
     runs-on: cleancontacts-deploy
     timeout-minutes: 20
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -89,9 +89,4 @@ jobs:
 
       - run: npm ci --prefix landing-page
 
-      - run: npx vercel@50.13.2 pull --yes --environment=preview --token="${{ env.VERCEL_TOKEN }}"
-
-      - run: npx vercel@50.13.2 build --yes --token="${{ env.VERCEL_TOKEN }}"
-
-      - name: Deploy to Vercel (with retry)
-        run: .github/scripts/deploy-with-retry.sh npx vercel@50.13.2 deploy --yes --prebuilt --archive=tgz --token="${{ env.VERCEL_TOKEN }}"
+      - run: npm run build --prefix landing-page

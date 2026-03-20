@@ -35,8 +35,8 @@ jobs:
         include:
         - language: actions
           build-mode: none
-        - language: java-kotlin
-          build-mode: manual
+        # Temporarily disable Java/Kotlin scanning until CodeQL supports
+        # the Kotlin toolchain used by this repo without failing main.
         - language: javascript-typescript
           build-mode: none
 
@@ -44,35 +44,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-    - name: Setup Java 25 (Project Standard)
-      if: matrix.language == 'java-kotlin'
-      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: 'gradle'
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0
       with:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/codeql-config.yml
-        # Use latest CodeQL CLI for Kotlin 2.3.x support (github/codeql#20661)
         tools: linked
-
-    - name: Build (java-kotlin)
-      id: build
-      if: matrix.build-mode == 'manual'
-      # TODO: Remove continue-on-error once CodeQL ships Kotlin 2.3.x support (github/codeql#20661)
-      continue-on-error: true
-      run: |
-        chmod +x gradlew
-        ./gradlew :androidApp:assembleDebug --no-daemon
-
-    - name: Warn on degraded analysis
-      if: matrix.build-mode == 'manual' && steps.build.outcome == 'failure'
-      run: |
-        echo "::warning::Build failed (likely KSP/Kotlin 2.3.x incompatibility). CodeQL analysis will run on source only — security coverage is degraded. Track: github/codeql#20661"
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@b1bff81932f5cdfc8695c7752dcee935dcd061c8 # v4.33.0

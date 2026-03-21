@@ -174,8 +174,10 @@ class DuplicateDetector(
             // 2026 Security: Skip excessively long names to prevent algorithmic DoS
             if (cleanNameA.length > MAX_NAME_LENGTH) continue
 
-            // Hoist prefix outside inner loop to avoid String allocation per iteration
-            val cleanNameAPrefix = cleanNameA.take(1)
+            // ⚡ Bolt Optimization: Use primitive Char instead of `take(1)` to avoid
+            // String allocation for every contact. `cleanNameA` is guaranteed non-empty
+            // due to earlier `isNotEmpty` checks and `ProcessedContact` filtering.
+            val firstCharA = cleanNameA[0]
 
             // Sliding window: Look ahead up to 50 items
             val maxLookAhead = (i + 50).coerceAtMost(processedContacts.size - 1)
@@ -191,8 +193,10 @@ class DuplicateDetector(
                 // 2026 Security: Skip excessively long names to prevent algorithmic DoS
                 if (cleanNameB.length > MAX_NAME_LENGTH) continue
 
-                // If first character differs, we've passed similar names
-                if (!cleanNameB.startsWith(cleanNameAPrefix)) break
+                // ⚡ Bolt Optimization: Compare primitive Char instead of `startsWith` String method
+                // to eliminate allocation and improve execution speed in this tight inner loop.
+                // Guarding with isEmpty() prevents StringIndexOutOfBoundsException.
+                if (cleanNameB.isEmpty() || cleanNameB[0] != firstCharA) break
 
                 // Length filter
                 if (abs(cleanNameA.length - cleanNameB.length) > 3) continue

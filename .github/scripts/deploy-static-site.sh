@@ -20,6 +20,11 @@ if [[ "$DEST_DIR" != /* ]]; then
 fi
 
 mkdir -p "$DEST_DIR"
-rsync -az --delete "$SRC_DIR"/ "$DEST_DIR"/
+# Sync content without trying to preserve owner/group/perms on the VPS webroot.
+rsync -rltz --delete \
+  --no-perms \
+  --no-owner \
+  --no-group \
+  "$SRC_DIR"/ "$DEST_DIR"/
 
 echo "Published static site to $DEST_DIR"

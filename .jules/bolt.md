@@ -234,3 +234,23 @@ val cleanValue = value.trim()
 
 **Learning:** Operations like `distinctBy { it.id }` internally allocate a new `HashSet` and `ArrayList`. Applying this operation to every group in a collection (e.g., when identifying duplicates) results in massive allocation overhead, especially since the vast majority of groups will only have a single item (size = 1).
 **Action:** When finding duplicates or processing groups, always check `if (group.size > 1)` *before* applying expensive functional transformations like `distinctBy` to eliminate unnecessary set and list allocations for single-item groups.
+
+# 2026-10-18 - Replacing `take(1)` and `startsWith` with primitive `Char` checks
+
+**Learning:** Extracting a single character prefix using `String.take(1)` creates an unnecessary `String` object allocation. In a tight inner loop processing thousands of elements (like checking duplicate names), these allocations accumulate, causing memory pressure and garbage collection overhead. Additionally, comparing that string prefix using `String.startsWith(String)` involves method calls and boundary checks that are heavier than a direct `Char` comparison.
+
+**Action:** When you only need to compare the first character of a string, and it is guaranteed not to be empty, extract it as a primitive `Char` using `string[0]` and perform direct character comparison (`!=` or `==`). This is an O(1) operation that completely eliminates the `String` allocation.
+
+```kotlin
+// ❌ Avoid: Allocates a String per iteration and uses a heavy string method
+val prefix = cleanNameA.take(1)
+for (item in items) {
+    if (!item.name.startsWith(prefix)) break
+}
+
+// ✅ Prefer: Zero allocation primitive Char extraction and comparison
+val firstChar = cleanNameA[0] // Assuming length > 0
+for (item in items) {
+    if (item.name[0] != firstChar) break
+}
+```

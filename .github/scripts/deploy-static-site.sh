@@ -9,6 +9,16 @@ if [[ ! -d "$SRC_DIR" ]]; then
   exit 1
 fi
 
+if [[ -z "$DEST_DIR" || "$DEST_DIR" == "/" || "$DEST_DIR" == "." || "$DEST_DIR" == ".." ]]; then
+  echo "Refusing to deploy to unsafe destination: $DEST_DIR" >&2
+  exit 1
+fi
+
+if [[ "$DEST_DIR" != /* ]]; then
+  echo "Deployment destination must be an absolute path: $DEST_DIR" >&2
+  exit 1
+fi
+
 mkdir -p "$DEST_DIR"
 rsync -az --delete "$SRC_DIR"/ "$DEST_DIR"/
 

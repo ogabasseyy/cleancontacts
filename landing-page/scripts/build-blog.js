@@ -205,7 +205,8 @@ for (const file of files) {
 
   // Publish a frontmatter-free markdown mirror for LLM-friendly access.
   // Preserve the original markdown body as-is when it already starts with a title.
-  writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), `${content.trim()}\n`);
+  const mirror = content.endsWith('\n') ? content : `${content}\n`;
+  writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), mirror);
 
   allPosts.push({
     title: data.title,

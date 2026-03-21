@@ -12,7 +12,7 @@ Contacts Cleaner describes privacy as central to the product. The policy says th
 
 ### Contact Data
 
-The app requests access to the device contact list in order to identify duplicates, incomplete entries, and related address-book cleanup issues.
+The app requests access to the device contact list to identify duplicates, incomplete entries, and related address-book cleanup issues.
 
 ### Device Information
 

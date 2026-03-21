@@ -1,3 +1,4 @@
+
 # WhatsApp Hanging? Too Many Contacts Might Be the Cause
 
 You open WhatsApp to send a quick message. Instead of loading instantly, the app freezes. Forwarding a photo takes 6-10 seconds. Scrolling through chats stutters. The keyboard lags behind your typing.

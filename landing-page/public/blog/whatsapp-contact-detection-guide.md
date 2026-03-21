@@ -1,3 +1,4 @@
+
 # How to Detect Which Contacts Use WhatsApp (Without Messaging Them)
 
 WhatsApp has over 2 billion users worldwide, but there's no easy way to know which of your contacts are on the platform without opening a chat with each one. If you're trying to organize your contacts, know who you can reach via WhatsApp, or clean up your address book, this guide shows you how.

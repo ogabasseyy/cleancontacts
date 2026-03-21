@@ -1,0 +1,114 @@
+# Contacts Cleaner
+
+> Contacts Cleaner is a mobile app and companion website for cleaning up phone contacts on iPhone and Android. It focuses on duplicate detection, junk contact removal, phone number formatting, WhatsApp-related contact analysis, and contact-management support content.
+
+## Product Summary
+
+Contacts Cleaner positions itself as an AI-powered contacts cleanup tool for iPhone and Android.
+
+Primary product themes:
+
+- Find and merge duplicate contacts, including near-duplicates.
+- Remove junk or incomplete contacts.
+- Standardize phone number formatting.
+- Detect WhatsApp-related contact patterns.
+- Support cross-account cleanup across common account sources.
+- Preserve recoverability with backup and undo flows.
+
+App store references:
+
+- iOS: https://apps.apple.com/app/id6758563652
+- Android: https://play.google.com/store/apps/details?id=com.ogabassey.contactscleaner
+
+Primary public site pages:
+
+- Homepage: https://contactscleaner.tech/
+- Support: https://contactscleaner.tech/support
+- Privacy: https://contactscleaner.tech/privacy
+- Terms: https://contactscleaner.tech/terms
+- Blog: https://contactscleaner.tech/blog
+
+## Support Summary
+
+Support page: https://contactscleaner.tech/support
+Markdown mirror: https://contactscleaner.tech/support.md
+
+Public support guidance currently emphasizes:
+
+- Duplicate detection uses fuzzy matching across names, phone numbers, and emails.
+- Potential matches above an 82% similarity score are flagged for review.
+- Contact data is processed locally on-device.
+- Merge and delete actions create snapshots.
+- Undo is available through in-app history.
+
+Support contact:
+
+- support@contactscleaner.tech
+
+## Privacy Summary
+
+Privacy page: https://contactscleaner.tech/privacy
+Markdown mirror: https://contactscleaner.tech/privacy.md
+
+Key privacy points described on the public site:
+
+- Contacts Cleaner treats privacy as a core product commitment.
+- Contact access is requested to identify duplicates, incomplete entries, and related cleanup issues.
+- Some technical device information may be collected for app performance and support.
+- Contact data is described as being processed locally on-device.
+- Full contact lists are not uploaded unless a user explicitly uses a backup-related feature.
+- Users are told they can revoke contact permissions in device settings.
+- Privacy contact is provided for policy questions.
+
+Privacy contact:
+
+- privacy@contactscleaner.tech
+
+## Terms Summary
+
+Terms page: https://contactscleaner.tech/terms
+Markdown mirror: https://contactscleaner.tech/terms.md
+
+Public terms currently cover:
+
+- Acceptance of terms by using the app.
+- A limited license to download and use the application.
+- Restrictions on decompiling, reverse engineering, or using the app outside intended use.
+- Local processing and privacy references.
+- Subscription and billing language for paid features.
+- Limitation of liability language.
+
+Legal contact:
+
+- legal@contactscleaner.tech
+
+## Blog Summary
+
+Blog index: https://contactscleaner.tech/blog
+Markdown guide: https://contactscleaner.tech/blog/index.md
+
+Current blog topics:
+
+- How to clean up Google Contacts
+- How to remove duplicate contacts on iPhone and Android
+- How to transfer contacts when switching phones
+- How to detect which contacts use WhatsApp
+- Why too many contacts can make WhatsApp lag
+- Comparison of contacts cleaner apps in 2026
+
+These articles are oriented toward practical contact cleanup, migration, deduplication, and WhatsApp-related contact management.
+
+## Discovery And Machine-Readable Files
+
+- Sitemap: https://contactscleaner.tech/sitemap.xml
+- RSS: https://contactscleaner.tech/rss.xml
+- Security disclosure: https://contactscleaner.tech/.well-known/security.txt
+- iOS association: https://contactscleaner.tech/.well-known/apple-app-site-association
+- Android association: https://contactscleaner.tech/.well-known/assetlinks.json
+
+## Notes For Agents
+
+- Prefer the markdown mirrors for policy and support questions.
+- Use blog pages for end-user help content around duplicates, Google Contacts, phone migration, and WhatsApp-related cleanup.
+- Use the homepage for marketing positioning and store links.
+- Use the `.well-known` files only for platform association or security-disclosure questions.

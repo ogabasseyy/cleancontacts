@@ -1,0 +1,38 @@
+# Contacts Cleaner
+
+> Contacts Cleaner is a mobile app and companion website for cleaning up phone contacts on iPhone and Android, including duplicate detection, junk cleanup, formatting fixes, WhatsApp-related cleanup guidance, and support/legal information.
+
+This file is a curated guide for LLMs and agents. Prefer the markdown resources below over raw HTML when a concise site overview is sufficient. For a longer single-file context, use `llms-full.txt`.
+
+## Product
+
+- [Homepage](https://contactscleaner.tech/): Main marketing page for Contacts Cleaner, including app overview, positioning, and structured data.
+- [Full site context](https://contactscleaner.tech/llms-full.txt): Expanded product, policy, support, and blog context in one markdown-friendly file.
+
+## Policies And Support
+
+- [Support](https://contactscleaner.tech/support): Public support page for common questions and support contact.
+- [Support markdown](https://contactscleaner.tech/support.md): Markdown mirror of the support page.
+- [Privacy policy](https://contactscleaner.tech/privacy): Public privacy policy page.
+- [Privacy policy markdown](https://contactscleaner.tech/privacy.md): Markdown mirror of the privacy policy.
+- [Terms of service](https://contactscleaner.tech/terms): Public terms of service page.
+- [Terms of service markdown](https://contactscleaner.tech/terms.md): Markdown mirror of the terms page.
+- [Security policy](https://contactscleaner.tech/.well-known/security.txt): Standard security disclosure contact file.
+
+## Blog
+
+- [Blog index](https://contactscleaner.tech/blog): Main blog landing page.
+- [Blog index markdown](https://contactscleaner.tech/blog/index.md): Markdown guide to current articles.
+- [How to clean up Google Contacts markdown](https://contactscleaner.tech/blog/how-to-clean-up-google-contacts.md): Cleanup guide for Google Contacts.
+- [Fix WhatsApp hanging by removing contacts markdown](https://contactscleaner.tech/blog/fix-whatsapp-hanging-remove-contacts.md): Performance-focused guide on reducing WhatsApp lag.
+- [Best contacts cleaner apps in 2026 markdown](https://contactscleaner.tech/blog/best-contacts-cleaner-app-2026.md): Comparison article.
+- [Transfer contacts when switching phones markdown](https://contactscleaner.tech/blog/transfer-contacts-switching-phones.md): Migration guide.
+- [How to remove duplicate contacts on iPhone and Android markdown](https://contactscleaner.tech/blog/how-to-remove-duplicate-contacts-iphone.md): Duplicate-removal guide.
+- [WhatsApp contact detection guide markdown](https://contactscleaner.tech/blog/whatsapp-contact-detection-guide.md): Guide to identifying WhatsApp users in a contact list.
+
+## Optional
+
+- [RSS feed](https://contactscleaner.tech/rss.xml): Blog feed.
+- [Sitemap](https://contactscleaner.tech/sitemap.xml): Full list of public site URLs.
+- [Apple App Site Association](https://contactscleaner.tech/.well-known/apple-app-site-association): iOS app/site association file.
+- [Android Asset Links](https://contactscleaner.tech/.well-known/assetlinks.json): Android app/site association file.

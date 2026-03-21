@@ -3,6 +3,7 @@
  * Reads markdown posts from blog/, generates:
  * - public/blog-manifest.json (post metadata + TOC for client)
  * - public/blog/*.html (pre-rendered HTML — no client-side markdown parsing)
+ * - public/blog/*.md (LLM-friendly markdown mirrors without frontmatter)
  * - public/rss.xml (RSS 2.0 feed)
  * - Updates public/sitemap.xml with blog URLs
  */
@@ -201,6 +202,10 @@ for (const file of files) {
 
   // Write pre-rendered HTML to public/blog/
   writeFileSync(resolve(publicBlogDir, `${data.slug}.html`), html);
+
+  // Publish a frontmatter-free markdown mirror for LLM-friendly access.
+  // Preserve the original markdown body as-is when it already starts with a title.
+  writeFileSync(resolve(publicBlogDir, `${data.slug}.md`), `${content.trim()}\n`);
 
   allPosts.push({
     title: data.title,

@@ -2,4 +2,10 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
 Sitemap: https://contactscleaner.tech/sitemap.xml

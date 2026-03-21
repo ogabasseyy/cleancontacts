@@ -13,7 +13,9 @@ dist-ssr
 *.local
 
 # Generated blog artifacts (built by scripts/build-blog.js)
-public/blog/
+public/blog/*
+!public/blog/
+!public/blog/*.md
 public/blog-manifest.json
 public/rss.xml
 

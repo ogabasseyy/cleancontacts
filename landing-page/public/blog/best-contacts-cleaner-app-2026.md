@@ -1,13 +1,3 @@
----
-title: "Best Contacts Cleaner Apps in 2026: Complete Comparison"
-description: "Comparing the top contacts cleaner apps for iPhone and Android in 2026. See which app offers the best duplicate detection, junk removal, and privacy protection."
-date: "2026-02-15"
-lastModified: "2026-02-18"
-slug: "best-contacts-cleaner-app-2026"
-image: "/og-image.png"
-category: "Reviews"
-tags: ["comparison", "review", "apps", "contacts", "2026"]
----
 
 # Best Contacts Cleaner Apps in 2026: Complete Comparison
 

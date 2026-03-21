@@ -739,7 +739,10 @@ private fun IssueCard(
         color = color.copy(alpha = 0.1f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = "$count $title. $description"
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -785,7 +788,10 @@ private fun StatCard(
         color = Color.White.copy(alpha = 0.05f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = "$count $title"
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -865,7 +871,12 @@ fun AccountDialogItem(
         color = Color.White.copy(alpha = 0.05f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                val accountNameText = group.accountName ?: "Unknown account"
+                val accountTypeText = group.accountType ?: "Local Account"
+                contentDescription = "$accountNameText, $accountTypeText. ${group.count} contacts"
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),

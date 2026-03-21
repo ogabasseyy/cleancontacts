@@ -45,6 +45,8 @@ kotlin {
 
             // Compose Multiplatform
             @Suppress("DEPRECATION")
+            implementation(compose.components.resources)
+            @Suppress("DEPRECATION")
             implementation(compose.runtime)
             @Suppress("DEPRECATION")
             implementation(compose.foundation)

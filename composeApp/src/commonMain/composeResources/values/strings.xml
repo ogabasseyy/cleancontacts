@@ -1,0 +1,13 @@
+<resources>
+    <string name="results_card_announcement">%1$s. %2$s</string>
+
+    <plurals name="results_card_count_title">
+        <item quantity="one">%1$s %2$s</item>
+        <item quantity="other">%1$s %2$s</item>
+    </plurals>
+
+    <plurals name="account_dialog_item_announcement">
+        <item quantity="one">%1$s, %2$s. %3$s contact</item>
+        <item quantity="other">%1$s, %2$s. %3$s contacts</item>
+    </plurals>
+</resources>

@@ -35,6 +35,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import contactscleaner.composeapp.generated.resources.Res
+import contactscleaner.composeapp.generated.resources.account_dialog_item_announcement
+import contactscleaner.composeapp.generated.resources.results_card_announcement
+import contactscleaner.composeapp.generated.resources.results_card_count_title
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
@@ -733,13 +739,24 @@ private fun IssueCard(
     description: String,
     onClick: () -> Unit
 ) {
+    val countTitle = pluralStringResource(
+        Res.plurals.results_card_count_title,
+        count,
+        count.formatWithCommas(),
+        title
+    )
+    val announcement = stringResource(Res.string.results_card_announcement, countTitle, description)
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = color.copy(alpha = 0.1f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = announcement
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -779,13 +796,23 @@ private fun StatCard(
     color: Color,
     onClick: () -> Unit
 ) {
+    val announcement = pluralStringResource(
+        Res.plurals.results_card_count_title,
+        count,
+        count.formatWithCommas(),
+        title
+    )
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = announcement
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -859,13 +886,26 @@ fun AccountDialogItem(
     group: com.ogabassey.contactscleaner.domain.model.AccountGroupSummary,
     onClick: () -> Unit
 ) {
+    val accountNameText = group.accountName ?: "Unknown account"
+    val accountTypeText = group.accountType ?: "Local Account"
+    val announcement = pluralStringResource(
+        Res.plurals.account_dialog_item_announcement,
+        group.count,
+        accountNameText,
+        accountTypeText,
+        group.count.formatWithCommas()
+    )
+
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = Color.White.copy(alpha = 0.05f),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) { role = Role.Button }
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = announcement
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -1176,5 +1216,3 @@ private fun WhatsAppSyncErrorCard(
         }
     }
 }
-
-

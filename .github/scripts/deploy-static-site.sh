@@ -19,9 +19,12 @@ if [[ "$DEST_DIR" != /* ]]; then
   exit 1
 fi
 
+umask 022
+
 mkdir -p "$DEST_DIR"
 # Sync content without trying to preserve owner/group/perms on the VPS webroot.
 rsync -rltz --delete \
+  --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
   --no-perms \
   --no-owner \
   --no-group \

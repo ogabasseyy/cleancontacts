@@ -463,6 +463,9 @@ private fun SensitiveSuggestionBanner(count: Int, onClick: () -> Unit) {
         color = WarningNeon.copy(alpha = 0.15f),
         border = androidx.compose.foundation.BorderStroke(1.dp, WarningNeon.copy(alpha = 0.3f)),
         modifier = Modifier.fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Suggestions for Safe List. ${count.formatWithCommas()} candidates found"
+            }
     ) {
         Row(
             modifier = Modifier.padding(12.dp),

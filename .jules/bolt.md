@@ -254,3 +254,20 @@ for (item in items) {
     if (item.name[0] != firstChar) break
 }
 ```
+
+# 2026-10-18 - Caching Redundant String Condition Results
+
+**Learning:** When a string condition (e.g., `startsWith('+')`) is evaluated multiple times within a high-frequency method, relying on repeated calls incurs redundant method call overhead and wastes CPU cycles. Additionally, using the `String` overload of `startsWith` creates unnecessary allocations.
+
+**Action:** Cache the boolean result of the condition in a local variable to avoid evaluating it multiple times. Furthermore, use the primitive `Char` overload `startsWith(Char)` instead of `startsWith(String)` to prevent allocations.
+
+```kotlin
+// ❌ Avoid: Evaluating the condition twice and using the String overload
+val potentialIntl = if (cleanValue.startsWith("+")) cleanValue else "+$cleanValue"
+if (cleanValue.startsWith("+")) { ... }
+
+// ✅ Prefer: Caching the result and using the Char overload
+val startsWithPlus = cleanValue.startsWith('+')
+val potentialIntl = if (startsWithPlus) cleanValue else "+$cleanValue"
+if (startsWithPlus) { ... }
+```

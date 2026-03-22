@@ -87,7 +87,9 @@ class SensitiveDataDetector(
         
         // 4. LibPhonenumber Validation (Global Fallback)
         // Try forcing international format check
-        val potentialIntl = if (cleanValue.startsWith("+")) cleanValue else "+$cleanValue"
+        // ⚡ Bolt Optimization: Cache .startsWith('+') to avoid evaluating it twice on the same string
+        val startsWithPlus = cleanValue.startsWith('+')
+        val potentialIntl = if (startsWithPlus) cleanValue else "+$cleanValue"
         if (phoneNumberHandler.isValidNumber(potentialIntl, "ZZ")) {
             return null
         }
@@ -97,7 +99,7 @@ class SensitiveDataDetector(
         // It failed validation (above), so it is a MALFORMED and INVALID phone number.
         // It is NOT a China Resident ID, SSN, or Passport (none of which start with '+').
         // We return null to avoid regex substring matches on long junk phone strings.
-        if (cleanValue.startsWith("+")) {
+        if (startsWithPlus) {
             return null
         }
 

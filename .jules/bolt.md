@@ -254,3 +254,19 @@ for (item in items) {
     if (item.name[0] != firstChar) break
 }
 ```
+
+## 2026-10-18 - Avoid String Methods for Single-Character Prefix Checking
+
+**Learning:** When evaluating a string prefix against multiple single-character possibilities (e.g., checking if it starts with `=`, `@`, `\t`, `\r`, `+`, or `-`), making repeated calls to `String.startsWith(String)` introduces unnecessary method overhead and String allocations. This is particularly wasteful in high-frequency operations like CSV exporting where these evaluations occur thousands of times.
+
+**Action:** Replace multiple `startsWith` calls with a single primitive `Char` extraction (`val firstChar = value[0]`) and perform direct character comparisons. Always guard the extraction with an `isEmpty()` check to prevent `StringIndexOutOfBoundsException`.
+
+```kotlin
+// ❌ Avoid: Multiple method calls and string allocations
+val needsEscape = value.startsWith("=") || value.startsWith("@") || value.startsWith("+")
+
+// ✅ Prefer: Single primitive char extraction and comparison
+if (value.isEmpty()) return value
+val firstChar = value[0]
+val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
+```

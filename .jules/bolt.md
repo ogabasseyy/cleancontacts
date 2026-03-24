@@ -257,7 +257,7 @@ for (item in items) {
 
 ## 2026-10-18 - Avoid String Methods for Single-Character Prefix Checking
 
-**Learning:** When evaluating a string prefix against multiple single-character possibilities (e.g., checking if it starts with `=`, `@`, `\t`, `\r`, `+`, or `-`), making repeated calls to `String.startsWith(String)` introduces unnecessary method overhead and String allocations. This is particularly wasteful in high-frequency operations like CSV exporting where these evaluations occur thousands of times.
+**Learning:** When evaluating a string prefix against multiple single-character possibilities (e.g., checking if it starts with `=`, `@`, `\t`, `\r`, `+`, or `-`), repeated calls to `startsWith` add method-call overhead and boundary checks. In hotspots such as CSV exporting, it is cheaper to guard with `isEmpty()` and compare the first character directly via `value[0]` when you only need a single-character prefix test.
 
 **Action:** Replace multiple `startsWith` calls with a single primitive `Char` extraction (`val firstChar = value[0]`) and perform direct character comparisons. Always guard the extraction with an `isEmpty()` check to prevent `StringIndexOutOfBoundsException`.
 

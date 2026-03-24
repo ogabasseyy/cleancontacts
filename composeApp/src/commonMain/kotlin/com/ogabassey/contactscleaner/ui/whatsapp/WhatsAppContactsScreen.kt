@@ -833,8 +833,22 @@ private fun BusinessDetectionProgressBanner(progress: BusinessDetectionProgress)
 
 @Composable
 private fun ContactCard(contact: WhatsAppContact) {
+    val contactName = contact.name ?: contact.pushName ?: contact.phoneNumber
+    val businessText = if (contact.isBusiness) {
+        val category = contact.businessProfile?.category
+        if (category != null) "Business contact, $category" else "Business contact"
+    } else {
+        "Personal contact"
+    }
+
+    val announcement = "$contactName, ${contact.phoneNumber}, $businessText"
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = announcement
+            },
         shape = RoundedCornerShape(12.dp),
         color = DeepSpace
     ) {

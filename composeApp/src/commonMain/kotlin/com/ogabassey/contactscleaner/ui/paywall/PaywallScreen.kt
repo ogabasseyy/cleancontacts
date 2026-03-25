@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -305,7 +306,9 @@ private fun FeatureRow(text: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .semantics(mergeDescendants = true) {},
+            .semantics(mergeDescendants = true) {
+                contentDescription = text
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -336,11 +339,19 @@ private fun PricingOption(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val description = buildString {
+        append("$title, $price")
+        if (billingPeriod != null) append(" $billingPeriod")
+        if (badge != null) append(". $badge")
+    }
+
     Card(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {},
+            .semantics(mergeDescendants = true) {
+                contentDescription = description
+            },
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
@@ -491,5 +502,8 @@ private fun PricingOptionSkeleton() {
             .height(72.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(brush)
+            .semantics {
+                contentDescription = "Loading pricing option"
+            }
     )
 }

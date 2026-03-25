@@ -50,10 +50,26 @@ class FileServiceImpl(
             throw SecurityException("Path traversal attempt detected: $fileName")
         }
 
-        // Further sanitize to ensure a safe filename (remove leading dots, weird chars)
-        return fileName
-            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
-            .replace(Regex("^[._]+"), "")
-            .ifEmpty { "export.csv" }
+        // ⚡ Bolt Optimization: Replace multiple Regex compilations and string passes
+        // with a single-pass StringBuilder loop to minimize allocation and CPU overhead.
+        val sb = java.lang.StringBuilder(fileName.length)
+        var hasValidStartChar = false
+
+        for (i in 0 until fileName.length) {
+            val c = fileName[i]
+            val isValidChar = (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') || c == '-' || c == '_' || c == '.'
+            val mappedChar = if (isValidChar) c else '_'
+
+            // Skip leading dots and underscores
+            if (!hasValidStartChar && (mappedChar == '.' || mappedChar == '_')) {
+                continue
+            }
+
+            hasValidStartChar = true
+            sb.append(mappedChar)
+        }
+
+        val sanitized = sb.toString()
+        return if (sanitized.isEmpty()) "export.csv" else sanitized
     }
 }

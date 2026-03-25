@@ -79,31 +79,10 @@ class IosFileService : FileService {
      * Throws Exception if a traversal attempt is detected.
      */
     private fun sanitizeFileName(fileName: String): String {
-        // 2026 Security Best Practice: Fail fast on obvious traversal attempts
-        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
-            throw Exception("Path traversal attempt detected: $fileName")
+        return try {
+            sanitizeExportFileName(fileName)
+        } catch (e: IllegalArgumentException) {
+            throw Exception(e.message ?: "Path traversal attempt detected")
         }
-
-        // ⚡ Bolt Optimization: Replace multiple Regex compilations and string passes
-        // with a single-pass StringBuilder loop to minimize allocation and CPU overhead.
-        val sb = StringBuilder(fileName.length)
-        var hasValidStartChar = false
-
-        for (i in 0 until fileName.length) {
-            val c = fileName[i]
-            val isValidChar = (c in 'a'..'z') || (c in 'A'..'Z') || (c in '0'..'9') || c == '-' || c == '_' || c == '.'
-            val mappedChar = if (isValidChar) c else '_'
-
-            // Skip leading dots and underscores
-            if (!hasValidStartChar && (mappedChar == '.' || mappedChar == '_')) {
-                continue
-            }
-
-            hasValidStartChar = true
-            sb.append(mappedChar)
-        }
-
-        val sanitized = sb.toString()
-        return if (sanitized.isEmpty()) "export.csv" else sanitized
     }
 }

@@ -31,10 +31,15 @@ object ExportUtils {
     }
 
     private fun escapeInjection(value: String, isPhoneField: Boolean = false): String {
-        var needsEscape = value.startsWith("=") || value.startsWith("@") ||
-            value.startsWith("\t") || value.startsWith("\r")
+        // ⚡ Bolt Optimization: Use primitive Char checks to avoid multiple string allocations
+        // and method overhead during high-frequency list exports.
+        if (value.isEmpty()) return value
+        val firstChar = value[0]
 
-        if (!needsEscape && (value.startsWith("+") || value.startsWith("-"))) {
+        var needsEscape = firstChar == '=' || firstChar == '@' ||
+            firstChar == '\t' || firstChar == '\r'
+
+        if (!needsEscape && (firstChar == '+' || firstChar == '-')) {
             if (isPhoneField) {
                 // Allow +/- in phone fields only if all characters are safe phone chars.
                 // Blocks formula payloads like "+cmd|' /C calc'!A0"

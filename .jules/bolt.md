@@ -262,7 +262,7 @@ for (item in items) {
 **Action:** Replace multiple `startsWith` calls with a single primitive `Char` extraction (`val firstChar = value[0]`) and perform direct character comparisons. Always guard the extraction with an `isEmpty()` check to prevent `StringIndexOutOfBoundsException`.
 
 ```kotlin
-// ❌ Avoid: Multiple method calls and string allocations
+// ❌ Avoid: Multiple method calls and boundary checks
 val needsEscape = value.startsWith("=") || value.startsWith("@") || value.startsWith("+")
 
 // ✅ Prefer: Single primitive char extraction and comparison

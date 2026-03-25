@@ -1356,7 +1356,7 @@ private fun ContactListItem(
             ) {
                 Icon(
                     Icons.Default.Edit,
-                    contentDescription = "Edit",
+                    contentDescription = "Edit ${contact.name ?: "contact"}",
                     tint = TextMedium.copy(alpha = 0.8f),
                     modifier = Modifier.size(24.dp)
                 )
@@ -1369,7 +1369,7 @@ private fun ContactListItem(
             ) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Delete",
+                    contentDescription = "Delete ${contact.name ?: "contact"}",
                     tint = ErrorNeon.copy(alpha = 0.9f),
                     modifier = Modifier.size(24.dp)
                 )

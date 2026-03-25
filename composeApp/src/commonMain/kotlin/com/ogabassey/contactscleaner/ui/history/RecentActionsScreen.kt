@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import com.ogabassey.contactscleaner.domain.repository.Snapshot
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -228,7 +230,10 @@ private fun ActionCard(
                     disabledContainerColor = PrimaryNeon.copy(alpha = 0.3f)
                 ),
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.semantics {
+                    contentDescription = "Undo ${snapshot.description}"
+                }
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(

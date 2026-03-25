@@ -45,15 +45,10 @@ class FileServiceImpl(
      * Throws SecurityException if a traversal attempt is detected.
      */
     private fun sanitizeFileName(fileName: String): String {
-        // 2026 Security Best Practice: Fail fast on obvious traversal attempts
-        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
-            throw SecurityException("Path traversal attempt detected: $fileName")
+        return try {
+            sanitizeExportFileName(fileName)
+        } catch (e: IllegalArgumentException) {
+            throw SecurityException(e.message ?: "Path traversal attempt detected")
         }
-
-        // Further sanitize to ensure a safe filename (remove leading dots, weird chars)
-        return fileName
-            .replace(Regex("[^a-zA-Z0-9._-]"), "_")
-            .replace(Regex("^[._]+"), "")
-            .ifEmpty { "export.csv" }
     }
 }

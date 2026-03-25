@@ -270,3 +270,8 @@ if (value.isEmpty()) return value
 val firstChar = value[0]
 val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ```
+
+## 2026-03-05 - [Regex to StringBuilder File Sanitization]
+
+**Learning:** For filename sanitization logic (e.g., in `IosFileService`, `FileServiceImpl`), replacing repeated `Regex` compilation and multiple string passes with a single-pass `StringBuilder` loop minimizes allocation and CPU overhead.
+**Action:** Use single-pass StringBuilder loops with direct character validation for high-frequency text filtering and sanitization to reduce garbage collection overhead and improve execution speed.

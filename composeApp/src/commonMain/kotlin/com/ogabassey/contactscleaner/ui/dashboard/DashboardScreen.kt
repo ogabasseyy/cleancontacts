@@ -449,7 +449,7 @@ private fun ResultsSummaryCard(
                     containerColor = Color.White.copy(alpha = 0.1f)
                 )
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = "Recent Actions", tint = Color.White)
+                Icon(Icons.Default.Restore, contentDescription = "Recent Actions", tint = Color.White)
             }
         }
     }

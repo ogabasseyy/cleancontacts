@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -201,7 +202,9 @@ private fun SensitiveContactCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.semantics(mergeDescendants = true) {},
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    contentDescription = "Contact ${contact.name ?: "Unknown"}, ${contact.sensitiveDescription ?: "Potential Sensitive Data"}, ${contact.normalizedNumber ?: ""}"
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -246,7 +249,9 @@ private fun SensitiveContactCard(
             ) {
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).semantics {
+                        contentDescription = "Skip ${contact.name ?: "contact"}"
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White.copy(alpha = 0.05f),
                         contentColor = TextMedium
@@ -258,7 +263,9 @@ private fun SensitiveContactCard(
                 }
                 Button(
                     onClick = onIgnore,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).semantics {
+                        contentDescription = "Keep ${contact.name ?: "contact"} Safe"
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryNeon,
                         contentColor = SpaceBlack

@@ -19,6 +19,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -159,12 +161,15 @@ fun HistoryCard(
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = PrimaryNeon.copy(alpha = 0.1f),
                         contentColor = PrimaryNeon
-                    )
+                    ),
+                    modifier = Modifier.semantics {
+                        contentDescription = "Undo ${snapshot.description}"
+                    }
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryNeon, strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Filled.Restore, contentDescription = "Undo")
+                        Icon(Icons.Filled.Restore, contentDescription = null)
                     }
                 }
             }

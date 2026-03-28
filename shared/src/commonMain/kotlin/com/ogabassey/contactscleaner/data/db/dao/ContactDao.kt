@@ -55,6 +55,7 @@ interface ContactDao {
             (SELECT COUNT(*) FROM (
                 SELECT matching_key FROM contacts
                 WHERE matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
                 GROUP BY matching_key
                 HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
             )) as crossAccountCount

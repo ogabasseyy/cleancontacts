@@ -242,7 +242,8 @@ fun WhatsAppContactsCard(
 
             // Feature badges
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.semantics(mergeDescendants = true) {}
             ) {
                 FeatureBadge(
                     icon = Icons.Default.Business,

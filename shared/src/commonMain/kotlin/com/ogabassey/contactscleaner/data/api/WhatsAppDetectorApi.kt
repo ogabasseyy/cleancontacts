@@ -258,6 +258,13 @@ class WhatsAppDetectorApi(
         if (!isValidUserId(userId)) {
              return WhatsAppContactsResponse(success = false, error = "Invalid user ID format")
         }
+        // 2026 Security: Validate limit and offset to prevent DoS or negative value crashes
+        if (limit <= 0 || limit > MAX_BATCH_SIZE) {
+            return WhatsAppContactsResponse(success = false, error = "Invalid limit parameter")
+        }
+        if (offset < 0) {
+            return WhatsAppContactsResponse(success = false, error = "Invalid offset parameter")
+        }
         return try {
             client.get {
                 url(baseUrl)

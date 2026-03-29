@@ -57,3 +57,8 @@
 **Vulnerability:** A critical, hardcoded API Key for the WhatsApp Detector Service (`WHATSAPP_DETECTOR_API_KEY`) was accidentally committed and exposed as a fallback value in `WhatsAppDetectorConfig.ios.kt` (`"e59ec0ca77c64b123d56e683c92e7009c0cbaf0d393dc916b1856ead3b063332"`).
 **Learning:** Hardcoded external service API keys represent critical vulnerabilities. However, there is a distinction between public SDK keys (like RevenueCat `appl_...`) and sensitive service keys. The iOS source set was originally configured independently, bypassing the `Secrets` generated object available to Android.
 **Prevention:** Remove hardcoded sensitive keys immediately. Configure KMP build scripts to expose securely generated `Secrets` across all targets by adding `kotlin.srcDir(secretsDir)` to the `commonMain` configuration block in `build.gradle.kts`. This ensures all platforms access securely injected properties.
+
+## 2026-10-25 - [MEDIUM] Missing Boundary Validation for API Parameter `limit`
+**Vulnerability:** The `getContacts` method in `WhatsAppDetectorApi.kt` accepted an unvalidated integer `limit`, potentially allowing denial of service through an excessively large number, which could result in high resource consumption and potential out of bounds errors.
+**Learning:** External API inputs, including pagination bounds like `limit`, must be strictly bounded to prevent abuse or unintentional backend stress, even if there are default values.
+**Prevention:** Introduce and enforce strict length and bounds limits (e.g., `> 0` and `<= MAX_BATCH_SIZE`) for data extraction methods, returning structured errors when limits are exceeded before initiating API calls.

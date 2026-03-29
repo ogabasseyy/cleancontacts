@@ -40,7 +40,20 @@ class ExportUseCase(
 
     suspend fun exportContactList(contacts: List<Contact>, groupName: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val sanitizedName = groupName.replace(Regex("[^a-zA-Z0-9]"), "_").lowercase()
+            // ⚡ Bolt Optimization: Single-pass StringBuilder loop instead of Regex recompilation
+            // and chained string operations to minimize allocation and CPU overhead.
+            val sb = StringBuilder(groupName.length)
+            for (i in 0 until groupName.length) {
+                val c = groupName[i]
+                if (c in 'a'..'z' || c in '0'..'9') {
+                    sb.append(c)
+                } else if (c in 'A'..'Z') {
+                    sb.append(c.lowercaseChar())
+                } else {
+                    sb.append('_')
+                }
+            }
+            val sanitizedName = sb.toString()
             val fileName = "contacts_${sanitizedName}_${getPlatformTimeMillis()}.csv"
             generateAndSaveCsv(contacts, fileName)
         } catch (e: Exception) {

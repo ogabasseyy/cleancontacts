@@ -50,7 +50,12 @@ class DuplicateDetector(
                         phoneNumberHandler.normalizeToE164(number, defaultRegion)
                     }
                     if (normalized.isNotBlank()) {
-                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                        val group = groups.getOrPut(normalized) { mutableListOf() }
+                        // ⚡ Bolt Optimization: Prevent O(N) allocation overhead from distinctBy by
+                        // preventing duplicates at insertion time using an O(1) check.
+                        if (group.isEmpty() || group.last().id != contact.id) {
+                            group.add(contact)
+                        }
                     }
                 }
             }
@@ -59,16 +64,13 @@ class DuplicateDetector(
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((key, group) in groups) {
             if (group.size > 1) {
-                val distinctContacts = group.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = key,
-                            duplicateType = DuplicateType.NUMBER_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = key,
+                        duplicateType = DuplicateType.NUMBER_MATCH,
+                        contacts = group.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result
@@ -81,7 +83,12 @@ class DuplicateDetector(
                 if (email.isNotBlank()) {
                     val normalized = email.trim().lowercase()
                     if (normalized.isNotBlank()) {
-                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                        val group = groups.getOrPut(normalized) { mutableListOf() }
+                        // ⚡ Bolt Optimization: Prevent O(N) allocation overhead from distinctBy by
+                        // preventing duplicates at insertion time using an O(1) check.
+                        if (group.isEmpty() || group.last().id != contact.id) {
+                            group.add(contact)
+                        }
                     }
                 }
             }
@@ -90,16 +97,13 @@ class DuplicateDetector(
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((key, group) in groups) {
             if (group.size > 1) {
-                val distinctContacts = group.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = key,
-                            duplicateType = DuplicateType.EMAIL_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = key,
+                        duplicateType = DuplicateType.EMAIL_MATCH,
+                        contacts = group.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result
@@ -115,7 +119,12 @@ class DuplicateDetector(
             if (!name.isNullOrBlank()) {
                 val normalized = name.trim().lowercase()
                 if (normalized.isNotEmpty()) {
-                    groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                    val group = groups.getOrPut(normalized) { mutableListOf() }
+                    // ⚡ Bolt Optimization: Prevent O(N) allocation overhead from distinctBy by
+                    // preventing duplicates at insertion time using an O(1) check.
+                    if (group.isEmpty() || group.last().id != contact.id) {
+                        group.add(contact)
+                    }
                 }
             }
         }
@@ -123,16 +132,13 @@ class DuplicateDetector(
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((name, duplicates) in groups) {
             if (duplicates.size > 1) {
-                val distinctContacts = duplicates.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = name,
-                            duplicateType = DuplicateType.NAME_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = name,
+                        duplicateType = DuplicateType.NAME_MATCH,
+                        contacts = duplicates.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result

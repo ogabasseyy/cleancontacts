@@ -187,7 +187,7 @@ fun HistoryCard(
                 "Action recorded at: $timestampStr",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextLow,
-                modifier = Modifier.clearAndSetSemantics { } // Hidden because it's already included in the merged parent semantics
+                modifier = Modifier.clearAndSetSemantics { } // Hidden because it is already included in the merged parent semantics
             )
         }
     }

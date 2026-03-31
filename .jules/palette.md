@@ -62,3 +62,8 @@
 
 **Learning:** Adding `semantics(mergeDescendants = true)` alone to a parent container such as `Surface` causes screen readers to concatenate child text nodes in source order, which produces clunky announcements on multi-part cards.
 **Action:** For interactive cards that present related values like count, title, and supporting detail, synthesize a single parent `contentDescription` so TalkBack and VoiceOver announce one structured sentence instead of fragmented child content.
+
+## 2026-03-22 - Contextual Icon Button Accessibility Descriptions
+
+**Learning:** Using generic content descriptions like "Undo" for icon buttons inside lists means screen reader users navigating quickly between actionable elements won't know which item they are acting upon (e.g. hearing "Undo... Undo... Undo...").
+**Action:** When an `IconButton` acts on a specific item within a list or card, interpolate item-specific details into its `contentDescription` (e.g. `"Undo ${item.name}"`) to provide essential context without forcing users to re-read the surrounding row.

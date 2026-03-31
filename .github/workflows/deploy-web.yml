@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -61,9 +61,9 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: landing-page/pnpm-lock.yaml
 
-      - run: pnpm install --dir landing-page
+      - run: cd landing-page && pnpm install
 
-      - run: pnpm run build --dir landing-page
+      - run: cd landing-page && pnpm run build
 
       - name: Publish static site to VPS webroot
         run: .github/scripts/deploy-static-site.sh landing-page/dist
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - uses: pnpm/action-setup@v3
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -95,9 +95,9 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: landing-page/pnpm-lock.yaml
 
-      - run: pnpm install --dir landing-page
+      - run: cd landing-page && pnpm install
 
-      - run: pnpm run build --dir landing-page
+      - run: cd landing-page && pnpm run build
 
       - name: Upload preview artifacts
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3

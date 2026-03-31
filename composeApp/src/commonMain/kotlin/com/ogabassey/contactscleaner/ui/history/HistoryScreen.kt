@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.domain.repository.Snapshot
@@ -187,11 +187,7 @@ fun HistoryCard(
                 "Action recorded at: $timestampStr",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextLow,
-                modifier = Modifier.semantics {
-                    // Hidden because it's already included in the merged parent semantics
-                    @Suppress("DEPRECATION")
-                    invisibleToUser()
-                }
+                modifier = Modifier.clearAndSetSemantics { } // Hidden because it's already included in the merged parent semantics
             )
         }
     }

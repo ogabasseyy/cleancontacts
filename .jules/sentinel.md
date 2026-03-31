@@ -62,3 +62,8 @@
 **Vulnerability:** The `getContacts` API endpoint lacked validation for `limit` and `offset` parameters, allowing potential Denial of Service (DoS) and memory exhaustion by requesting excessively large batch sizes or invalid offsets.
 **Learning:** Even internal API wrappers must validate input limits before forwarding requests to the server to fail fast and prevent client-side memory exhaustion or server-side overload.
 **Prevention:** Always validate API pagination and batch parameters (e.g., `limit`, `offset`) against strict maximum thresholds (like `MAX_BATCH_SIZE`) before making network requests or executing queries.
+
+## 2026-10-24 - PII Leak in WebSocket API Models
+**Vulnerability:** The `WebSocketMessage` and `WebSocketEvent` data classes in `WhatsAppDetectorApi.kt` both contained a `phoneNumber` field but lacked a custom `toString()` method, which could lead to accidental logging of PII (CWE-532).
+**Learning:** All data classes containing PII, even internal or nested ones used in API models, must explicitly override `toString()` to redact sensitive fields.
+**Prevention:** Override `toString()` in all data classes containing sensitive information to explicitly redact PII.

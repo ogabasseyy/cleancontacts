@@ -377,7 +377,12 @@ private data class WebSocketMessage(
     val type: String,
     val phoneNumber: String? = null,
     val userId: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WebSocketMessage(type=$type, userId=$userId, phoneNumber=***REDACTED***)"
+    }
+}
 
 /**
  * WebSocket event received from server
@@ -389,7 +394,12 @@ private data class WebSocketEvent(
     val code: String? = null,
     val error: String? = null,
     val timestamp: Long? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WebSocketEvent(type=$type, code=$code, error=$error, timestamp=$timestamp, phoneNumber=***REDACTED***)"
+    }
+}
 
 /**
  * Pairing events for real-time updates

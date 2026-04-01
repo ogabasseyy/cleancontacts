@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -36,7 +37,9 @@ fun WhatsAppLinkCard(
         color = Color.White.copy(alpha = 0.05f),
         modifier = modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Unlock WhatsApp Detection. Link your WhatsApp to see which contacts use it. Privacy First - No data stored."
+            }
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -126,7 +129,10 @@ fun WhatsAppLinkCardCompact(
         color = Color.White.copy(alpha = 0.05f),
         modifier = modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
+            .semantics(mergeDescendants = true) {
+                val status = if (isConnected) "Connected. Disconnect" else "Not linked. Link"
+                contentDescription = "WhatsApp Detection. $status."
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -189,7 +195,9 @@ fun WhatsAppContactsCard(
         color = PrimaryNeon.copy(alpha = 0.1f),
         modifier = modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
+            .semantics(mergeDescendants = true) {
+                contentDescription = "WhatsApp Contacts. View contacts with business detection & export. Business and Personal contacts included."
+            }
     ) {
         Column(
             modifier = Modifier.padding(20.dp)

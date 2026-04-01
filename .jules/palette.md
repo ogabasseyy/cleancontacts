@@ -62,3 +62,6 @@
 
 **Learning:** Adding `semantics(mergeDescendants = true)` alone to a parent container such as `Surface` causes screen readers to concatenate child text nodes in source order, which produces clunky announcements on multi-part cards.
 **Action:** For interactive cards that present related values like count, title, and supporting detail, synthesize a single parent `contentDescription` so TalkBack and VoiceOver announce one structured sentence instead of fragmented child content.
+## 2026-04-01 - Synthesize contentDescription in semantics(mergeDescendants = true)
+**Learning:** When applying `semantics(mergeDescendants = true)` to composite cards (e.g., WhatsApp cards and IgnoredContactCard), screen readers may announce disjointed fragments. Explicitly defining a `contentDescription` on the parent modifier ensures a cohesive and structured announcement.
+**Action:** Always provide a synthesized `contentDescription` on the parent `semantics` block for interactive and complex UI components.

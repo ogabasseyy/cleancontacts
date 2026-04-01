@@ -46,7 +46,9 @@ class ContactImportParser {
 
     private fun parseCSVLine(line: String, id: Long): Contact? {
         val parts = mutableListOf<String>()
-        var current = StringBuilder()
+        // ⚡ Bolt Optimization: Reuse a single StringBuilder instance instead of
+        // reallocating it for every field to reduce object allocation and GC overhead.
+        val current = StringBuilder()
         var inQuotes = false
         
         var i = 0
@@ -74,7 +76,7 @@ class ContactImportParser {
                     i++
                 } else if (char == ',') {
                     parts.add(current.toString().trim())
-                    current = StringBuilder()
+                    current.clear()
                     i++
                 } else {
                     current.append(char)

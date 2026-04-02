@@ -51,15 +51,19 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: "24"
-          cache: "npm"
-          cache-dependency-path: landing-page/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: landing-page/pnpm-lock.yaml
 
-      - run: npm ci --prefix landing-page
+      - run: cd landing-page && pnpm install
 
-      - run: npm run build --prefix landing-page
+      - run: cd landing-page && pnpm build
 
       - name: Publish static site to VPS webroot
         run: .github/scripts/deploy-static-site.sh landing-page/dist
@@ -81,15 +85,19 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: "24"
-          cache: "npm"
-          cache-dependency-path: landing-page/package-lock.json
+          cache: "pnpm"
+          cache-dependency-path: landing-page/pnpm-lock.yaml
 
-      - run: npm ci --prefix landing-page
+      - run: cd landing-page && pnpm install
 
-      - run: npm run build --prefix landing-page
+      - run: cd landing-page && pnpm build
 
       - name: Upload preview artifacts
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3

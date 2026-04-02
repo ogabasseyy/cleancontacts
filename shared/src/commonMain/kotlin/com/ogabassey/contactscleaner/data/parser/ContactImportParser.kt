@@ -46,9 +46,9 @@ class ContactImportParser {
 
     private fun parseCSVLine(line: String, id: Long): Contact? {
         val parts = mutableListOf<String>()
-        var current = StringBuilder()
+        val current = StringBuilder()
         var inQuotes = false
-        
+
         var i = 0
 
         while (i < line.length) {
@@ -74,7 +74,7 @@ class ContactImportParser {
                     i++
                 } else if (char == ',') {
                     parts.add(current.toString().trim())
-                    current = StringBuilder()
+                    current.clear()
                     i++
                 } else {
                     current.append(char)
@@ -83,7 +83,7 @@ class ContactImportParser {
             }
         }
         parts.add(current.toString().trim())
-        
+
         return when {
             parts.size >= 2 -> {
                 Contact(

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -201,7 +202,9 @@ private fun SensitiveContactCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.semantics(mergeDescendants = true) {},
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    contentDescription = "${contact.name ?: "Unknown contact"}, ${contact.sensitiveDescription ?: "Potential Sensitive Data"}, phone number ${contact.normalizedNumber ?: "unknown"}"
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(

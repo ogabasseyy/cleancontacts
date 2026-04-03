@@ -28,6 +28,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.platform.RegionProvider
@@ -218,7 +220,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         // Phone input - limit to country-specific digit count
         OutlinedTextField(
             value = phoneNumber,
-            onValueChange = { newValue ->
+            onValueChange = { newValue: String ->
                 val digitsOnly = newValue.filter { c -> c.isDigit() }
                 if (digitsOnly.length <= expectedDigits) {
                     phoneNumber = digitsOnly
@@ -254,7 +256,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Enter phone number" }
         )
 
         Spacer(modifier = Modifier.height(8.dp))

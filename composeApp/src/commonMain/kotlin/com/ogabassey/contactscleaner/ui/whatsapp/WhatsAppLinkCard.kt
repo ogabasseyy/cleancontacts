@@ -91,6 +91,7 @@ fun WhatsAppLinkCard(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .background(PrimaryNeon.copy(alpha = 0.1f))
+                    .semantics(mergeDescendants = true) {}
                     .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Icon(
@@ -270,6 +271,7 @@ private fun FeatureBadge(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
             .background(color.copy(alpha = 0.1f))
+            .semantics(mergeDescendants = true) {}
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Icon(

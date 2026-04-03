@@ -276,6 +276,10 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 **Learning:** For filename sanitization logic (e.g., in `IosFileService`, `FileServiceImpl`), replacing repeated `Regex` compilation and multiple string passes with a single-pass `StringBuilder` loop minimizes allocation and CPU overhead.
 **Action:** Use single-pass StringBuilder loops with direct character validation for high-frequency text filtering and sanitization to reduce garbage collection overhead and improve execution speed.
 
-## 2026-03-05 - Avoid distinctBy overhead in Duplicate Tracking
-**Learning:** Using `distinctBy` to eliminate duplicates within collected groups allocates a `HashSet` and an `ArrayList` for every group size > 1, introducing O(N) allocation overhead. In grouped data structures derived from a linear iteration, duplicate elements typically appear sequentially.
-**Action:** Remove `distinctBy` by preventing duplicates at insertion time. Use an O(1) check `if (group.isEmpty() || group.last().id != contact.id)` to avoid inserting sequentially identical elements. For elements intrinsically unique per contact (like a single contact name), discard deduplication entirely.
+
+
+## 2026-10-18 - Missing Filter in Aggregate Subqueries
+
+**Learning:** When performing complex aggregate queries (like `getScanStats` calculating a `crossAccountCount`), failing to filter out rows you don't care about before the `GROUP BY` and `HAVING COUNT(DISTINCT...)` operations creates a massive performance bottleneck. In this case, synced contacts (WhatsApp, Telegram) were being unnecessarily processed in the grouping phase. This not only wastes CPU and memory but also leads to inconsistent data if the subquery logic doesn't match the detailed view queries.
+
+**Action:** Always verify that complex `SELECT COUNT(*) FROM (SELECT ... GROUP BY ... HAVING ...)` subqueries use the same restrictive `WHERE` filters as their corresponding individual detailed queries to avoid processing irrelevant rows in heavy grouping operations.

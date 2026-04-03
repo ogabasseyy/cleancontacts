@@ -62,3 +62,7 @@
 
 **Learning:** Adding `semantics(mergeDescendants = true)` alone to a parent container such as `Surface` causes screen readers to concatenate child text nodes in source order, which produces clunky announcements on multi-part cards.
 **Action:** For interactive cards that present related values like count, title, and supporting detail, synthesize a single parent `contentDescription` so TalkBack and VoiceOver announce one structured sentence instead of fragmented child content.
+
+## 2024-03-05 - Contextual Content Descriptions in List Actions
+**Learning:** Screen readers announce a generic "Undo" or "Skip" repeatedly when list item actions have static descriptions. To give proper context, we need to interpolate the specific list item's data (e.g., `contentDescription = "Undo ${snapshot.description}"`).
+**Action:** Always inject specific item names or descriptions into the `contentDescription` of interactive elements inside lists.

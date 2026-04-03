@@ -50,7 +50,14 @@ class DuplicateDetector(
                         phoneNumberHandler.normalizeToE164(number, defaultRegion)
                     }
                     if (normalized.isNotBlank()) {
-                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                        val group = groups.getOrPut(normalized) { mutableListOf() }
+                        // ⚡ Bolt Optimization: Prevent O(N) duplicate tracking allocations (like `distinctBy`).
+                        // A contact's numbers are processed sequentially, so if a contact has duplicate
+                        // identical numbers, they are added back-to-back. Checking the last element's ID
+                        // completely avoids inserting the same contact twice in O(1) time without Set overhead.
+                        if (group.isEmpty() || group.last().id != contact.id) {
+                            group.add(contact)
+                        }
                     }
                 }
             }
@@ -59,16 +66,13 @@ class DuplicateDetector(
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((key, group) in groups) {
             if (group.size > 1) {
-                val distinctContacts = group.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = key,
-                            duplicateType = DuplicateType.NUMBER_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = key,
+                        duplicateType = DuplicateType.NUMBER_MATCH,
+                        contacts = group.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result
@@ -81,7 +85,14 @@ class DuplicateDetector(
                 if (email.isNotBlank()) {
                     val normalized = email.trim().lowercase()
                     if (normalized.isNotBlank()) {
-                        groups.getOrPut(normalized) { mutableListOf() }.add(contact)
+                        val group = groups.getOrPut(normalized) { mutableListOf() }
+                        // ⚡ Bolt Optimization: Prevent O(N) duplicate tracking allocations (like `distinctBy`).
+                        // A contact's emails are processed sequentially, so if a contact has duplicate
+                        // identical emails, they are added back-to-back. Checking the last element's ID
+                        // completely avoids inserting the same contact twice in O(1) time without Set overhead.
+                        if (group.isEmpty() || group.last().id != contact.id) {
+                            group.add(contact)
+                        }
                     }
                 }
             }
@@ -90,16 +101,13 @@ class DuplicateDetector(
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((key, group) in groups) {
             if (group.size > 1) {
-                val distinctContacts = group.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = key,
-                            duplicateType = DuplicateType.EMAIL_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = key,
+                        duplicateType = DuplicateType.EMAIL_MATCH,
+                        contacts = group.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result
@@ -115,6 +123,7 @@ class DuplicateDetector(
             if (!name.isNullOrBlank()) {
                 val normalized = name.trim().lowercase()
                 if (normalized.isNotEmpty()) {
+                    // A contact only has one name, so it can NEVER be added to the same group twice.
                     groups.getOrPut(normalized) { mutableListOf() }.add(contact)
                 }
             }
@@ -122,17 +131,17 @@ class DuplicateDetector(
 
         val result = ArrayList<DuplicateGroup>(groups.size)
         for ((name, duplicates) in groups) {
+            // ⚡ Bolt Optimization: Since a contact only has one name, `duplicates` list can NEVER
+            // contain the same contact multiple times. Removing `distinctBy { it.id }` completely
+            // eliminates a HashSet and ArrayList allocation for every single duplicate group.
             if (duplicates.size > 1) {
-                val distinctContacts = duplicates.distinctBy { it.id }
-                if (distinctContacts.size > 1) {
-                    result.add(
-                        DuplicateGroup(
-                            matchingKey = name,
-                            duplicateType = DuplicateType.NAME_MATCH,
-                            contacts = distinctContacts.sortedBy { it.name }
-                        )
+                result.add(
+                    DuplicateGroup(
+                        matchingKey = name,
+                        duplicateType = DuplicateType.NAME_MATCH,
+                        contacts = duplicates.sortedBy { it.name }
                     )
-                }
+                )
             }
         }
         return result

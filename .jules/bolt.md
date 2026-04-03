@@ -275,3 +275,11 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 
 **Learning:** For filename sanitization logic (e.g., in `IosFileService`, `FileServiceImpl`), replacing repeated `Regex` compilation and multiple string passes with a single-pass `StringBuilder` loop minimizes allocation and CPU overhead.
 **Action:** Use single-pass StringBuilder loops with direct character validation for high-frequency text filtering and sanitization to reduce garbage collection overhead and improve execution speed.
+
+
+
+## 2026-10-18 - Missing Filter in Aggregate Subqueries
+
+**Learning:** When performing complex aggregate queries (like `getScanStats` calculating a `crossAccountCount`), failing to filter out rows you don't care about before the `GROUP BY` and `HAVING COUNT(DISTINCT...)` operations creates a massive performance bottleneck. In this case, synced contacts (WhatsApp, Telegram) were being unnecessarily processed in the grouping phase. This not only wastes CPU and memory but also leads to inconsistent data if the subquery logic doesn't match the detailed view queries.
+
+**Action:** Always verify that complex `SELECT COUNT(*) FROM (SELECT ... GROUP BY ... HAVING ...)` subqueries use the same restrictive `WHERE` filters as their corresponding individual detailed queries to avoid processing irrelevant rows in heavy grouping operations.

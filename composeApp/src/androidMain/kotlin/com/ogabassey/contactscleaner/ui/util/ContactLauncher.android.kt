@@ -26,7 +26,7 @@ class AndroidContactLauncher(
             intent.data = uri
             launcher.launch(intent)
         } catch (e: Exception) {
-            e.printStackTrace()
+            com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Failed to launch contact edit intent", e)
             // Fallback: just start activity without result tracking
             try {
                 val fallbackIntent = Intent(Intent.ACTION_EDIT)
@@ -35,7 +35,7 @@ class AndroidContactLauncher(
                 fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(fallbackIntent)
             } catch (e2: Exception) {
-                e2.printStackTrace()
+                com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Fallback contact edit intent failed", e2)
             }
         }
     }

@@ -57,3 +57,8 @@
 **Vulnerability:** A critical, hardcoded API Key for the WhatsApp Detector Service (`WHATSAPP_DETECTOR_API_KEY`) was accidentally committed and exposed as a fallback value in `WhatsAppDetectorConfig.ios.kt` (`"e59ec0ca77c64b123d56e683c92e7009c0cbaf0d393dc916b1856ead3b063332"`).
 **Learning:** Hardcoded external service API keys represent critical vulnerabilities. However, there is a distinction between public SDK keys (like RevenueCat `appl_...`) and sensitive service keys. The iOS source set was originally configured independently, bypassing the `Secrets` generated object available to Android.
 **Prevention:** Remove hardcoded sensitive keys immediately. Configure KMP build scripts to expose securely generated `Secrets` across all targets by adding `kotlin.srcDir(secretsDir)` to the `commonMain` configuration block in `build.gradle.kts`. This ensures all platforms access securely injected properties.
+
+## 2026-05-18 - Prevent DoS via Pagination Validation
+**Vulnerability:** The `getContacts` API endpoint lacked validation for `limit` and `offset` parameters, allowing potential Denial of Service (DoS) and memory exhaustion by requesting excessively large batch sizes or invalid offsets.
+**Learning:** Even internal API wrappers must validate input limits before forwarding requests to the server to fail fast and prevent client-side memory exhaustion or server-side overload.
+**Prevention:** Always validate API pagination and batch parameters (e.g., `limit`, `offset`) against strict maximum thresholds (like `MAX_BATCH_SIZE`) before making network requests or executing queries.

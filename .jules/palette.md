@@ -62,3 +62,6 @@
 
 **Learning:** Adding `semantics(mergeDescendants = true)` alone to a parent container such as `Surface` causes screen readers to concatenate child text nodes in source order, which produces clunky announcements on multi-part cards.
 **Action:** For interactive cards that present related values like count, title, and supporting detail, synthesize a single parent `contentDescription` so TalkBack and VoiceOver announce one structured sentence instead of fragmented child content.
+## 2026-03-05 - Enhance TextField Accessibility in WhatsAppLinkScreen
+**Learning:** Adding a `contentDescription` via the `semantics` modifier on Jetpack Compose text fields (like `OutlinedTextField`) improves screen reader accessibility without changing the visual layout.
+**Action:** When adding or auditing `OutlinedTextField` inputs, verify they either have explicit descriptive labels or use `semantics { contentDescription = ... }` for clear announcements to screen readers.

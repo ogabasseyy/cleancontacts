@@ -216,7 +216,7 @@ class ResultsViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                println("Error loading duplicate groups: ${e.message}")
+                com.ogabassey.contactscleaner.platform.Logger.e("ResultsViewModel", "Error loading duplicate groups: ${e.message}", e)
                 _duplicateGroups.value = emptyList()
             }
         }
@@ -297,7 +297,7 @@ class ResultsViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
+                com.ogabassey.contactscleaner.platform.Logger.e("ResultsViewModel", "Failed to recalculate WhatsApp counts: ${e.message}", e)
             }
         }
     }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -194,6 +195,11 @@ private fun SensitiveContactCard(
     onIgnore: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val contactName = contact.name ?: "Unknown"
+    val description = contact.sensitiveDescription ?: "Potential Sensitive Data"
+    val number = contact.normalizedNumber ?: ""
+    val announcement = "$contactName, $description, $number"
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -201,7 +207,9 @@ private fun SensitiveContactCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
-                modifier = Modifier.semantics(mergeDescendants = true) {},
+                modifier = Modifier.semantics(mergeDescendants = true) {
+                    contentDescription = announcement
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -222,18 +230,18 @@ private fun SensitiveContactCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        contact.name ?: "Unknown",
+                        contactName,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                     Text(
-                        contact.sensitiveDescription ?: "Potential Sensitive Data",
+                        description,
                         style = MaterialTheme.typography.bodySmall,
                         color = WarningNeon
                     )
                     Text(
-                        contact.normalizedNumber ?: "",
+                        number,
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextMedium
                     )

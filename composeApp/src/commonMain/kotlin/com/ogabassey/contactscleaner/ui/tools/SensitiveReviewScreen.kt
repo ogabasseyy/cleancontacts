@@ -254,7 +254,9 @@ private fun SensitiveContactCard(
             ) {
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).semantics {
+                        contentDescription = "Skip ${contactName}"
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White.copy(alpha = 0.05f),
                         contentColor = TextMedium
@@ -266,7 +268,9 @@ private fun SensitiveContactCard(
                 }
                 Button(
                     onClick = onIgnore,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).semantics {
+                        contentDescription = "Keep ${contactName} Safe"
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryNeon,
                         contentColor = SpaceBlack

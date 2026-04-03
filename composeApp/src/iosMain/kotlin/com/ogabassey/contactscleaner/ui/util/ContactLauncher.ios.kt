@@ -86,7 +86,7 @@ class IosContactLauncher(
                 val result = contactStore.unifiedContactWithIdentifier(id, keysToFetch, errorPtr.ptr)
                 val nsError = errorPtr.value
                 if (nsError != null) {
-                    println("⚠️ Error fetching contact '$id': ${nsError.localizedDescription}")
+                    com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Error fetching contact: ${nsError.localizedDescription}")
                     return
                 }
                 result
@@ -98,7 +98,7 @@ class IosContactLauncher(
 
             val rootViewController = getRootViewController()
             if (rootViewController == null) {
-                println("⚠️ Cannot present contact viewer: rootViewController is null")
+                com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Cannot present contact viewer: rootViewController is null")
                 return
             }
 

@@ -127,7 +127,7 @@ class IosContactLauncher(
             )
 
         } catch (e: Exception) {
-            println("Error opening iOS contact: ${e.message}")
+            com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Error opening iOS contact", e)
         }
     }
 }

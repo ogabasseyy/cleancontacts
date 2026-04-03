@@ -275,3 +275,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 
 **Learning:** For filename sanitization logic (e.g., in `IosFileService`, `FileServiceImpl`), replacing repeated `Regex` compilation and multiple string passes with a single-pass `StringBuilder` loop minimizes allocation and CPU overhead.
 **Action:** Use single-pass StringBuilder loops with direct character validation for high-frequency text filtering and sanitization to reduce garbage collection overhead and improve execution speed.
+
+## 2026-03-05 - Avoid distinctBy overhead in Duplicate Tracking
+**Learning:** Using `distinctBy` to eliminate duplicates within collected groups allocates a `HashSet` and an `ArrayList` for every group size > 1, introducing O(N) allocation overhead. In grouped data structures derived from a linear iteration, duplicate elements typically appear sequentially.
+**Action:** Remove `distinctBy` by preventing duplicates at insertion time. Use an O(1) check `if (group.isEmpty() || group.last().id != contact.id)` to avoid inserting sequentially identical elements. For elements intrinsically unique per contact (like a single contact name), discard deduplication entirely.

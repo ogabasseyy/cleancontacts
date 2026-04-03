@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.ogabassey.contactscleaner.platform.Logger
 
 /**
  * 2026 Best Practice: ContactLauncher with callback for Android.
@@ -26,7 +27,7 @@ class AndroidContactLauncher(
             intent.data = uri
             launcher.launch(intent)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Logger.e("ContactLauncher", "Error launching intent: ${e.message}")
             // Fallback: just start activity without result tracking
             try {
                 val fallbackIntent = Intent(Intent.ACTION_EDIT)
@@ -35,7 +36,7 @@ class AndroidContactLauncher(
                 fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(fallbackIntent)
             } catch (e2: Exception) {
-                e2.printStackTrace()
+                Logger.e("ContactLauncher", "Fallback failed: ${e2.message}")
             }
         }
     }

@@ -74,7 +74,9 @@ class ContactImportParser {
                     i++
                 } else if (char == ',') {
                     parts.add(current.toString().trim())
-                    current = StringBuilder()
+                    // ⚡ Bolt Optimization: Reuse the StringBuilder to prevent allocation overhead
+                    // in high-frequency CSV parsing loops.
+                    current.clear()
                     i++
                 } else {
                     current.append(char)

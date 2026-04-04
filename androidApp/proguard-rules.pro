@@ -37,3 +37,9 @@
 -keepclasseswithmembers class com.ogabassey.contactscleaner.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+# 6. Compose Multiplatform Resources (CMP)
+# CMP loads .cvr resource files at runtime via classloader.
+# R8 cannot trace these references, so the accessor classes must be kept.
+-keep class contactscleaner.composeapp.generated.resources.** { *; }
+-keep class org.jetbrains.compose.resources.** { *; }

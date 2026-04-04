@@ -13,6 +13,8 @@ kotlin {
         namespace = "com.ogabassey.contactscleaner.composeapp"
         compileSdk = 36
         minSdk = 26
+        // Required for CMP resources with AGP 9 KMP library plugin (CMP-9547)
+        androidResources { enable = true }
     }
 
     // iOS targets with 2026 Best Practice compiler flags
@@ -107,6 +109,13 @@ kotlin {
             // iOS-specific dependencies
         }
     }
+}
+
+// CMP Resources: Ensure Compose resources are packaged for Android
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "contactscleaner.composeapp.generated.resources"
+    generateResClass = always
 }
 
 // 2026 AGP 9.0: Configure JVM target for all Kotlin compilations

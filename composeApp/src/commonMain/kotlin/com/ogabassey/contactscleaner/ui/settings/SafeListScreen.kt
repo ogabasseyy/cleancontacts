@@ -153,7 +153,7 @@ private fun IgnoredContactCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        contact.displayName.take(1).uppercase(),
+                        contact.displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                         style = MaterialTheme.typography.titleMedium,
                         color = PrimaryNeon,
                         fontWeight = FontWeight.Bold

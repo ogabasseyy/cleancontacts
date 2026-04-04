@@ -13,6 +13,7 @@ type FeedbackRequestBody = {
 type FeedbackRequest = {
   method?: string;
   body?: FeedbackRequestBody;
+  headers?: Record<string, string | string[] | undefined>;
 };
 
 type FeedbackResponse = {
@@ -33,8 +34,21 @@ function escapeHtml(str: string): string {
 }
 
 export default async function handler(req: FeedbackRequest, res: FeedbackResponse) {
-  // CORS headers for mobile app requests
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  // Restrict CORS to specific origins
+  const origin = req.headers?.origin || req.headers?.Origin;
+  const originStr = Array.isArray(origin) ? origin[0] : origin;
+
+  const allowedOrigins = [
+    "https://contactscleaner.tech",
+    "http://localhost:5173", // For local web development
+    "http://localhost", // Common for Android capacitor/webview
+    "capacitor://localhost", // Common for iOS capacitor
+    "ionic://localhost" // Common for Ionic
+  ];
+
+  const safeOrigin = (originStr && allowedOrigins.includes(originStr)) ? originStr : "https://contactscleaner.tech";
+
+  res.setHeader("Access-Control-Allow-Origin", safeOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 

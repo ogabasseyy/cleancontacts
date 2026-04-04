@@ -71,3 +71,7 @@
 **Vulnerability:** The `picomatch` dependency was flagged by `osv-scanner` for high severity vulnerabilities (GHSA-3v7f-55p6-f55p, GHSA-c2c7-rcm5-vvqj).
 **Learning:** Development dependencies used in build scripts can introduce severe risks like ReDoS and path injection into the CI/CD pipeline or developer environments.
 **Prevention:** Regularly audit and update dependencies, particularly glob-matching libraries which are historically prone to ReDoS. Keep node modules up to date using `npm audit`.
+## 2026-04-04 - Restrict Permissive API CORS Policy
+**Vulnerability:** The API endpoint `feedback.ts` used an overly permissive CORS policy (`Access-Control-Allow-Origin: *`).
+**Learning:** This wildcard allowed any site to make requests to the endpoint, which is a potential risk for API abuse (e.g., spamming the email service).
+**Prevention:** Use an explicit allowlist of trusted origins, validating `req.headers.origin` and defaulting to a safe origin (the app domain).

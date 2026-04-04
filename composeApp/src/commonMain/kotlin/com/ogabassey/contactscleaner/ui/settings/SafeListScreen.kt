@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -139,7 +140,9 @@ private fun IgnoredContactCard(
             Row(
                 modifier = Modifier
                     .weight(1f)
-                    .semantics(mergeDescendants = true) {},
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "${contact.displayName}, ${contact.reason}"
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -174,7 +177,7 @@ private fun IgnoredContactCard(
             IconButton(onClick = onUnignore) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Remove from Safe List",
+                    contentDescription = "Remove ${contact.displayName} from Safe List",
                     tint = ErrorNeon
                 )
             }

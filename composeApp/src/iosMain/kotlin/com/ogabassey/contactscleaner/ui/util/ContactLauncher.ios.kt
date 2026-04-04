@@ -2,6 +2,7 @@ package com.ogabassey.contactscleaner.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.ogabassey.contactscleaner.platform.Logger
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCAction
@@ -86,7 +87,7 @@ class IosContactLauncher(
                 val result = contactStore.unifiedContactWithIdentifier(id, keysToFetch, errorPtr.ptr)
                 val nsError = errorPtr.value
                 if (nsError != null) {
-                    println("⚠️ Error fetching contact '$id': ${nsError.localizedDescription}")
+                    Logger.e("ContactLauncher", "Error fetching contact: ${nsError.localizedDescription}")
                     return
                 }
                 result
@@ -98,7 +99,7 @@ class IosContactLauncher(
 
             val rootViewController = getRootViewController()
             if (rootViewController == null) {
-                println("⚠️ Cannot present contact viewer: rootViewController is null")
+                Logger.e("ContactLauncher", "Cannot present contact viewer: rootViewController is null")
                 return
             }
 
@@ -127,7 +128,7 @@ class IosContactLauncher(
             )
 
         } catch (e: Exception) {
-            com.ogabassey.contactscleaner.platform.Logger.e("ContactLauncher", "Error opening iOS contact", e)
+            Logger.e("ContactLauncher", "Error opening iOS contact", e)
         }
     }
 }

@@ -20,6 +20,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.domain.repository.Snapshot
@@ -127,6 +130,9 @@ fun HistoryCard(
     onUndo: () -> Unit,
     isLoading: Boolean
 ) {
+    val timestampStr = formatTimestamp(snapshot.timestamp)
+    val cardAnnouncement = "${snapshot.description}. ${snapshot.contacts.size} contacts affected. Recorded at $timestampStr."
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,7 +145,13 @@ fun HistoryCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = cardAnnouncement
+                        }
+                ) {
                     Text(
                         snapshot.description,
                         style = MaterialTheme.typography.titleSmall,
@@ -164,7 +176,7 @@ fun HistoryCard(
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryNeon, strokeWidth = 2.dp)
                     } else {
-                        Icon(Icons.Filled.Restore, contentDescription = "Undo")
+                        Icon(Icons.Filled.Restore, contentDescription = "Undo ${snapshot.description}")
                     }
                 }
             }
@@ -172,9 +184,10 @@ fun HistoryCard(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                "Action recorded at: ${formatTimestamp(snapshot.timestamp)}",
+                "Action recorded at: $timestampStr",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextLow
+                color = TextLow,
+                modifier = Modifier.clearAndSetSemantics { }
             )
         }
     }

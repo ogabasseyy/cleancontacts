@@ -402,7 +402,7 @@ private fun CrossAccountContactItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    contact.name?.take(1)?.uppercase() ?: "?",
+                    contact.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                     color = SecondaryNeon,
                     fontWeight = FontWeight.Bold
                 )

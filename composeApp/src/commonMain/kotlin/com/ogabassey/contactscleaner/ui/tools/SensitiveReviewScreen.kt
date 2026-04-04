@@ -221,7 +221,7 @@ private fun SensitiveContactCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        contact.name?.take(1)?.uppercase() ?: "?",
+                        contact.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                         style = MaterialTheme.typography.titleMedium,
                         color = WarningNeon,
                         fontWeight = FontWeight.Bold

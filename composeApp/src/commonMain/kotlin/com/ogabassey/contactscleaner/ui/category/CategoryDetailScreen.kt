@@ -1296,7 +1296,7 @@ private fun ContactListItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    contact.name?.take(1)?.uppercase() ?: "?",
+                    contact.name?.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
                     color = accentColor,
                     fontWeight = FontWeight.Bold
                 )

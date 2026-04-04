@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -97,26 +98,26 @@ fun RecentActionsScreen(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(PrimaryNeon.copy(alpha = 0.1f)),
+                            .background(SuccessNeon.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.Refresh,
+                            Icons.Default.CheckCircle,
                             contentDescription = null,
                             modifier = Modifier.size(40.dp),
-                            tint = PrimaryNeon.copy(alpha = 0.5f)
+                            tint = SuccessNeon.copy(alpha = 0.5f)
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "No Recent Actions",
+                        "All Clear!",
                         style = MaterialTheme.typography.titleMedium,
                         color = TextMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Actions like delete and merge will appear here",
+                        "No recent actions to undo",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextLow
                     )

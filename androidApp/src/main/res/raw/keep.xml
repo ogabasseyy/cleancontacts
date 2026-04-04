@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Compose Multiplatform resource files (.cvr) are loaded at runtime via classloader
+  and cannot be traced by the Android resource shrinker. Keep all compose resources.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@raw/*" />

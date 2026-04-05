@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import android.app.Application
 import android.content.Context
 import androidx.work.Configuration
@@ -63,7 +65,7 @@ class CleanContactsApp : Application(), Configuration.Provider {
             billingRepository.refresh()
         } catch (e: Exception) {
             // Log the error but don't crash the entire app if billing setup fails
-            android.util.Log.e("CleanContactsApp", "Startup initialization failed", e)
+            Logger.e("CleanContactsApp", "Startup initialization failed", e)
         }
     }
 

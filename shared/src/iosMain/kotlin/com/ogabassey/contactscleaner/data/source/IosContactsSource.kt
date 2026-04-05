@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.source
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import com.ogabassey.contactscleaner.domain.model.Contact
 import kotlinx.cinterop.BooleanVar
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -36,7 +38,7 @@ class IosContactsSource {
     suspend fun requestContactsPermission(): Boolean = suspendCancellableCoroutine { continuation ->
         contactStore.requestAccessForEntityType(CNEntityType.CNEntityTypeContacts) { granted, error ->
             if (error != null) {
-                println("Permission request error: ${error.localizedDescription}")
+                Logger.d("Logger", "Permission request error: ${error.localizedDescription}")
             }
             // Check if continuation is still active before resuming (prevents crash if cancelled)
             if (continuation.isActive) {
@@ -55,7 +57,7 @@ class IosContactsSource {
             CNAuthorizationStatusAuthorized -> true
             CNAuthorizationStatusNotDetermined -> requestContactsPermission()
             else -> {
-                println("Contacts write permission not granted (status: $status)")
+                Logger.d("Logger", "Contacts write permission not granted (status: $status)")
                 false
             }
         }
@@ -71,7 +73,7 @@ class IosContactsSource {
         // Request permission first (iOS will show dialog if not yet determined)
         val hasPermission = requestContactsPermission()
         if (!hasPermission) {
-            println("Contacts permission not granted, returning empty list")
+            Logger.d("Logger", "Contacts permission not granted, returning empty list")
             return@withContext contacts
         }
 
@@ -90,7 +92,7 @@ class IosContactsSource {
                 }
 
                 if (errorPtr.value != null) {
-                    println("Error fetching containers: ${errorPtr.value?.localizedDescription}")
+                    Logger.e("Logger", "Error fetching containers: ${errorPtr.value?.localizedDescription}")
                 }
             }
 
@@ -144,12 +146,12 @@ class IosContactsSource {
                     }
 
                     if (errorPtr.value != null) {
-                        println("Error fetching contacts from container ${safeAccountName}: ${errorPtr.value?.localizedDescription}")
+                        Logger.e("Logger", "Error fetching contacts from container ${safeAccountName}: ${errorPtr.value?.localizedDescription}")
                     }
                 }
             }
         } catch (e: Exception) {
-            println("Error fetching contacts by container: ${e.message}")
+            Logger.e("Logger", "Error fetching contacts by container: ${e.message}")
         }
 
         contacts
@@ -285,7 +287,7 @@ class IosContactsSource {
                 )
                 
                 if (errorPtr.value != null) {
-                    println("Error fetching contacts for deletion: ${errorPtr.value?.localizedDescription}")
+                    Logger.e("Logger", "Error fetching contacts for deletion: ${errorPtr.value?.localizedDescription}")
                     return@withContext false
                 }
                 
@@ -298,13 +300,13 @@ class IosContactsSource {
                 val saveErrorPtr = alloc<ObjCObjectVar<NSError?>>()
                 contactStore.executeSaveRequest(saveRequest, error = saveErrorPtr.ptr)
                 saveErrorPtr.value?.let { error ->
-                    println("Error saving delete request: ${error.localizedDescription}")
+                    Logger.e("Logger", "Error saving delete request: ${error.localizedDescription}")
                     return@withContext false
                 }
             }
             true
         } catch (e: Exception) {
-            println("Error deleting contacts: ${e.message}")
+            Logger.e("Logger", "Error deleting contacts: ${e.message}")
             false
         }
     }
@@ -328,7 +330,7 @@ class IosContactsSource {
                 }
             }
         } catch (e: Exception) {
-            println("Error counting contacts: ${e.message}")
+            Logger.e("Logger", "Error counting contacts: ${e.message}")
         }
 
         count
@@ -380,13 +382,13 @@ class IosContactsSource {
                 val errorPtr = alloc<ObjCObjectVar<NSError?>>()
                 contactStore.executeSaveRequest(saveRequest, error = errorPtr.ptr)
                 errorPtr.value?.let { error ->
-                    println("Error saving contacts: ${error.localizedDescription}")
+                    Logger.e("Logger", "Error saving contacts: ${error.localizedDescription}")
                     return@withContext false
                 }
             }
             true
         } catch (e: Exception) {
-            println("Error restoring contacts: ${e.message}")
+            Logger.e("Logger", "Error restoring contacts: ${e.message}")
             false
         }
     }
@@ -428,14 +430,14 @@ class IosContactsSource {
                     when {
                         nsError != null -> {
                             // 2026 Best Practice: Log errors for invalid UIDs instead of silent failure
-                            println("⚠️ Failed to fetch contact UID '$uid': ${nsError.localizedDescription}")
+                            Logger.e("Logger", "⚠️ Failed to fetch contact UID '$uid': ${nsError.localizedDescription}")
                         }
                         cnContact != null -> {
                             contactsToMerge.add(cnContactToContact(cnContact, "Local", "Device"))
                         }
                         else -> {
                             // 2026 Best Practice: Log when UID doesn't resolve to a contact
-                            println("⚠️ Contact not found for UID '$uid'")
+                            Logger.e("Logger", "⚠️ Contact not found for UID '$uid'")
                         }
                     }
                 }
@@ -461,19 +463,19 @@ class IosContactsSource {
             // This prevents data loss if creation fails
             val restored = restoreContacts(listOf(mergedContact))
             if (!restored) {
-                println("Failed to create merged contact - aborting merge to prevent data loss")
+                Logger.e("Logger", "Failed to create merged contact - aborting merge to prevent data loss")
                 return@withContext false
             }
 
             // Only delete old contacts after new one is successfully created
             val deleted = deleteContacts(platformUids)
             if (!deleted) {
-                println("Warning: Merged contact created but failed to delete old contacts")
+                Logger.e("Logger", "Warning: Merged contact created but failed to delete old contacts")
                 // Still return true since the merge data is preserved
             }
             true
         } catch (e: Exception) {
-            println("Error merging contacts: ${e.message}")
+            Logger.e("Logger", "Error merging contacts: ${e.message}")
             false
         }
     }
@@ -500,7 +502,7 @@ class IosContactsSource {
                 val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
                 if (cnContact == null || errorPtr.value != null) {
-                    println("Contact not found for UID: $platformUid")
+                    Logger.d("Logger", "Contact not found for UID: $platformUid")
                     return@memScoped false
                 }
 
@@ -534,7 +536,7 @@ class IosContactsSource {
             }
             success
         } catch (e: Exception) {
-            println("Error updating contact: ${e.message}")
+            Logger.e("Logger", "Error updating contact: ${e.message}")
             false
         }
     }
@@ -566,7 +568,7 @@ class IosContactsSource {
                 val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
                 if (cnContact == null || errorPtr.value != null) {
-                    println("Contact not found for UID: $platformUid")
+                    Logger.d("Logger", "Contact not found for UID: $platformUid")
                     return@memScoped false
                 }
 
@@ -595,7 +597,7 @@ class IosContactsSource {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            println("Error normalizing contact numbers: ${e.message}")
+            Logger.e("Logger", "Error normalizing contact numbers: ${e.message}")
             false
         }
     }
@@ -653,7 +655,7 @@ class IosContactsSource {
         // 2026 Best Practice: Check permission before read operations
         val hasPermission = requestContactsPermission()
         if (!hasPermission) {
-            println("Contacts permission not granted for fetching by UIDs")
+            Logger.d("Logger", "Contacts permission not granted for fetching by UIDs")
             return@withContext emptyList()
         }
 
@@ -681,7 +683,7 @@ class IosContactsSource {
                 )
 
                 if (errorPtr.value != null) {
-                    println("Error fetching contacts by UIDs: ${errorPtr.value?.localizedDescription}")
+                    Logger.e("Logger", "Error fetching contacts by UIDs: ${errorPtr.value?.localizedDescription}")
                     return@memScoped
                 }
 
@@ -702,7 +704,7 @@ class IosContactsSource {
                 }
             }
         } catch (e: Exception) {
-            println("Error fetching contacts by UIDs: ${e.message}")
+            Logger.e("Logger", "Error fetching contacts by UIDs: ${e.message}")
         }
         contacts
     }

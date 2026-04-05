@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.domain.usecase
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import com.ogabassey.contactscleaner.domain.model.CleanupStatus
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.repository.BackupRepository
@@ -25,7 +27,7 @@ class CleanupContactsUseCase(
                  // 2026 Best Practice: Always re-throw CancellationException
                  throw e
              } catch (e: Exception) {
-                 println("Warning: Backup failed before delete: ${e.message}")
+                 Logger.e("Logger", "Warning: Backup failed before delete: ${e.message}")
              }
         }
         // 3. Delete
@@ -45,7 +47,7 @@ class CleanupContactsUseCase(
                 // 2026 Best Practice: Always re-throw CancellationException
                 throw e
             } catch (e: Exception) {
-                println("Warning: Backup failed before delete: ${e.message}")
+                Logger.e("Logger", "Warning: Backup failed before delete: ${e.message}")
             }
         }
         return contactRepository.deleteContactsByIds(ids)
@@ -62,7 +64,7 @@ class CleanupContactsUseCase(
                  // 2026 Best Practice: Always re-throw CancellationException
                  throw e
              } catch (e: Exception) {
-                 println("Warning: Backup failed before merge: ${e.message}")
+                 Logger.e("Logger", "Warning: Backup failed before merge: ${e.message}")
              }
         }
         return contactRepository.mergeDuplicateGroups(type)

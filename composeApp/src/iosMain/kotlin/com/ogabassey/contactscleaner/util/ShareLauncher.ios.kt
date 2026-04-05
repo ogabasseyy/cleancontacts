@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.util
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.cinterop.BetaInteropApi
@@ -81,7 +83,7 @@ class IosShareLauncher : ShareLauncher {
 
         val safeTempDir = if (tempDir.endsWith("/")) tempDir else "$tempDir/"
         if (!standardizedPath.startsWith(safeTempDir)) {
-            println("⚠️ Invalid file path: path traversal detected")
+            Logger.e("Logger", "⚠️ Invalid file path: path traversal detected")
             return null
         }
 
@@ -95,7 +97,7 @@ class IosShareLauncher : ShareLauncher {
         )
 
         if (!success) {
-            println("⚠️ Failed to write export file to: $nsFilePath")
+            Logger.e("Logger", "⚠️ Failed to write export file to: $nsFilePath")
             return null
         }
 
@@ -116,7 +118,7 @@ class IosShareLauncher : ShareLauncher {
         // complex Kotlin/Native interop issues
         val rootViewController = UIApplication.sharedApplication.keyWindow?.rootViewController
         if (rootViewController == null) {
-            println("⚠️ Cannot present share sheet: rootViewController is null")
+            Logger.e("Logger", "⚠️ Cannot present share sheet: rootViewController is null")
             return
         }
 

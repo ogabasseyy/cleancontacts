@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.worker
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -23,7 +25,7 @@ class ContactSyncWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        android.util.Log.d("ContactSyncWorker", "Starting sync...")
+        Logger.d("ContactSyncWorker", "Starting sync...")
         try {
             val systemContacts = contactsSource.getAllContacts() // This is the slow part for 58k
             
@@ -54,19 +56,19 @@ class ContactSyncWorker(
                 contactDao.insertContacts(batch)
             }
 
-            android.util.Log.d("ContactSyncWorker", "Sync complete. Indexed ${entities.size} contacts.")
+            Logger.d("ContactSyncWorker", "Sync complete. Indexed ${entities.size} contacts.")
             Result.success()
         } catch (e: SecurityException) {
             // 2026 Best Practice: Permanent failure - missing permissions, don't retry
-            android.util.Log.e("ContactSyncWorker", "Sync failed - permission denied", e)
+            Logger.e("ContactSyncWorker", "Sync failed - permission denied", e)
             Result.failure()
         } catch (e: IllegalStateException) {
             // Permanent failure - content provider unavailable
-            android.util.Log.e("ContactSyncWorker", "Sync failed - provider unavailable", e)
+            Logger.e("ContactSyncWorker", "Sync failed - provider unavailable", e)
             Result.failure()
         } catch (e: Exception) {
             // Transient failure - retry for other exceptions
-            android.util.Log.e("ContactSyncWorker", "Sync failed - will retry", e)
+            Logger.e("ContactSyncWorker", "Sync failed - will retry", e)
             Result.retry()
         }
     }

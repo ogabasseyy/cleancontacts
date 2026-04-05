@@ -67,3 +67,7 @@
 
 **Learning:** When grouping multiple badges (e.g., `FeatureBadge`) inside a parent container (like a `Row`), applying `semantics(mergeDescendants = true)` to both the individual badges AND the parent container creates a redundant grouping. The parent's modifier will collapse all badges into a single block of text, which degrades the accessibility experience by preventing screen reader users from navigating the badges individually.
 **Action:** For lists or rows of distinct tags/badges, apply `semantics(mergeDescendants = true) {}` ONLY to the individual badge components, not to their parent container.
+
+## 2024-05-24 - Screen Reader Cohesion for Radio Button List Items
+**Learning:** When building custom list items with radio buttons (e.g., `AccountSelectionItem`), applying `semantics(mergeDescendants = true) {}` to a `Surface.selectable` creates a single focus target, but TalkBack will simply concatenate the inner text elements (e.g., "Google, test@google.com") without context.
+**Action:** Always synthesize a clear, formatted `contentDescription` inside the `semantics` block of the `selectable` parent, interpolating the relevant text variables (e.g., `contentDescription = "${account.displayLabel} - ${account.accountName}"`) so screen readers announce a logical, cohesive description.

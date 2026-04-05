@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -664,7 +665,9 @@ private fun AccountSelectionItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
+            .semantics(mergeDescendants = true) {
+                contentDescription = "${account.displayLabel}${account.accountName?.let { " - $it" } ?: ""}"
+            }
             .selectable(
                 selected = isSelected,
                 onClick = onSelect,

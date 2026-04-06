@@ -26,7 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               href={APP_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-brand transition-colors"
+              className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               App Store
             </a>
@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               href={PLAY_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-brand transition-colors"
+              className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Google Play
             </a>
@@ -43,28 +43,28 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('blog')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Blog
             </button>
             <button
               type="button"
               onClick={() => onNavigate('privacy')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Privacy
             </button>
             <button
               type="button"
               onClick={() => onNavigate('terms')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Terms
             </button>
             <button
               type="button"
               onClick={() => onNavigate('support')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Support
             </button>

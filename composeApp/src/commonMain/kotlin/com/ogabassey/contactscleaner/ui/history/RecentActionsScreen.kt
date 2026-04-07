@@ -98,26 +98,26 @@ fun RecentActionsScreen(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(SuccessNeon.copy(alpha = 0.1f)),
+                            .background(TextLow.copy(alpha = 0.1f)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.CheckCircle,
+                            Icons.Default.Refresh,
                             contentDescription = null,
                             modifier = Modifier.size(40.dp),
-                            tint = SuccessNeon.copy(alpha = 0.5f)
+                            tint = TextLow.copy(alpha = 0.5f)
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "All Clear!",
+                        "No recent actions",
                         style = MaterialTheme.typography.titleMedium,
                         color = TextMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "No recent actions to undo",
+                        "Actions like delete and merge will appear here",
                         style = MaterialTheme.typography.bodySmall,
                         color = TextLow
                     )

@@ -67,3 +67,7 @@
 
 **Learning:** When grouping multiple badges (e.g., `FeatureBadge`) inside a parent container (like a `Row`), applying `semantics(mergeDescendants = true)` to both the individual badges AND the parent container creates a redundant grouping. The parent's modifier will collapse all badges into a single block of text, which degrades the accessibility experience by preventing screen reader users from navigating the badges individually.
 **Action:** For lists or rows of distinct tags/badges, apply `semantics(mergeDescendants = true) {}` ONLY to the individual badge components, not to their parent container.
+
+## 2024-05-15 - Interactive Elements Require Explicit Focus Rings
+**Learning:** In custom Tailwind-based designs (like `landing-page`), `<a>` and `<button>` elements overriding default browser styles lose native high-contrast focus indicators. For keyboard navigation to be effective, custom pseudo-classes (`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`) must be explicitly applied.
+**Action:** Always verify keyboard focus state (`Tab` key) when introducing new interactive components or links in the `landing-page`. Do not rely on default styling if the component has custom CSS/Tailwind utility classes.

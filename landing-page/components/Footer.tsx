@@ -26,7 +26,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               href={APP_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-brand transition-colors"
+              className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               App Store
             </a>
@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               href={PLAY_STORE_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-brand transition-colors"
+              className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               Google Play
             </a>
@@ -43,28 +43,28 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('blog')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               Blog
             </button>
             <button
               type="button"
               onClick={() => onNavigate('privacy')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               Privacy
             </button>
             <button
               type="button"
               onClick={() => onNavigate('terms')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               Terms
             </button>
             <button
               type="button"
               onClick={() => onNavigate('support')}
-              className="hover:text-brand transition-colors text-left"
+              className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded px-1"
             >
               Support
             </button>

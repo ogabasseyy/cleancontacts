@@ -91,20 +91,27 @@ class ContactRepositoryImpl constructor(
 
         // Format detection: Only for non-junk, non-sensitive contacts
         if (junkType == null && !isSensitive && primaryNumber.isNotBlank()) {
+            // ⚡ Bolt Optimization: Replace multiple `startsWith` with primitive Char
+            // comparison to avoid method-call overhead and object allocations.
+            val primaryFirstChar = if (primaryNumber.isNotEmpty()) primaryNumber[0] else null
+
             // 1. Check if Provider already flagged it
             val normNum = contact.normalizedNumber
-            if (!primaryNumber.startsWith("+") &&
-                !primaryNumber.startsWith("*") &&
-                !primaryNumber.startsWith("#") &&
-                normNum != null &&
-                normNum.startsWith("+") &&
-                normNum != primaryNumber
+            val normFirstChar = if (!normNum.isNullOrEmpty()) normNum[0] else null
+            val hasBlockedPrefix = primaryFirstChar == '+' || primaryFirstChar == '*' || primaryFirstChar == '#'
+            val providerShowsIntl = normFirstChar == '+'
+            val providerDiffersFromRaw = normNum != primaryNumber
+
+            if (primaryFirstChar != null &&
+                !hasBlockedPrefix &&
+                providerShowsIntl &&
+                providerDiffersFromRaw
             ) {
                 isFormatIssue = true
             }
 
             // 2. If not flagged yet, run Advanced "Missing Plus" Check
-            if (!isFormatIssue && !primaryNumber.startsWith("+")) {
+            if (!isFormatIssue && !hasBlockedPrefix) {
                 val issue = formatDetector.analyze(primaryNumber)
                 if (issue != null) {
                     isFormatIssue = true

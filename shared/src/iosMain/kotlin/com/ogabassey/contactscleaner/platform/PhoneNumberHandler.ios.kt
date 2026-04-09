@@ -57,11 +57,14 @@ actual class PhoneNumberHandler actual constructor() {
         var cleaned = number.filter { it.isDigit() || it == '+' }
         if (cleaned.isBlank()) return ""
 
+        // ⚡ Bolt Optimization: Use primitive Char checks instead of startsWith to avoid allocations
+        val firstChar = cleaned[0]
+
         // 2. If already starts with +, return as is
-        if (cleaned.startsWith("+")) return cleaned
+        if (firstChar == '+') return cleaned
 
         // 3. Handle local format (starting with 0)
-        if (cleaned.startsWith("0")) {
+        if (firstChar == '0') {
             val code = countryRules[defaultRegion]?.countryCode ?: "234"
             return "+$code${cleaned.substring(1)}"
         }
@@ -71,7 +74,8 @@ actual class PhoneNumberHandler actual constructor() {
     }
 
     actual fun isValidNumber(number: String, region: String): Boolean {
-        val isExplicitlyInternational = number.trim().startsWith("+")
+        // ⚡ Bolt Optimization: Avoid trim() allocation and startsWith() method overhead
+        val isExplicitlyInternational = number.firstOrNull { !it.isWhitespace() } == '+'
         val digits = number.filter { it.isDigit() }
         val len = digits.length
         
@@ -165,7 +169,8 @@ actual class PhoneNumberHandler actual constructor() {
 
     // Helper for analysis tool
     actual fun analyzeFormatIssue(rawNumber: String, defaultRegion: String): FormatAnalysis? {
-         if (rawNumber.isBlank() || rawNumber.startsWith("+")) return null
+         // ⚡ Bolt Optimization: Use primitive Char checks instead of startsWith to avoid allocations
+         if (rawNumber.isBlank() || rawNumber[0] == '+') return null
          val cleanedNumber = rawNumber.filter { it.isDigit() }
          
          // 1. Missing + check

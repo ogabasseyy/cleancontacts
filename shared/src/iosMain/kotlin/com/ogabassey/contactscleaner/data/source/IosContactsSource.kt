@@ -31,6 +31,14 @@ import platform.Foundation.create
 class IosContactsSource {
     private val contactStore = CNContactStore()
 
+    private fun sanitizePlatformUid(platformUid: String): String {
+        return when {
+            platformUid.isBlank() -> "<empty>"
+            platformUid.length <= 8 -> "<redacted>"
+            else -> "${platformUid.take(4)}...${platformUid.takeLast(4)}"
+        }
+    }
+
     /**
      * Request contacts permission from the user using a blocking call.
      * This will trigger the iOS permission dialog if needed.
@@ -150,6 +158,8 @@ class IosContactsSource {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error fetching contacts by container: ${e.message}")
         }
@@ -305,6 +315,8 @@ class IosContactsSource {
                 }
             }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error deleting contacts: ${e.message}")
             false
@@ -329,6 +341,8 @@ class IosContactsSource {
                     count++
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error counting contacts: ${e.message}")
         }
@@ -387,6 +401,8 @@ class IosContactsSource {
                 }
             }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error restoring contacts: ${e.message}")
             false
@@ -430,14 +446,20 @@ class IosContactsSource {
                     when {
                         nsError != null -> {
                             // 2026 Best Practice: Log errors for invalid UIDs instead of silent failure
-                            Logger.e("Logger", "⚠️ Failed to fetch contact UID '$uid': ${nsError.localizedDescription}")
+                            Logger.e(
+                                "IosContactsSource",
+                                "Failed to fetch contact ${sanitizePlatformUid(uid)} during merge: ${nsError.localizedDescription}"
+                            )
                         }
                         cnContact != null -> {
                             contactsToMerge.add(cnContactToContact(cnContact, "Local", "Device"))
                         }
                         else -> {
                             // 2026 Best Practice: Log when UID doesn't resolve to a contact
-                            Logger.e("Logger", "⚠️ Contact not found for UID '$uid'")
+                            Logger.d(
+                                "IosContactsSource",
+                                "Contact not found during merge: ${sanitizePlatformUid(uid)}"
+                            )
                         }
                     }
                 }
@@ -474,6 +496,8 @@ class IosContactsSource {
                 // Still return true since the merge data is preserved
             }
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error merging contacts: ${e.message}")
             false
@@ -502,7 +526,7 @@ class IosContactsSource {
                 val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
                 if (cnContact == null || errorPtr.value != null) {
-                    Logger.d("Logger", "Contact not found for UID: $platformUid")
+                    Logger.d("IosContactsSource", "Contact not found for update request: ${sanitizePlatformUid(platformUid)}")
                     return@memScoped false
                 }
 
@@ -535,6 +559,8 @@ class IosContactsSource {
                 saveErrorPtr.value == null
             }
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error updating contact: ${e.message}")
             false
@@ -568,7 +594,7 @@ class IosContactsSource {
                 val cnContact = contactStore.unifiedContactWithIdentifier(platformUid, keysToFetch, errorPtr.ptr)
 
                 if (cnContact == null || errorPtr.value != null) {
-                    Logger.d("Logger", "Contact not found for UID: $platformUid")
+                    Logger.d("IosContactsSource", "Contact not found for normalization request: ${sanitizePlatformUid(platformUid)}")
                     return@memScoped false
                 }
 
@@ -594,6 +620,8 @@ class IosContactsSource {
                 saveErrorPtr.value == null
             }
             success
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -703,6 +731,8 @@ class IosContactsSource {
                     contacts.add(contact)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Error fetching contacts by UIDs: ${e.message}")
         }

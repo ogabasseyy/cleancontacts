@@ -359,7 +359,7 @@ class IosContactRepository(
 
             // Delete from device (only contacts with platform_uid)
             val uids = withUid.mapNotNull { it.platform_uid }
-            Logger.d("Logger", "🗑️ [DELETE] UIDs to delete from device: $uids")
+            Logger.d("IosContactRepository", "🗑️ [DELETE] Deleting ${uids.size} contacts from device")
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result to ensure consistency
                 val deviceDeleted = contactsSource.deleteContacts(uids)

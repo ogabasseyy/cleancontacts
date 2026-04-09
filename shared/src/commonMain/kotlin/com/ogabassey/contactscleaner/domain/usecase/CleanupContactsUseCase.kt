@@ -27,7 +27,7 @@ class CleanupContactsUseCase(
                  // 2026 Best Practice: Always re-throw CancellationException
                  throw e
              } catch (e: Exception) {
-                 Logger.e("Logger", "Warning: Backup failed before delete: ${e.message}")
+                 Logger.w("Logger", "Backup failed before delete: ${e.message}")
              }
         }
         // 3. Delete
@@ -47,7 +47,7 @@ class CleanupContactsUseCase(
                 // 2026 Best Practice: Always re-throw CancellationException
                 throw e
             } catch (e: Exception) {
-                Logger.e("Logger", "Warning: Backup failed before delete: ${e.message}")
+                Logger.w("Logger", "Backup failed before delete: ${e.message}")
             }
         }
         return contactRepository.deleteContactsByIds(ids)
@@ -64,7 +64,7 @@ class CleanupContactsUseCase(
                  // 2026 Best Practice: Always re-throw CancellationException
                  throw e
              } catch (e: Exception) {
-                 Logger.e("Logger", "Warning: Backup failed before merge: ${e.message}")
+                 Logger.w("Logger", "Backup failed before merge: ${e.message}")
              }
         }
         return contactRepository.mergeDuplicateGroups(type)

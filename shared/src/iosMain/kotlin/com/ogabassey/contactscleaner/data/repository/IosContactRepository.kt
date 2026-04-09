@@ -53,16 +53,14 @@ class IosContactRepository(
 
         /** Returns true if the number is a candidate for format normalization. */
         fun isNormalizable(number: String): Boolean {
+            // ⚡ Bolt Optimization: Use primitive Char checks instead of startsWith to avoid allocations
             if (number.isBlank()) return false
-            // ⚡ Bolt Optimization: Replace multiple `startsWith` with primitive Char
-            // comparison to avoid method-call overhead and object allocations.
             val trimmed = number.trim()
             if (trimmed.length < 7) return false
             val firstChar = trimmed[0]
-            return firstChar != '+' &&
-                   firstChar != '*' &&
-                   firstChar != '#' &&
-                   !(firstChar == '0' && trimmed[1] == '0')
+            if (firstChar == '+' || firstChar == '*' || firstChar == '#') return false
+            if (firstChar == '0' && trimmed.length > 1 && trimmed[1] == '0') return false
+            return true
         }
     }
 

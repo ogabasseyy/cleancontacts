@@ -96,19 +96,20 @@ class ContactRepositoryImpl constructor(
             // 1. Check if Provider already flagged it
             val normNum = contact.normalizedNumber
             val normFirstChar = if (!normNum.isNullOrEmpty()) normNum[0] else null
+            val hasBlockedPrefix = primaryFirstChar == '+' || primaryFirstChar == '*' || primaryFirstChar == '#'
+            val providerShowsIntl = normFirstChar == '+'
+            val providerDiffersFromRaw = normNum != primaryNumber
 
             if (primaryFirstChar != null &&
-                primaryFirstChar != '+' &&
-                primaryFirstChar != '*' &&
-                primaryFirstChar != '#' &&
-                normFirstChar == '+' &&
-                normNum != primaryNumber
+                !hasBlockedPrefix &&
+                providerShowsIntl &&
+                providerDiffersFromRaw
             ) {
                 isFormatIssue = true
             }
 
             // 2. If not flagged yet, run Advanced "Missing Plus" Check
-            if (!isFormatIssue && primaryFirstChar != '+') {
+            if (!isFormatIssue && !hasBlockedPrefix) {
                 val issue = formatDetector.analyze(primaryNumber)
                 if (issue != null) {
                     isFormatIssue = true

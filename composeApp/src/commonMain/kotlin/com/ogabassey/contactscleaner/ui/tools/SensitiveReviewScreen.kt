@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -168,8 +169,43 @@ fun SensitiveReviewScreen(
             }
 
             if (contacts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No sensitive data found", color = TextMedium)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "All Clear! No sensitive data found"
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(SuccessNeon.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = SuccessNeon.copy(alpha = 0.5f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "All Clear!",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "No sensitive data found",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextLow
+                        )
+                    }
                 }
             } else {
                 LazyColumn(

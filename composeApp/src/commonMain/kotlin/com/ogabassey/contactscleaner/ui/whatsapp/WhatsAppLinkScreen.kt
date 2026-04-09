@@ -1,5 +1,9 @@
+
 @file:Suppress("DEPRECATION")
+
 package com.ogabassey.contactscleaner.ui.whatsapp
+
+import com.ogabassey.contactscleaner.util.extractDigits
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -221,7 +225,7 @@ private fun PhoneInputContent(onSubmit: (String) -> Unit) {
         OutlinedTextField(
             value = phoneNumber,
             onValueChange = { newValue: String ->
-                val digitsOnly = newValue.filter { c -> c.isDigit() }
+                val digitsOnly = newValue.extractDigits()
                 if (digitsOnly.length <= expectedDigits) {
                     phoneNumber = digitsOnly
                 }

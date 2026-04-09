@@ -1,4 +1,7 @@
+
 package com.ogabassey.contactscleaner.ui.whatsapp
+import com.ogabassey.contactscleaner.util.extractDigitsAndPlus
+
 
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
@@ -207,7 +210,7 @@ class WhatsAppLinkViewModel(
      */
     private fun normalizePhoneNumber(phone: String): String {
         // Remove spaces, dashes, parentheses
-        val cleaned = phone.filter { it.isDigit() || it == '+' }
+        val cleaned = phone.extractDigitsAndPlus()
         // Ensure it starts with +
         return if (cleaned.startsWith("+")) cleaned else "+$cleaned"
     }

@@ -1,4 +1,8 @@
+
 package com.ogabassey.contactscleaner.platform
+import com.ogabassey.contactscleaner.util.extractDigits
+import com.ogabassey.contactscleaner.util.extractDigitsAndPlus
+
 
 /**
  * iOS implementation for phone number handling.
@@ -54,7 +58,7 @@ actual class PhoneNumberHandler actual constructor() {
         if (number.isBlank()) return ""
         
         // 1. Basic cleaning
-        var cleaned = number.filter { it.isDigit() || it == '+' }
+        var cleaned = number.extractDigitsAndPlus()
         if (cleaned.isBlank()) return ""
 
         // ⚡ Bolt Optimization: Use primitive Char checks instead of startsWith to avoid allocations
@@ -76,7 +80,7 @@ actual class PhoneNumberHandler actual constructor() {
     actual fun isValidNumber(number: String, region: String): Boolean {
         // ⚡ Bolt Optimization: Avoid trim() allocation and startsWith() method overhead
         val isExplicitlyInternational = number.firstOrNull { !it.isWhitespace() } == '+'
-        val digits = number.filter { it.isDigit() }
+        val digits = number.extractDigits()
         val len = digits.length
         
         if (len < 7) return false
@@ -171,7 +175,7 @@ actual class PhoneNumberHandler actual constructor() {
     actual fun analyzeFormatIssue(rawNumber: String, defaultRegion: String): FormatAnalysis? {
          // ⚡ Bolt Optimization: Use primitive Char checks instead of startsWith to avoid allocations
          if (rawNumber.isBlank() || rawNumber[0] == '+') return null
-         val cleanedNumber = rawNumber.filter { it.isDigit() }
+         val cleanedNumber = rawNumber.extractDigits()
          
          // 1. Missing + check
          for ((iso, rule) in countryRules) {
@@ -203,7 +207,7 @@ actual class PhoneNumberHandler actual constructor() {
     }
 
     actual fun getCountryName(e164Number: String): String {
-        val digits = e164Number.filter { it.isDigit() }
+        val digits = e164Number.extractDigits()
         for ((iso, rule) in countryRules) {
             if (digits.startsWith(rule.countryCode)) {
                  return "${getCountryNameForIso(iso)} (+${rule.countryCode})"
@@ -213,7 +217,7 @@ actual class PhoneNumberHandler actual constructor() {
     }
 
     actual fun getRegionCode(number: String, defaultRegion: String): String {
-        val digits = number.filter { it.isDigit() }
+        val digits = number.extractDigits()
         for ((iso, rule) in countryRules) {
             if (digits.startsWith(rule.countryCode)) return iso
         }

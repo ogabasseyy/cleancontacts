@@ -10,9 +10,6 @@ interface State {
 }
 
 class BlogErrorBoundary extends React.Component<Props, State> {
-  public state: State;
-  public props: Props;
-
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

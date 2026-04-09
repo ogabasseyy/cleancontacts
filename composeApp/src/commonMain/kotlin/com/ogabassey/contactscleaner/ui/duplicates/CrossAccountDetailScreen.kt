@@ -666,7 +666,10 @@ private fun AccountSelectionItem(
         modifier = Modifier
             .fillMaxWidth()
             .semantics(mergeDescendants = true) {
-                contentDescription = "${account.displayLabel}${account.accountName?.let { " - $it" } ?: ""}"
+                contentDescription = listOf(
+                    account.displayLabel,
+                    account.accountName?.trim()?.takeIf { it.isNotEmpty() }
+                ).joinToString(" - ")
             }
             .selectable(
                 selected = isSelected,

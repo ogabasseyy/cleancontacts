@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.source
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import android.Manifest
 import android.content.ContentResolver
 import android.content.Context
@@ -39,7 +41,7 @@ class ContactsProviderSource(
     suspend fun getAllContacts(): List<Contact> = withContext(Dispatchers.IO) {
         // 2026 Best Practice: Defensive permission check
         if (!hasReadPermission()) {
-            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted")
+            Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted")
             return@withContext emptyList()
         }
         val whatsAppIds = getWhatsAppContactIds()
@@ -79,7 +81,7 @@ class ContactsProviderSource(
                 )
             }
         }
-        
+
         // 2. Fetch Phones
         contentResolver.query(
             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -117,7 +119,7 @@ class ContactsProviderSource(
                 }
             }
         }
-        
+
         // 3. Fetch Emails
         contentResolver.query(
              ContactsContract.CommonDataKinds.Email.CONTENT_URI,
@@ -126,7 +128,7 @@ class ContactsProviderSource(
                  ContactsContract.CommonDataKinds.Email.ADDRESS
              ),
              null,
-             null, 
+             null,
              null
         )?.use { cursor ->
             val idIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
@@ -230,11 +232,11 @@ class ContactsProviderSource(
 
     private suspend fun getContactAccountTypes(): Map<Long, Pair<String, String>> = withContext(Dispatchers.IO) {
         val accountTypes = mutableMapOf<Long, Pair<String, String>>()
-        
+
         contentResolver.query(
             ContactsContract.RawContacts.CONTENT_URI,
             arrayOf(
-                ContactsContract.RawContacts.CONTACT_ID, 
+                ContactsContract.RawContacts.CONTACT_ID,
                 ContactsContract.RawContacts.ACCOUNT_TYPE,
                 ContactsContract.RawContacts.ACCOUNT_NAME
             ),
@@ -284,7 +286,7 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Defensive permission check
         if (!hasReadPermission()) {
-            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted for snapshot")
+            Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted for snapshot")
             return@withContext emptyList()
         }
 
@@ -378,14 +380,14 @@ class ContactsProviderSource(
              }
         }
     }
-    
+
     // Optimized Single-Pass Cursor Streaming (2026 Best Practice)
     // Fixed: Added error handling and flowOn for proper IO dispatching
     // 2026 Best Practice: Uses RawContactsEntity for atomic contact+account reads (Bug 5.5 fix)
     fun getContactsStreaming(batchSize: Int = 1000): kotlinx.coroutines.flow.Flow<List<Contact>> = kotlinx.coroutines.flow.flow {
         // 2026 Best Practice: Defensive permission check
         if (!hasReadPermission()) {
-            android.util.Log.w("ContactsProviderSource", "READ_CONTACTS permission not granted for streaming")
+            Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted for streaming")
             return@flow // Empty flow
         }
 
@@ -553,10 +555,10 @@ class ContactsProviderSource(
             }
         }
         } catch (e: SecurityException) {
-            android.util.Log.e("ContactsProviderSource", "Permission denied: ${e.message}")
+            Logger.e("ContactsProviderSource", "Permission denied: ${e.message}")
             // Don't emit - caller should handle empty flow
         } catch (e: Exception) {
-            android.util.Log.e("ContactsProviderSource", "Error streaming contacts: ${e.message}")
+            Logger.e("ContactsProviderSource", "Error streaming contacts: ${e.message}")
             throw e // Re-throw for upstream handling
         }
     }.flowOn(Dispatchers.IO) // 2026 Best Practice: Ensure IO dispatcher for ContentProvider
@@ -565,14 +567,14 @@ class ContactsProviderSource(
         var count = 0
         try {
             contentResolver.query(
-                ContactsContract.RawContacts.CONTENT_URI, 
-                null, 
-                null, 
-                null, 
+                ContactsContract.RawContacts.CONTENT_URI,
+                null,
+                null,
+                null,
                 null
             )?.use { count = it.count }
         } catch (e: Exception) {
-            android.util.Log.e("ContactsProviderSource", "Error counting raw contacts", e)
+            Logger.e("ContactsProviderSource", "Error counting raw contacts", e)
         }
         count
     }
@@ -582,13 +584,13 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Defensive permission check for write operation
         if (!hasWritePermission()) {
-            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for delete")
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for delete")
             return@withContext false
         }
 
-        // 2026 Android Best Practice: 
+        // 2026 Android Best Practice:
         // To delete a "Contact", we must delete all its constituent "RawContacts".
-        // Using Contacts.CONTENT_URI with CONTACT_ID selection is more reliable for 
+        // Using Contacts.CONTENT_URI with CONTACT_ID selection is more reliable for
         // ensuring the entire contact aggregate is removed from all accounts.
         contactIds.chunked(200).forEach { batch ->
             val batchOperations = ArrayList<android.content.ContentProviderOperation>()
@@ -603,10 +605,10 @@ class ContactsProviderSource(
             try {
                 contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
             } catch (e: RemoteException) {
-                android.util.Log.e("ContactsProviderSource", "Remote error deleting batch", e)
+                Logger.e("ContactsProviderSource", "Remote error deleting batch", e)
                 return@withContext false
             } catch (e: OperationApplicationException) {
-                android.util.Log.e("ContactsProviderSource", "Operation error deleting batch", e)
+                Logger.e("ContactsProviderSource", "Operation error deleting batch", e)
                 return@withContext false
             }
         }
@@ -619,7 +621,7 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Defensive permission check for write operation
         if (!hasWritePermission()) {
-            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for merge")
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for merge")
             return@withContext false
         }
 
@@ -641,7 +643,7 @@ class ContactsProviderSource(
             val rawIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts._ID)
             val contactIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts.CONTACT_ID)
             val foundContactIds = mutableSetOf<Long>()
-            
+
             while (cursor.moveToNext()) {
                 val contactId = cursor.getLong(contactIdIdx)
                 if (contactId !in foundContactIds) {
@@ -685,10 +687,10 @@ class ContactsProviderSource(
             contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
             true
         } catch (e: RemoteException) {
-            android.util.Log.e("ContactsProviderSource", "Remote error merging contacts", e)
+            Logger.e("ContactsProviderSource", "Remote error merging contacts", e)
             false
         } catch (e: OperationApplicationException) {
-            android.util.Log.e("ContactsProviderSource", "Operation error merging contacts", e)
+            Logger.e("ContactsProviderSource", "Operation error merging contacts", e)
             false
         }
     }
@@ -698,22 +700,22 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Defensive permission check for write operation
         if (!hasWritePermission()) {
-            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for update")
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for update")
             return@withContext false
         }
 
         val contactIds = updates.keys.toList()
         val allOps = ArrayList<android.content.ContentProviderOperation>()
-        
+
         // 1. Process in chunks of 200 (Large enough for throughput, small enough for IPC limits)
         contactIds.chunked(200).forEach { batchIds ->
             // 2026 Best Practice: Use parameterized queries to prevent SQL injection
             val placeholders = batchIds.joinToString(",") { "?" }
             val selection = "${ContactsContract.Data.CONTACT_ID} IN ($placeholders) AND ${ContactsContract.Data.MIMETYPE} = ?"
             val selectionArgs = batchIds.map { it.toString() }.toTypedArray() + ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
-            
+
             val ops = ArrayList<android.content.ContentProviderOperation>()
-            
+
             contentResolver.query(
                 ContactsContract.Data.CONTENT_URI,
                 arrayOf(ContactsContract.Data._ID, ContactsContract.Data.CONTACT_ID),
@@ -723,12 +725,12 @@ class ContactsProviderSource(
             )?.use { cursor ->
                 val dataIdIdx = cursor.getColumnIndex(ContactsContract.Data._ID)
                 val contactIdIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
-                
+
                 while (cursor.moveToNext()) {
                     val dataId = cursor.getLong(dataIdIdx)
                     val contactId = cursor.getLong(contactIdIdx)
                     val newNumber = updates[contactId]
-                    
+
                     if (newNumber != null) {
                         ops.add(
                             android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
@@ -741,9 +743,9 @@ class ContactsProviderSource(
             }
             allOps.addAll(ops)
         }
-        
+
         if (allOps.isEmpty()) return@withContext true
-        
+
         // 2. Apply in chunky batches of 400
         // 2026 Best Practice: Catch specific exceptions from applyBatch
         var success = true
@@ -751,10 +753,10 @@ class ContactsProviderSource(
             try {
                 contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
             } catch (e: RemoteException) {
-                android.util.Log.e("ContactsProviderSource", "Remote error in bulk update", e)
+                Logger.e("ContactsProviderSource", "Remote error in bulk update", e)
                 success = false
             } catch (e: OperationApplicationException) {
-                android.util.Log.e("ContactsProviderSource", "Operation error in bulk update", e)
+                Logger.e("ContactsProviderSource", "Operation error in bulk update", e)
                 success = false
             }
         }
@@ -768,12 +770,12 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Defensive permission check for write operation
         if (!hasWritePermission()) {
-            android.util.Log.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for restore")
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for restore")
             return@withContext false
         }
 
         val operations = ArrayList<android.content.ContentProviderOperation>()
-        
+
         contacts.forEach { contact ->
             // 1. Create RawContact
             val rawContactInsertIndex = operations.size
@@ -828,10 +830,10 @@ class ContactsProviderSource(
             }
             true
         } catch (e: RemoteException) {
-            android.util.Log.e("ContactsProviderSource", "Remote error restoring contacts", e)
+            Logger.e("ContactsProviderSource", "Remote error restoring contacts", e)
             false
         } catch (e: OperationApplicationException) {
-            android.util.Log.e("ContactsProviderSource", "Operation error restoring contacts", e)
+            Logger.e("ContactsProviderSource", "Operation error restoring contacts", e)
             false
         }
     }

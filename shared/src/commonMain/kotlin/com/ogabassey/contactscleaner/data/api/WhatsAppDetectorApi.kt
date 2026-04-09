@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.api
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.defaultRequest
@@ -345,7 +347,7 @@ class WhatsAppDetectorApi(
         awaitClose {
             // 2026 Best Practice: Log cleanup for debugging, no active resources to close
             // WebSocket session is already closed by the time we reach here
-            println("WhatsApp pairing WebSocket connection closed")
+            Logger.d("Logger", "WhatsApp pairing WebSocket connection closed")
         }
     }
 

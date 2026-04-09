@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.repository
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import androidx.paging.PagingData
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
@@ -147,7 +149,7 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun scanContacts(): Flow<ScanStatus> = flow {
-        android.util.Log.d("ContactRepository", "Starting Streamed SQL Scan (Optimum Performance)...")
+        Logger.d("ContactRepository", "Starting Streamed SQL Scan (Optimum Performance)...")
 
         // 2026 Best Practice: Accumulate contacts first, then atomic replace at end
         // This prevents data loss if operation fails partway through
@@ -163,17 +165,17 @@ class ContactRepositoryImpl constructor(
              totalToProcess = allIds.size
         } catch (e: SecurityException) {
             // Missing contacts permission
-            android.util.Log.e("ContactRepository", "Permission denied when fetching contacts", e)
+            Logger.e("ContactRepository", "Permission denied when fetching contacts", e)
             emit(ScanStatus.Error("Permission denied. Please grant contacts permission."))
             return@flow
         } catch (e: IllegalStateException) {
             // ContentProvider unavailable
-            android.util.Log.e("ContactRepository", "ContentProvider unavailable", e)
+            Logger.e("ContactRepository", "ContentProvider unavailable", e)
             emit(ScanStatus.Error("Contacts provider unavailable. Please try again."))
             return@flow
         } catch (e: Exception) {
             // Log unexpected errors but continue with fallback
-            android.util.Log.w("ContactRepository", "Failed to get contact count, using fallback", e)
+            Logger.e("ContactRepository", "Failed to get contact count, using fallback", e)
             totalToProcess = 1000 // Fallback for progress calculation only
         }
 
@@ -209,7 +211,7 @@ class ContactRepositoryImpl constructor(
                 contact.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
                 contact.rawEmails.length <= 10000
             if (!isValid) {
-                android.util.Log.w("ContactRepository", "Filtered invalid contact: id=${contact.id}")
+                Logger.w("ContactRepository", "Filtered invalid contact: id=${contact.id}")
             }
             isValid
         }
@@ -294,7 +296,7 @@ class ContactRepositoryImpl constructor(
             try {
                 contactDao.deleteContacts(ids)
             } catch (e: Exception) {
-                android.util.Log.e("ContactRepository", "Failed to cascade delete to local cache", e)
+                Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
             }
 
             // Update scan result summary to reflect changes
@@ -315,7 +317,7 @@ class ContactRepositoryImpl constructor(
         try {
             contactDao.deleteContacts(contactIds)
         } catch (e: Exception) {
-            android.util.Log.e("ContactRepository", "Failed to cascade delete to local cache", e)
+            Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
         }
 
         return providerSuccess
@@ -558,7 +560,7 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun updateScanResultSummary() {
-        android.util.Log.d("ContactRepository", "Updating ScanResult Summary from DB (optimized single query)...")
+        Logger.d("ContactRepository", "Updating ScanResult Summary from DB (optimized single query)...")
 
         // 2026 Best Practice: Use consolidated getScanStats() query instead of 23 separate queries
         val stats = contactDao.getScanStats()
@@ -769,7 +771,7 @@ class ContactRepositoryImpl constructor(
 
             return true
         } catch (e: Exception) {
-            android.util.Log.e("ContactRepository", "Failed to refresh contacts", e)
+            Logger.e("ContactRepository", "Failed to refresh contacts", e)
             return false
         }
     }

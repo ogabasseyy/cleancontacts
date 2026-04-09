@@ -72,6 +72,11 @@
 **Learning:** In custom Tailwind-based designs (like `landing-page`), `<a>` and `<button>` elements overriding default browser styles lose native high-contrast focus indicators. For keyboard navigation to be effective, custom pseudo-classes (`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`) must be explicitly applied.
 **Action:** Always verify keyboard focus state (`Tab` key) when introducing new interactive components or links in the `landing-page`. Do not rely on default styling if the component has custom CSS/Tailwind utility classes.
 
+## 2024-05-24 - Screen Reader Cohesion for Radio Button List Items
+
+**Learning:** When building custom list items with radio buttons (e.g., `AccountSelectionItem`), applying `semantics(mergeDescendants = true) {}` to a `Surface.selectable` creates a single focus target, but TalkBack will simply concatenate the inner text elements (e.g., "Google, test@google.com") without context.
+**Action:** Always synthesize a clear, formatted `contentDescription` inside the `semantics` block of the `selectable` parent, interpolating the relevant text variables (e.g., `contentDescription = "${account.displayLabel} - ${account.accountName}"`) so screen readers announce a logical, cohesive description.
+
 ## 2026-04-06 - Explicit Focus States on Custom Navigation Buttons
 
 **Learning:** When using `<button>` or `<a>` elements with custom styling for navigation links in headers and footers, they often lose default browser focus outlines. Relying solely on `hover:` classes makes them inaccessible to keyboard users, preventing them from seeing which element is currently focused.

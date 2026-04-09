@@ -1,9 +1,10 @@
 package com.ogabassey.contactscleaner.ui.util
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import android.content.Context
 import android.net.Uri
 import android.provider.ContactsContract
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -101,13 +102,13 @@ private fun readContactFromUri(context: Context, uri: Uri): PickedContact? {
         }
 
     } catch (e: SecurityException) {
-        Log.e(TAG, "Permission denied reading contact from URI", e)
+        Logger.e(TAG, "Permission denied reading contact from URI", e)
         return null
     } catch (e: IllegalArgumentException) {
-        Log.e(TAG, "Invalid contact URI or query parameters", e)
+        Logger.e(TAG, "Invalid contact URI or query parameters", e)
         return null
     } catch (e: Exception) {
-        Log.e(TAG, "Unexpected error reading contact from URI", e)
+        Logger.e(TAG, "Unexpected error reading contact from URI", e)
         return null
     }
 }

@@ -1,5 +1,7 @@
 package com.ogabassey.contactscleaner.data.repository
 
+import com.ogabassey.contactscleaner.platform.Logger
+
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao
 import com.ogabassey.contactscleaner.data.db.dao.ScanStats
@@ -192,17 +194,17 @@ class IosContactRepository(
                 when (val snapshot = whatsAppRepository.getValidCacheSnapshot()) {
                     is CacheSnapshot.Valid -> {
                         whatsAppPhoneNumbers = snapshot.numbers
-                        println("📱 Using cached WhatsApp numbers: ${snapshot.numbers.size} (business: ${snapshot.businessCount})")
+                        Logger.d("Logger", "📱 Using cached WhatsApp numbers: ${snapshot.numbers.size} (business: ${snapshot.businessCount})")
                     }
                     is CacheSnapshot.SyncInProgress -> {
-                        println("⏳ WhatsApp cache sync in progress, using empty set for now")
+                        Logger.d("Logger", "⏳ WhatsApp cache sync in progress, using empty set for now")
                     }
                     is CacheSnapshot.Invalid -> {
                         // Cache not valid - check if session is connected
                         val status = whatsAppRepository.getSessionStatus(deviceId)
                         if (status.connected) {
                             // Session connected but cache empty/stale - user should trigger sync
-                            println("⚠️ WhatsApp cache empty/stale. Please sync WhatsApp contacts.")
+                            Logger.e("Logger", "⚠️ WhatsApp cache empty/stale. Please sync WhatsApp contacts.")
                         }
                     }
                 }
@@ -210,7 +212,7 @@ class IosContactRepository(
                 // 2026 Best Practice: Always rethrow CancellationException for proper flow cancellation
                 throw e
             } catch (e: Exception) {
-                println("⚠️ Could not load WhatsApp cache: ${e.message}")
+                Logger.e("Logger", "⚠️ Could not load WhatsApp cache: ${e.message}")
             }
         }
         emit(ScanStatus.Progress(0.20f, "Processing contacts..."))
@@ -236,7 +238,7 @@ class IosContactRepository(
                 contact.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
                 contact.rawEmails.length <= 10000
             if (!isValid) {
-                println("⚠️ Filtered invalid contact: id=${contact.id}")
+                Logger.e("Logger", "⚠️ Filtered invalid contact: id=${contact.id}")
             }
             isValid
         }
@@ -341,11 +343,11 @@ class IosContactRepository(
 
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
-            println("Deleting ${contacts.size} contacts")
+            Logger.d("Logger", "Deleting ${contacts.size} contacts")
 
             // Separate contacts with and without platform_uid
             val (withUid, withoutUid) = contacts.partition { it.platform_uid != null }
-            println("With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
+            Logger.d("Logger", "With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
 
             // Record for history/undo before deletion
             if (contacts.isNotEmpty()) {
@@ -358,13 +360,13 @@ class IosContactRepository(
 
             // Delete from device (only contacts with platform_uid)
             val uids = withUid.mapNotNull { it.platform_uid }
-            println("🗑️ [DELETE] UIDs to delete from device: $uids")
+            Logger.d("IosContactRepository", "🗑️ [DELETE] Deleting ${uids.size} contacts from device")
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result to ensure consistency
                 val deviceDeleted = contactsSource.deleteContacts(uids)
-                println("🗑️ [DELETE] Device deletion result: $deviceDeleted")
+                Logger.d("Logger", "🗑️ [DELETE] Device deletion result: $deviceDeleted")
                 if (!deviceDeleted) {
-                    println("🗑️ [DELETE] Device deletion FAILED!")
+                    Logger.d("Logger", "🗑️ [DELETE] Device deletion FAILED!")
                     return Result.failure(IllegalStateException("Failed to delete contacts from device"))
                 }
             }
@@ -374,7 +376,7 @@ class IosContactRepository(
 
             // Log warning if some contacts lacked platform_uid
             if (withoutUid.isNotEmpty()) {
-                println("Warning: ${withoutUid.size} contacts lacked platform_uid (DB-only deletion)")
+                Logger.e("Logger", "Warning: ${withoutUid.size} contacts lacked platform_uid (DB-only deletion)")
             }
 
             // Update scan result summary to reflect changes
@@ -400,14 +402,14 @@ class IosContactRepository(
                 // 2026 Best Practice: Check device deletion result
                 deviceDeleteSuccess = contactsSource.deleteContacts(uids)
                 if (!deviceDeleteSuccess) {
-                    println("Warning: Device delete returned false")
+                    Logger.e("Logger", "Warning: Device delete returned false")
                 }
             }
         } catch (e: CancellationException) {
             // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
             throw e
         } catch (e: Exception) {
-            println("Warning: Device delete failed: ${e.message}")
+            Logger.e("Logger", "Warning: Device delete failed: ${e.message}")
             deviceDeleteSuccess = false
         }
 
@@ -419,7 +421,7 @@ class IosContactRepository(
             // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
             throw e
         } catch (e: Exception) {
-            println("Error: Failed to cascade delete to local cache: ${e.message}")
+            Logger.e("Logger", "Error: Failed to cascade delete to local cache: ${e.message}")
             return false
         }
 
@@ -460,7 +462,7 @@ class IosContactRepository(
         val platformUids = contacts.mapNotNull { it.platformUid }
 
         if (platformUids.size < 2) {
-            println("Not enough contacts with platform_uid for merge: ${platformUids.size}")
+            Logger.d("Logger", "Not enough contacts with platform_uid for merge: ${platformUids.size}")
             return false
         }
 
@@ -707,7 +709,7 @@ class IosContactRepository(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    println("Note: Could not load WhatsApp cache for refresh: ${e.message}")
+                    Logger.d("Logger", "Note: Could not load WhatsApp cache for refresh: ${e.message}")
                 }
             }
 
@@ -755,7 +757,7 @@ class IosContactRepository(
             // 2026 Best Practice: Preserve coroutine cancellation semantics
             throw e
         } catch (e: Exception) {
-            println("Error refreshing contacts: ${e.message}")
+            Logger.e("Logger", "Error refreshing contacts: ${e.message}")
             false
         }
     }
@@ -843,7 +845,7 @@ class IosContactRepository(
      */
     override suspend fun recalculateWhatsAppCounts() {
         if (whatsAppRepository == null) {
-            println("⚠️ WhatsApp repository not available for recalculation")
+            Logger.e("Logger", "⚠️ WhatsApp repository not available for recalculation")
             return
         }
 
@@ -851,11 +853,11 @@ class IosContactRepository(
             // Get cached WhatsApp numbers
             val cachedNumbers = whatsAppRepository.getCachedNumbers()
             if (cachedNumbers.isEmpty()) {
-                println("⚠️ WhatsApp cache is empty, cannot recalculate")
+                Logger.e("Logger", "⚠️ WhatsApp cache is empty, cannot recalculate")
                 return
             }
 
-            println("📱 Recalculating WhatsApp flags using ${cachedNumbers.size} cached numbers...")
+            Logger.d("Logger", "📱 Recalculating WhatsApp flags using ${cachedNumbers.size} cached numbers...")
 
             // 2026 Best Practice: Process in batches to prevent OOM on 50k+ contacts
             val batchSize = 500
@@ -893,7 +895,7 @@ class IosContactRepository(
                 offset += batchSize
             }
 
-            println("✅ Updated WhatsApp flag for $totalUpdatedCount contacts (processed in batches of $batchSize)")
+            Logger.d("Logger", "✅ Updated WhatsApp flag for $totalUpdatedCount contacts (processed in batches of $batchSize)")
 
             // Refresh scan result summary
             updateScanResultSummary()
@@ -901,7 +903,7 @@ class IosContactRepository(
             // 2026 Best Practice: Always rethrow CancellationException for cooperative cancellation
             throw e
         } catch (e: Exception) {
-            println("❌ Failed to recalculate WhatsApp counts: ${e.message}")
+            Logger.e("Logger", "❌ Failed to recalculate WhatsApp counts: ${e.message}")
         }
     }
 

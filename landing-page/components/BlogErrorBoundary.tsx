@@ -28,7 +28,7 @@ class BlogErrorBoundary extends React.Component<Props, State> {
             <p className="text-gray-400 mb-6">
               There was an error loading this page. Please try again.
             </p>
-            <Link to="/blog" className="text-brand hover:underline">
+            <Link to="/blog" className="text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-sm">
               Back to Blog
             </Link>
           </div>

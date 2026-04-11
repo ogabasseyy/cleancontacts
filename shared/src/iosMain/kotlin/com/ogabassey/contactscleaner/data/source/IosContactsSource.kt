@@ -1,4 +1,7 @@
+
 package com.ogabassey.contactscleaner.data.source
+import com.ogabassey.contactscleaner.util.extractDigitsAndPlus
+
 
 import com.ogabassey.contactscleaner.platform.Logger
 
@@ -663,7 +666,7 @@ class IosContactsSource {
      * Simple phone number normalization.
      */
     private fun String.normalizePhoneNumber(): String {
-        return this.filter { it.isDigit() || it == '+' }
+        return this.extractDigitsAndPlus()
     }
 
     /**

@@ -1,4 +1,7 @@
+
 package com.ogabassey.contactscleaner.data.repository
+import com.ogabassey.contactscleaner.util.extractDigits
+
 
 import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.data.api.SessionStatus
@@ -166,7 +169,7 @@ class WhatsAppDetectorRepositoryImpl(
 
                 // Convert contacts to cache entries
                 val entries = response.contacts.map { contact ->
-                    val normalized = contact.phoneNumber.filter { it.isDigit() }
+                    val normalized = contact.phoneNumber.extractDigits()
                     WhatsAppCacheEntry(
                         normalizedNumber = normalized,
                         isBusiness = contact.isBusiness,

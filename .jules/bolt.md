@@ -283,3 +283,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 **Learning:** When performing complex aggregate queries (like `getScanStats` calculating a `crossAccountCount`), failing to filter out rows you don't care about before the `GROUP BY` and `HAVING COUNT(DISTINCT...)` operations creates a massive performance bottleneck. In this case, synced contacts (WhatsApp, Telegram) were being unnecessarily processed in the grouping phase. This not only wastes CPU and memory but also leads to inconsistent data if the subquery logic doesn't match the detailed view queries.
 
 **Action:** Always verify that complex `SELECT COUNT(*) FROM (SELECT ... GROUP BY ... HAVING ...)` subqueries use the same restrictive `WHERE` filters as their corresponding individual detailed queries to avoid processing irrelevant rows in heavy grouping operations.
+
+## 2026-10-18 - Replacing functional character filtering with primitive extraction
+**Learning:** Using functional chains like `filter { it.isDigit() }` or `filter { it.isDigit() || it == '+' }` creates intermediate `List` allocations and unnecessary object creation. In high-frequency paths like phone number formatting and parsing, this accumulates significant garbage collection overhead.
+**Action:** Replace functional character filtering chains with specialized extension functions (like `extractDigits()` or `extractDigitsAndPlus()`) that use a single-pass `StringBuilder` loop to extract characters into a new string directly.

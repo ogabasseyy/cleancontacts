@@ -1,4 +1,7 @@
+
 package com.ogabassey.contactscleaner.data.repository
+import com.ogabassey.contactscleaner.util.extractDigits
+
 
 import com.ogabassey.contactscleaner.platform.Logger
 
@@ -134,7 +137,7 @@ class IosContactRepository(
         // Check if contact is on WhatsApp by comparing normalized numbers
         val isOnWhatsApp = if (whatsAppPhoneNumbers.isNotEmpty()) {
             contact.numbers.any { num ->
-                val normalized = num.filter { it.isDigit() }
+                val normalized = num.extractDigits()
                 whatsAppPhoneNumbers.contains(normalized)
             }
         } else {
@@ -874,7 +877,7 @@ class IosContactRepository(
                 val updatedContacts = batch.mapNotNull { contact ->
                     val numbers = contact.rawNumbers.split(",").filter { it.isNotBlank() }
                     val isOnWhatsApp = numbers.any { num ->
-                        val normalized = num.filter { it.isDigit() }
+                        val normalized = num.extractDigits()
                         cachedNumbers.contains(normalized)
                     }
 

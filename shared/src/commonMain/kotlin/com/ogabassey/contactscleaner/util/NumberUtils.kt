@@ -32,3 +32,36 @@ private fun addThousandsSeparators(s: String): String {
 
     return result.reverse().toString()
 }
+
+/**
+ * Extracts digit characters from a string and normalizes them to ASCII.
+ * This preserves the old `isDigit()` behavior for Unicode numerals while
+ * avoiding the intermediate collection allocations of `filter`.
+ */
+fun String.extractDigits(): String {
+    if (isEmpty()) return ""
+    val sb = StringBuilder(length)
+    for (i in indices) {
+        val c = this[i]
+        if (c.isDigit()) sb.append(c.digitToInt().digitToChar())
+    }
+    return sb.toString()
+}
+
+/**
+ * Extracts digit characters plus ASCII '+' and normalizes digits to ASCII.
+ * This preserves the old `isDigit()` behavior for Unicode numerals while
+ * avoiding the intermediate collection allocations of `filter`.
+ */
+fun String.extractDigitsAndPlus(): String {
+    if (isEmpty()) return ""
+    val sb = StringBuilder(length)
+    for (i in indices) {
+        val c = this[i]
+        when {
+            c == '+' -> sb.append(c)
+            c.isDigit() -> sb.append(c.digitToInt().digitToChar())
+        }
+    }
+    return sb.toString()
+}

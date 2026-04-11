@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,6 +31,9 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
+
+private const val AllClearTitle = "All Clear!"
+private const val AllClearSubtitle = "No sensitive data found"
 
 /**
  * Screen for reviewing detected Sensitive Data (PII).
@@ -168,8 +172,44 @@ fun SensitiveReviewScreen(
             }
 
             if (contacts.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No sensitive data found", color = TextMedium)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "$AllClearTitle $AllClearSubtitle"
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(SuccessNeon.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                tint = SuccessNeon.copy(alpha = 0.5f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            AllClearTitle,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            AllClearSubtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextLow
+                        )
+                    }
                 }
             } else {
                 LazyColumn(

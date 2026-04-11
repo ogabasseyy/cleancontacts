@@ -84,5 +84,6 @@
 **Action:** Always provide explicit, high-contrast keyboard focus indicators using the `focus-visible` pseudo-class (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`) on any custom interactive element used for navigation.
 
 ## 2026-04-09 - Accessible Empty States for Action Screens
+
 **Learning:** For actionable task screens like `SensitiveReviewScreen`, generic "No data found" messages are unrewarding and lack cohesive accessibility structure. Grouping visual empty state components (icons and multi-line text) without `mergeDescendants` forces screen readers to read fragments.
 **Action:** When creating success/empty states for actionable lists, apply `semantics(mergeDescendants = true)` to the outer container and synthesize the message into a single clear `contentDescription` (e.g., "All Clear! No sensitive data found"). Nullify inner icon descriptions to avoid redundant audio.

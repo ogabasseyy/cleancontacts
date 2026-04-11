@@ -32,6 +32,9 @@ import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
+private const val AllClearTitle = "All Clear!"
+private const val AllClearSubtitle = "No sensitive data found"
+
 /**
  * Screen for reviewing detected Sensitive Data (PII).
  */
@@ -171,9 +174,10 @@ fun SensitiveReviewScreen(
             if (contacts.isEmpty()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
+                        .fillMaxWidth()
                         .semantics(mergeDescendants = true) {
-                            contentDescription = "All Clear! No sensitive data found"
+                            contentDescription = "$AllClearTitle $AllClearSubtitle"
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -194,14 +198,14 @@ fun SensitiveReviewScreen(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            "All Clear!",
+                            AllClearTitle,
                             style = MaterialTheme.typography.titleMedium,
                             color = TextMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "No sensitive data found",
+                            AllClearSubtitle,
                             style = MaterialTheme.typography.bodySmall,
                             color = TextLow
                         )

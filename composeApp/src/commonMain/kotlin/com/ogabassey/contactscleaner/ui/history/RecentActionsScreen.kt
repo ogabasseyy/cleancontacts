@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.ogabassey.contactscleaner.domain.repository.Snapshot
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.theme.*
@@ -203,7 +204,13 @@ private fun ActionCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             // Details
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clearAndSetSemantics {
+                        contentDescription = "${snapshot.description}. ${snapshot.contacts.size} contacts affected. ${formatRelativeTime(snapshot.timestamp)}"
+                    }
+            ) {
                 Text(
                     snapshot.description,
                     style = MaterialTheme.typography.bodyLarge,

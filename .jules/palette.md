@@ -92,3 +92,6 @@
 
 **Learning:** For actionable task screens like `SensitiveReviewScreen`, generic "No data found" messages are unrewarding and lack cohesive accessibility structure. Grouping visual empty state components (icons and multi-line text) without `mergeDescendants` forces screen readers to read fragments.
 **Action:** When creating success/empty states for actionable lists, apply `semantics(mergeDescendants = true)` to the outer container and synthesize the message into a single clear `contentDescription` (e.g., "All Clear! No sensitive data found"). Nullify inner icon descriptions to avoid redundant audio.
+## 2026-10-27 - Custom Screen Reader Readouts for Text Containers
+**Learning:** In Jetpack Compose, when overriding the screen reader announcement for a parent container (like a `Column` containing multiple `Text` elements), using `semantics(mergeDescendants = true) { contentDescription = "..." }` can result in the screen reader announcing both the custom description and the text of the child nodes.
+**Action:** Use `Modifier.clearAndSetSemantics { contentDescription = "..." }` on the parent container to completely replace the semantics of all descendants, ensuring a single, cohesive, non-repetitive read-out.

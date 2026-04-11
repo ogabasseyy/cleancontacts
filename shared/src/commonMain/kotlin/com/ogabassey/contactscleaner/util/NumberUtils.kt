@@ -8,29 +8,37 @@ fun Int.formatWithCommas(): String = addThousandsSeparators(toString())
 
 fun Long.formatWithCommas(): String = addThousandsSeparators(toString())
 
+// ⚡ Bolt Optimization: Use a single-pass CharArray implementation instead of
+// StringBuilder with .reverse() to eliminate redundant string traversals
+// and intermediate allocations in high-frequency dashboard rendering.
 private fun addThousandsSeparators(s: String): String {
     val isNegative = s.isNotEmpty() && s[0] == '-'
     val limit = if (isNegative) 1 else 0
 
-    if (s.length - limit <= 3) return s
+    val numDigits = s.length - limit
+    if (numDigits <= 3) return s
 
-    val result = StringBuilder(s.length + (s.length - limit - 1) / 3)
+    val numCommas = (numDigits - 1) / 3
+    val resultLength = s.length + numCommas
+    val result = CharArray(resultLength)
+
+    var destIdx = resultLength - 1
     var count = 0
 
     for (i in s.length - 1 downTo limit) {
         if (count == 3) {
-            result.append(',')
+            result[destIdx--] = ','
             count = 0
         }
-        result.append(s[i])
+        result[destIdx--] = s[i]
         count++
     }
 
     if (isNegative) {
-        result.append('-')
+        result[destIdx] = '-'
     }
 
-    return result.reverse().toString()
+    return result.concatToString()
 }
 
 /**

@@ -83,6 +83,11 @@
 
 **Action:** Always provide explicit, high-contrast keyboard focus indicators using the `focus-visible` pseudo-class (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`) on any custom interactive element used for navigation.
 
+## 2024-06-25 - Web Decorative SVGs Inside Links
+
+**Learning:** Decorative SVG icons inside standard Web components like `<Link>` or `<a>` are often incorrectly read by screen readers if they lack `aria-hidden="true"`. Furthermore, they can become focusable targets if `focusable="false"` is missing, causing multiple tab stops for a single link.
+**Action:** Always add `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.
+
 ## 2026-04-09 - Accessible Empty States for Action Screens
 
 **Learning:** For actionable task screens like `SensitiveReviewScreen`, generic "No data found" messages are unrewarding and lack cohesive accessibility structure. Grouping visual empty state components (icons and multi-line text) without `mergeDescendants` forces screen readers to read fragments.

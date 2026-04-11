@@ -34,7 +34,7 @@ mockito = "5.23.0"
 mockitoKotlin = "6.3.0"
 
 # KMP Dependencies (2026 Best Practice)
-koin = "4.2.0"
+koin = "4.2.1"
 multiplatformSettings = "1.3.0"
 kotlinxDatetime = "0.7.1"
 ktor = "3.4.1"

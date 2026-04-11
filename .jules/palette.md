@@ -82,6 +82,8 @@
 **Learning:** When using `<button>` or `<a>` elements with custom styling for navigation links in headers and footers, they often lose default browser focus outlines. Relying solely on `hover:` classes makes them inaccessible to keyboard users, preventing them from seeing which element is currently focused.
 
 **Action:** Always provide explicit, high-contrast keyboard focus indicators using the `focus-visible` pseudo-class (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`) on any custom interactive element used for navigation.
+
 ## 2024-06-25 - Web Decorative SVGs Inside Links
+
 **Learning:** Decorative SVG icons inside standard Web components like `<Link>` or `<a>` are often incorrectly read by screen readers if they lack `aria-hidden="true"`. Furthermore, they can become focusable targets if `focusable="false"` is missing, causing multiple tab stops for a single link.
 **Action:** Always add `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.

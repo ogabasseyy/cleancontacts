@@ -7,7 +7,7 @@ junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
-composeBom = "2026.03.00"
+composeBom = "2026.03.01"
 navigationCompose = "2.9.7"
 # JetBrains versions for KMP - CMP 1.10.0 with Kotlin 2.3.0
 composeMultiplatform = "1.10.2"
@@ -28,16 +28,16 @@ sqlite = "2.6.2"
 paging = "3.4.2"
 work = "2.11.2"
 revenuecat = "9.28.1"
-libphonenumber = "9.0.27"
+libphonenumber = "9.0.28"
 datastore = "1.2.1"
 mockito = "5.23.0"
 mockitoKotlin = "6.3.0"
 
 # KMP Dependencies (2026 Best Practice)
-koin = "4.2.0"
+koin = "4.2.1"
 multiplatformSettings = "1.3.0"
 kotlinxDatetime = "0.7.1"
-ktor = "3.4.1"
+ktor = "3.4.2"
 purchasesKmp = "2.7.1+17.42.0"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions

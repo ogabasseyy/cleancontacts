@@ -87,3 +87,8 @@
 
 **Learning:** Decorative SVG icons inside standard Web components like `<Link>` or `<a>` are often incorrectly read by screen readers if they lack `aria-hidden="true"`. Furthermore, they can become focusable targets if `focusable="false"` is missing, causing multiple tab stops for a single link.
 **Action:** Always add `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.
+
+## 2026-04-09 - Accessible Empty States for Action Screens
+
+**Learning:** For actionable task screens like `SensitiveReviewScreen`, generic "No data found" messages are unrewarding and lack cohesive accessibility structure. Grouping visual empty state components (icons and multi-line text) without `mergeDescendants` forces screen readers to read fragments.
+**Action:** When creating success/empty states for actionable lists, apply `semantics(mergeDescendants = true)` to the outer container and synthesize the message into a single clear `contentDescription` (e.g., "All Clear! No sensitive data found"). Nullify inner icon descriptions to avoid redundant audio.

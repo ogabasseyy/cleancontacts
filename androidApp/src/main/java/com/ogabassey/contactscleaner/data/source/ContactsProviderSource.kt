@@ -625,74 +625,30 @@ class ContactsProviderSource(
             return@withContext false
         }
 
-        // 1. Get a RawContactID for each ContactID
-        val rawIds = mutableListOf<Long>()
-        // Optimization: Query all at once or in batches if possible, but one-by-one is safer for mapping strictly
-        // To do it in one query: SELECT _id, contact_id FROM raw_contacts WHERE contact_id IN (...)
+        val contactsToMerge = getContactsSnapshot(
+            batchIds = contactIds,
+            whatsAppIds = emptySet(),
+            telegramIds = emptySet()
+        )
 
-        // 2026 Best Practice: Use parameterized queries to prevent SQL injection
-        val placeholders = contactIds.joinToString(",") { "?" }
-        val selectionArgs = contactIds.map { it.toString() }.toTypedArray()
-        contentResolver.query(
-            ContactsContract.RawContacts.CONTENT_URI,
-            arrayOf(ContactsContract.RawContacts._ID, ContactsContract.RawContacts.CONTACT_ID),
-            "${ContactsContract.RawContacts.CONTACT_ID} IN ($placeholders)",
-            selectionArgs,
-            null
-        )?.use { cursor ->
-            val rawIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts._ID)
-            val contactIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts.CONTACT_ID)
-            val foundContactIds = mutableSetOf<Long>()
-
-            while (cursor.moveToNext()) {
-                val contactId = cursor.getLong(contactIdIdx)
-                if (contactId !in foundContactIds) {
-                    // Just take the first raw ID found for this contact ID
-                    rawIds.add(cursor.getLong(rawIdIdx))
-                    foundContactIds.add(contactId)
-                }
-            }
+        val mergedContact = AndroidMergeUtils.buildMergedContact(contactsToMerge, customName)
+        if (mergedContact == null) {
+            Logger.w("ContactsProviderSource", "Unable to build merged Android contact payload")
+            return@withContext false
         }
 
-        if (rawIds.size < 2) return@withContext false
-
-        // 2. Aggregate them all to the first one (Anchor)
-        val operations = ArrayList<android.content.ContentProviderOperation>()
-        val anchorId = rawIds[0]
-
-        for (i in 1 until rawIds.size) {
-            operations.add(
-                android.content.ContentProviderOperation.newUpdate(ContactsContract.AggregationExceptions.CONTENT_URI)
-                    .withValue(ContactsContract.AggregationExceptions.TYPE, ContactsContract.AggregationExceptions.TYPE_KEEP_TOGETHER)
-                    .withValue(ContactsContract.AggregationExceptions.RAW_CONTACT_ID1, anchorId)
-                    .withValue(ContactsContract.AggregationExceptions.RAW_CONTACT_ID2, rawIds[i])
-                    .build()
-            )
+        val restored = restoreContacts(listOf(mergedContact))
+        if (!restored) {
+            Logger.e("ContactsProviderSource", "Failed to create merged contact on Android")
+            return@withContext false
         }
 
-        if (customName != null) {
-            operations.add(
-                android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-                    .withSelection(
-                        "${ContactsContract.Data.RAW_CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
-                        arrayOf(anchorId.toString(), ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                    )
-                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, customName)
-                    .build()
-            )
+        val deleted = deleteContacts(contactIds)
+        if (!deleted) {
+            Logger.e("ContactsProviderSource", "Merged contact created but failed to delete originals")
         }
 
-        // 2026 Best Practice: Catch specific exceptions from applyBatch
-        try {
-            contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
-            true
-        } catch (e: RemoteException) {
-            Logger.e("ContactsProviderSource", "Remote error merging contacts", e)
-            false
-        } catch (e: OperationApplicationException) {
-            Logger.e("ContactsProviderSource", "Operation error merging contacts", e)
-            false
-        }
+        deleted
     }
 
     suspend fun updateMultipleContactNumbers(updates: Map<Long, String>): Boolean = withContext(Dispatchers.IO) {
@@ -781,8 +737,8 @@ class ContactsProviderSource(
             val rawContactInsertIndex = operations.size
             operations.add(
                 android.content.ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, contact.accountType)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, contact.accountName)
                     .build()
             )
 

@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.data.api.FeedbackApi
 import com.ogabassey.contactscleaner.data.api.FeedbackRequest
+import com.ogabassey.contactscleaner.platform.SupportEmail
+import com.ogabassey.contactscleaner.platform.SupportEmailLauncher
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.util.DeviceInfo
 import kotlinx.coroutines.launch
@@ -79,6 +81,9 @@ fun FeedbackBottomSheet(
     var submissionResult by remember { mutableStateOf<SubmissionResult?>(null) }
     var isDismissed by remember { mutableStateOf(false) }
     val isEmailValid = email.isBlank() || email.contains("@")
+    val trimmedMessage = message.trim()
+    val trimmedEmail = email.trim()
+    val deviceString = "${DeviceInfo.platformName} ${DeviceInfo.osVersion} | ${DeviceInfo.deviceModel}"
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -208,16 +213,46 @@ fun FeedbackBottomSheet(
                 exit = fadeOut()
             ) {
                 submissionResult?.let { result ->
-                    val (text, color) = when (result) {
-                        is SubmissionResult.Success -> result.message to SuccessNeon
-                        is SubmissionResult.Error -> result.message to ErrorNeon
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        val (text, color) = when (result) {
+                            is SubmissionResult.Success -> result.message to SuccessNeon
+                            is SubmissionResult.Error -> result.message to ErrorNeon
+                        }
+                        Text(
+                            text,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = color
+                        )
+
+                        if (result is SubmissionResult.Error && !isSubmitting) {
+                            TextButton(
+                                onClick = {
+                                    val launched = SupportEmailLauncher.composeEmail(
+                                        address = SupportEmail.ADDRESS,
+                                        subject = SupportEmail.subjectFor(selectedCategory),
+                                        body = SupportEmail.bodyFor(
+                                            category = selectedCategory,
+                                            message = trimmedMessage,
+                                            email = trimmedEmail,
+                                            deviceInfo = deviceString
+                                        )
+                                    )
+                                    submissionResult = if (launched) {
+                                        SubmissionResult.Success("Email draft opened in your mail app.")
+                                    } else {
+                                        SubmissionResult.Error("Failed to open an email app.")
+                                    }
+                                },
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text("Email support instead", color = SecondaryNeon)
+                            }
+                        }
                     }
-                    Text(
-                        text,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = color,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
                 }
             }
 
@@ -227,12 +262,11 @@ fun FeedbackBottomSheet(
                     scope.launch {
                         isSubmitting = true
                         submissionResult = null
-                        val deviceString = "${DeviceInfo.platformName} ${DeviceInfo.osVersion} | ${DeviceInfo.deviceModel}"
                         val result = FeedbackApi.submitFeedback(
                             FeedbackRequest(
                                 category = selectedCategory,
-                                message = message.trim(),
-                                email = email.trim(),
+                                message = trimmedMessage,
+                                email = trimmedEmail,
                                 deviceInfo = deviceString
                             )
                         )
@@ -251,7 +285,7 @@ fun FeedbackBottomSheet(
                         }
                     }
                 },
-                enabled = message.trim().isNotEmpty() && isEmailValid && !isSubmitting,
+                enabled = trimmedMessage.isNotEmpty() && isEmailValid && !isSubmitting,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

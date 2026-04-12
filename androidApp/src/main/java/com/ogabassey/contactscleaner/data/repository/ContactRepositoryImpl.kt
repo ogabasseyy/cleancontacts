@@ -19,6 +19,7 @@ import com.ogabassey.contactscleaner.domain.model.AccountInstance
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -376,10 +377,9 @@ class ContactRepositoryImpl constructor(
     )
 
     override suspend fun mergeContacts(contactIds: List<Long>, customName: String?): Boolean {
-        val success = contactsProviderSource.mergeContacts(contactIds, customName)
+        val success = performProviderMerge(contactIds, customName)
         if (success) {
-            // Update scan result summary to reflect merged contacts
-            updateScanResultSummary()
+            rebuildLocalCacheFromProvider()
         }
         return success
     }
@@ -430,7 +430,7 @@ class ContactRepositoryImpl constructor(
                 )
 
                 val ids = contacts.map { it.id }
-                if (mergeContacts(ids)) {
+                if (performProviderMerge(ids)) {
                     successCount++
                 }
             }
@@ -438,8 +438,11 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Progress(progress, "Merging group ${index + 1} of ${groups.size}"))
         }
 
-        // Refresh summary
-        updateScanResultSummary()
+        if (successCount > 0) {
+            rebuildLocalCacheFromProvider()
+        } else {
+            updateScanResultSummary()
+        }
 
         emit(CleanupStatus.Success("Merged $successCount groups successfully"))
     }
@@ -598,6 +601,21 @@ class ContactRepositoryImpl constructor(
             crossAccountDuplicateCount = stats.crossAccountCount
         )
         scanResultProvider.scanResult = result
+    }
+
+    private suspend fun performProviderMerge(contactIds: List<Long>, customName: String? = null): Boolean {
+        return contactsProviderSource.mergeContacts(contactIds, customName)
+    }
+
+    private suspend fun rebuildLocalCacheFromProvider() {
+        try {
+            scanContacts().collect()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("ContactRepository", "Failed to refresh local cache after provider write", e)
+            updateScanResultSummary()
+        }
     }
 
     override suspend fun recalculateWhatsAppCounts() {

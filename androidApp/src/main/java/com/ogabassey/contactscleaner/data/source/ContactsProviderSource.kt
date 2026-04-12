@@ -22,6 +22,12 @@ class ContactsProviderSource(
     private val contentResolver: ContentResolver
 ) {
 
+    private data class RestoredContactResult(
+        val contact: Contact,
+        val contactId: Long?,
+        val rawContactId: Long?
+    )
+
     // 2026 Best Practice: Defensive permission checks in data layer
     // These are safety nets - UI layer should request permissions before calling these methods
     private fun hasReadPermission(): Boolean {
@@ -637,8 +643,8 @@ class ContactsProviderSource(
             return@withContext false
         }
 
-        val restored = restoreContacts(listOf(mergedContact))
-        if (!restored) {
+        val restored = restoreContactsInternal(listOf(mergedContact))?.firstOrNull()
+        if (restored == null) {
             Logger.e("ContactsProviderSource", "Failed to create merged contact on Android")
             return@withContext false
         }
@@ -646,9 +652,14 @@ class ContactsProviderSource(
         val deleted = deleteContacts(contactIds)
         if (!deleted) {
             Logger.e("ContactsProviderSource", "Merged contact created but failed to delete originals")
+            val rolledBack = rollbackMergedContact(restored)
+            if (!rolledBack) {
+                Logger.e("ContactsProviderSource", "Rollback failed after merge delete error for ${mergedContact.name ?: "unnamed contact"}")
+            }
+            return@withContext false
         }
 
-        deleted
+        true
     }
 
     suspend fun updateMultipleContactNumbers(updates: Map<Long, String>): Boolean = withContext(Dispatchers.IO) {
@@ -723,74 +734,156 @@ class ContactsProviderSource(
 
     suspend fun restoreContacts(contacts: List<Contact>): Boolean = withContext(Dispatchers.IO) {
         if (contacts.isEmpty()) return@withContext true
+        restoreContactsInternal(contacts) != null
+    }
 
-        // 2026 Best Practice: Defensive permission check for write operation
+    private fun restoreContactsInternal(contacts: List<Contact>): List<RestoredContactResult>? {
+        if (contacts.isEmpty()) return emptyList()
+
         if (!hasWritePermission()) {
             Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for restore")
+            return null
+        }
+
+        val results = mutableListOf<RestoredContactResult>()
+        contacts.forEach { contact ->
+            val operations = buildRestoreOperations(contact)
+            try {
+                val providerResults = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
+                val rawContactId = providerResults.firstOrNull()?.uri?.lastPathSegment?.toLongOrNull()
+                val contactId = rawContactId?.let(::lookupContactIdForRawContact)
+                results.add(
+                    RestoredContactResult(
+                        contact = contact,
+                        contactId = contactId,
+                        rawContactId = rawContactId
+                    )
+                )
+            } catch (e: RemoteException) {
+                Logger.e("ContactsProviderSource", "Remote error restoring contacts", e)
+                return null
+            } catch (e: OperationApplicationException) {
+                Logger.e("ContactsProviderSource", "Operation error restoring contacts", e)
+                return null
+            }
+        }
+        return results
+    }
+
+    private fun buildRestoreOperations(contact: Contact): ArrayList<android.content.ContentProviderOperation> {
+        val operations = ArrayList<android.content.ContentProviderOperation>()
+
+        val rawContactInsertIndex = operations.size
+        operations.add(
+            android.content.ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, contact.accountType)
+                .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, contact.accountName)
+                .build()
+        )
+
+        if (!contact.name.isNullOrBlank()) {
+            operations.add(
+                android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
+                    .build()
+            )
+        }
+
+        contact.numbers.forEach { number ->
+            operations.add(
+                android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                    .build()
+            )
+        }
+
+        contact.emails.forEach { email ->
+            operations.add(
+                android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
+                    .withValue(ContactsContract.CommonDataKinds.Email.TYPE, ContactsContract.CommonDataKinds.Email.TYPE_HOME)
+                    .build()
+            )
+        }
+
+        return operations
+    }
+
+    private fun lookupContactIdForRawContact(rawContactId: Long): Long? {
+        return contentResolver.query(
+            ContactsContract.RawContacts.CONTENT_URI,
+            arrayOf(ContactsContract.RawContacts.CONTACT_ID),
+            "${ContactsContract.RawContacts._ID} = ?",
+            arrayOf(rawContactId.toString()),
+            null
+        )?.use { cursor ->
+            val contactIdIdx = cursor.getColumnIndex(ContactsContract.RawContacts.CONTACT_ID)
+            if (contactIdIdx < 0 || !cursor.moveToFirst()) {
+                null
+            } else {
+                cursor.getLong(contactIdIdx).takeIf { it > 0 }
+            }
+        }
+    }
+
+    private suspend fun rollbackMergedContact(restoredContact: RestoredContactResult): Boolean {
+        restoredContact.contactId?.let { createdContactId ->
+            val deleted = deleteContacts(listOf(createdContactId))
+            if (deleted) {
+                Logger.i("ContactsProviderSource", "Rolled back merged contact via contact delete after original delete failure")
+                return true
+            }
+            Logger.e("ContactsProviderSource", "Rollback via contact delete failed for merged contact ${restoredContact.contact.name ?: "unnamed contact"}")
+        }
+
+        restoredContact.rawContactId?.let { rawContactId ->
+            val deleted = deleteRawContacts(listOf(rawContactId))
+            if (deleted) {
+                Logger.i("ContactsProviderSource", "Rolled back merged contact via raw contact delete after original delete failure")
+                return true
+            }
+            Logger.e("ContactsProviderSource", "Rollback via raw contact delete failed for merged contact ${restoredContact.contact.name ?: "unnamed contact"}")
+        }
+
+        Logger.e("ContactsProviderSource", "Unable to rollback merged contact ${restoredContact.contact.name ?: "unnamed contact"} because no created identifier was available")
+        return false
+    }
+
+    private suspend fun deleteRawContacts(rawContactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {
+        if (rawContactIds.isEmpty()) return@withContext true
+
+        if (!hasWritePermission()) {
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for raw contact delete")
             return@withContext false
         }
 
-        val operations = ArrayList<android.content.ContentProviderOperation>()
-
-        contacts.forEach { contact ->
-            // 1. Create RawContact
-            val rawContactInsertIndex = operations.size
-            operations.add(
-                android.content.ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, contact.accountType)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, contact.accountName)
-                    .build()
-            )
-
-            // 2. Add Name
-            if (!contact.name.isNullOrBlank()) {
-                operations.add(
-                    android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
-                        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
-                        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, contact.name)
+        rawContactIds.chunked(200).forEach { batch ->
+            val batchOperations = ArrayList<android.content.ContentProviderOperation>()
+            batch.forEach { id ->
+                batchOperations.add(
+                    android.content.ContentProviderOperation.newDelete(ContactsContract.RawContacts.CONTENT_URI)
+                        .withSelection("${ContactsContract.RawContacts._ID} = ?", arrayOf(id.toString()))
                         .build()
                 )
             }
-
-            // 3. Add Phones
-            contact.numbers.forEach { number ->
-                operations.add(
-                    android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
-                        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
-                        .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
-                        .build()
-                )
-            }
-
-            // 4. Add Emails
-            contact.emails.forEach { email ->
-                operations.add(
-                    android.content.ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
-                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
-                        .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
-                        .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
-                        .withValue(ContactsContract.CommonDataKinds.Email.TYPE, ContactsContract.CommonDataKinds.Email.TYPE_HOME)
-                        .build()
-                )
+            try {
+                contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
+            } catch (e: RemoteException) {
+                Logger.e("ContactsProviderSource", "Remote error deleting raw contact batch", e)
+                return@withContext false
+            } catch (e: OperationApplicationException) {
+                Logger.e("ContactsProviderSource", "Operation error deleting raw contact batch", e)
+                return@withContext false
             }
         }
 
-        // 2026 Best Practice: Catch specific exceptions from applyBatch
-        try {
-            // Apply in batches of 400 to avoid TransactionTooLargeException
-            operations.chunked(400).forEach { batch ->
-                contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
-            }
-            true
-        } catch (e: RemoteException) {
-            Logger.e("ContactsProviderSource", "Remote error restoring contacts", e)
-            false
-        } catch (e: OperationApplicationException) {
-            Logger.e("ContactsProviderSource", "Operation error restoring contacts", e)
-            false
-        }
+        true
     }
 }

@@ -3,6 +3,7 @@ buildscript {
     val jdom2Version = "2.0.6.1"
     val commonsLang3Version = "3.20.0"
     val httpClientVersion = "4.5.14"
+    val nettyVersion = "4.1.132.Final"
 
     configurations.all {
         resolutionStrategy {
@@ -10,6 +11,17 @@ buildscript {
             force("org.jdom:jdom2:$jdom2Version")
             force("org.apache.commons:commons-lang3:$commonsLang3Version")
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+            force("io.netty:netty-codec-http:$nettyVersion")
+            force("io.netty:netty-codec-http2:$nettyVersion")
+            force("io.netty:netty-codec:$nettyVersion")
+            force("io.netty:netty-buffer:$nettyVersion")
+            force("io.netty:netty-common:$nettyVersion")
+            force("io.netty:netty-handler:$nettyVersion")
+            force("io.netty:netty-handler-proxy:$nettyVersion")
+            force("io.netty:netty-resolver:$nettyVersion")
+            force("io.netty:netty-transport:$nettyVersion")
+            force("io.netty:netty-transport-native-unix-common:$nettyVersion")
+            force("io.netty:netty-codec-socks:$nettyVersion")
         }
     }
 }
@@ -45,6 +57,7 @@ subprojects {
             val commonsCompressVersion = libs.versions.commonsCompress.get()
             val commonsLang3Version = libs.versions.commonsLang3.get()
             val httpClientVersion = libs.versions.httpClient.get()
+            val nettyVersion = libs.versions.netty.get()
 
             // jose4j: CVE-2023-31582, CVE-2023-51775, CVE-2024-29371
             force("org.bitbucket.b_c:jose4j:$jose4jVersion")
@@ -65,6 +78,19 @@ subprojects {
 
             // Apache HttpClient: CVE-2020-13956 XSS
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+
+            // Netty: CVE-2026-33870, CVE-2026-33871
+            force("io.netty:netty-codec-http:$nettyVersion")
+            force("io.netty:netty-codec-http2:$nettyVersion")
+            force("io.netty:netty-codec:$nettyVersion")
+            force("io.netty:netty-buffer:$nettyVersion")
+            force("io.netty:netty-common:$nettyVersion")
+            force("io.netty:netty-handler:$nettyVersion")
+            force("io.netty:netty-handler-proxy:$nettyVersion")
+            force("io.netty:netty-resolver:$nettyVersion")
+            force("io.netty:netty-transport:$nettyVersion")
+            force("io.netty:netty-transport-native-unix-common:$nettyVersion")
+            force("io.netty:netty-codec-socks:$nettyVersion")
         }
     }
 }

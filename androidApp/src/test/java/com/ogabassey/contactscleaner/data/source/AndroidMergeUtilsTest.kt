@@ -52,6 +52,54 @@ class AndroidMergeUtilsTest {
         assertEquals("lakshmi@gmail.com", actual.accountName)
     }
 
+    @Test
+    fun `buildMergedContact returns null for a single contact`() {
+        val merged = AndroidMergeUtils.buildMergedContact(
+            contacts = listOf(testContact(id = 1, accountType = null, accountName = null))
+        )
+
+        assertEquals(null, merged)
+    }
+
+    @Test
+    fun `buildMergedContact returns null when merged payload has no data`() {
+        val merged = AndroidMergeUtils.buildMergedContact(
+            contacts = listOf(
+                testContact(
+                    id = 1,
+                    name = "   ",
+                    numbers = emptyList(),
+                    emails = emptyList(),
+                    accountType = null,
+                    accountName = null
+                ),
+                testContact(
+                    id = 2,
+                    name = null,
+                    numbers = emptyList(),
+                    emails = emptyList(),
+                    accountType = null,
+                    accountName = null
+                )
+            )
+        )
+
+        assertEquals(null, merged)
+    }
+
+    @Test
+    fun `selectTargetAccount falls back to local account when all contacts are local`() {
+        val contacts = listOf(
+            testContact(id = 1, accountType = null, accountName = null),
+            testContact(id = 2, accountType = null, accountName = null)
+        )
+
+        val target = AndroidMergeUtils.selectTargetAccount(contacts)
+
+        assertEquals(null, target.accountType)
+        assertEquals(null, target.accountName)
+    }
+
     private fun testContact(
         id: Long,
         name: String? = "Test Contact",

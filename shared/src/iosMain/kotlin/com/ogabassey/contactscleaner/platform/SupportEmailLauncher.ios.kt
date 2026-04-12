@@ -7,13 +7,16 @@ import platform.darwin.dispatch_get_main_queue
 
 actual object SupportEmailLauncher {
     actual fun composeEmail(address: String, subject: String, body: String): Boolean {
+        val encodedAddress = percentEncode(address)
         val encodedSubject = percentEncode(subject)
         val encodedBody = percentEncode(body)
-        val url = NSURL.URLWithString("mailto:$address?subject=$encodedSubject&body=$encodedBody")
+        val url = NSURL.URLWithString("mailto:$encodedAddress?subject=$encodedSubject&body=$encodedBody")
             ?: return false
+        val application = UIApplication.sharedApplication
+        if (!application.canOpenURL(url)) return false
 
         dispatch_async(dispatch_get_main_queue()) {
-            UIApplication.sharedApplication.openURL(
+            application.openURL(
                 url,
                 emptyMap<Any?, Any?>(),
                 null

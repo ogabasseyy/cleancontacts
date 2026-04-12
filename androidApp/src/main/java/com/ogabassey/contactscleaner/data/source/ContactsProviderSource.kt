@@ -746,9 +746,9 @@ class ContactsProviderSource(
         }
 
         val results = mutableListOf<RestoredContactResult>()
-        contacts.forEach { contact ->
-            val operations = buildRestoreOperations(contact)
-            try {
+        try {
+            contacts.forEach { contact ->
+                val operations = buildRestoreOperations(contact)
                 val providerResults = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
                 val rawContactId = providerResults.firstOrNull()?.uri?.lastPathSegment?.toLongOrNull()
                 val contactId = rawContactId?.let(::lookupContactIdForRawContact)
@@ -759,13 +759,15 @@ class ContactsProviderSource(
                         rawContactId = rawContactId
                     )
                 )
-            } catch (e: RemoteException) {
-                Logger.e("ContactsProviderSource", "Remote error restoring contacts", e)
-                return null
-            } catch (e: OperationApplicationException) {
-                Logger.e("ContactsProviderSource", "Operation error restoring contacts", e)
-                return null
             }
+        } catch (e: RemoteException) {
+            Logger.e("ContactsProviderSource", "Remote error restoring contacts", e)
+            rollbackRestoredContacts(results)
+            return null
+        } catch (e: OperationApplicationException) {
+            Logger.e("ContactsProviderSource", "Operation error restoring contacts", e)
+            rollbackRestoredContacts(results)
+            return null
         }
         return results
     }
@@ -854,6 +856,43 @@ class ContactsProviderSource(
 
         Logger.e("ContactsProviderSource", "Unable to rollback merged contact ${restoredContact.contact.name ?: "unnamed contact"} because no created identifier was available")
         return false
+    }
+
+    private fun rollbackRestoredContacts(restoredContacts: List<RestoredContactResult>) {
+        restoredContacts.asReversed().forEach { restoredContact ->
+            val rawContactId = restoredContact.rawContactId
+            if (rawContactId == null) {
+                Logger.e(
+                    "ContactsProviderSource",
+                    "Unable to rollback restored contact ${restoredContact.contact.name ?: "unnamed contact"} because no raw contact ID was available"
+                )
+                return@forEach
+            }
+
+            val rawContactUri = ContactsContract.RawContacts.CONTENT_URI.buildUpon()
+                .appendPath(rawContactId.toString())
+                .build()
+            try {
+                val deletedRows = contentResolver.delete(rawContactUri, null, null)
+                if (deletedRows > 0) {
+                    Logger.i(
+                        "ContactsProviderSource",
+                        "Rolled back restored contact ${restoredContact.contact.name ?: "unnamed contact"} via raw contact delete"
+                    )
+                } else {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Rollback via raw contact delete failed for restored contact ${restoredContact.contact.name ?: "unnamed contact"}"
+                    )
+                }
+            } catch (e: Exception) {
+                Logger.e(
+                    "ContactsProviderSource",
+                    "Rollback via raw contact delete threw for restored contact ${restoredContact.contact.name ?: "unnamed contact"}",
+                    e
+                )
+            }
+        }
     }
 
     private suspend fun deleteRawContacts(rawContactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {

@@ -764,6 +764,8 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
 
             return true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Logger.e("ContactRepository", "Failed to refresh contacts", e)
             return false

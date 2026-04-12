@@ -25,6 +25,7 @@ import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepositor
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -246,64 +247,13 @@ class IosContactRepository(
             isValid
         }
 
-        contactDao.replaceAllContacts(validatedContacts)
-        emit(ScanStatus.Progress(0.75f, "Contacts saved."))
-
-        // 6. Detect duplicates using Advanced Detector (Parity with Android)
-        // 2026 Best Practice: Run CPU-intensive duplicate detection on background thread
-        emit(ScanStatus.Progress(0.80f, "Identifying duplicate numbers..."))
-        val allContactsDomain = validatedContacts.map { it.toContact() }
-        val duplicates = withContext(Dispatchers.Default) {
-            duplicateDetector.detectDuplicates(allContactsDomain)
+        emit(ScanStatus.Progress(0.80f, "Analyzing duplicates..."))
+        val finalContacts = withContext(Dispatchers.Default) {
+            ContactDuplicateMetadataResolver.apply(validatedContacts, duplicateDetector)
         }
 
-        emit(ScanStatus.Progress(0.85f, "Identifying similar names..."))
-        val similarNames = withContext(Dispatchers.Default) {
-            duplicateDetector.detectSimilarNameDuplicates(allContactsDomain)
-        }
-        
-        // Map to updates
-        val duplicateMap = mutableMapOf<Long, Pair<com.ogabassey.contactscleaner.domain.model.DuplicateType, String>>()
-        
-        fun addToMap(group: com.ogabassey.contactscleaner.domain.model.DuplicateGroup) {
-            group.contacts.forEach { contact ->
-                val current = duplicateMap[contact.id]
-                val newPriority = when(group.duplicateType) {
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.NUMBER_MATCH -> 4
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.EMAIL_MATCH -> 3
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.NAME_MATCH -> 2
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.SIMILAR_NAME_MATCH -> 1
-                }
-                val currentPriority = when(current?.first) {
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.NUMBER_MATCH -> 4
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.EMAIL_MATCH -> 3
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.NAME_MATCH -> 2
-                    com.ogabassey.contactscleaner.domain.model.DuplicateType.SIMILAR_NAME_MATCH -> 1
-                    else -> 0
-                }
-                if (newPriority >= currentPriority) {
-                    duplicateMap[contact.id] = Pair(group.duplicateType, group.matchingKey)
-                }
-            }
-        }
-        
-        duplicates.forEach { addToMap(it) }
-        similarNames.forEach { addToMap(it) }
-        
-        if (duplicateMap.isNotEmpty()) {
-            val affectedContacts = localContacts.mapNotNull { local ->
-                val info = duplicateMap[local.id]
-                if (info != null) {
-                    local.copy(
-                        duplicateType = info.first.name,
-                        matchingKey = info.second
-                    )
-                } else null
-            }
-            if (affectedContacts.isNotEmpty()) {
-                contactDao.insertContacts(affectedContacts)
-            }
-        }
+        contactDao.replaceAllContacts(finalContacts)
+        emit(ScanStatus.Progress(0.85f, "Contacts saved."))
 
         emit(ScanStatus.Progress(0.90f, "Calculating result statistics..."))
 
@@ -460,27 +410,19 @@ class IosContactRepository(
     }
 
     override suspend fun mergeContacts(contactIds: List<Long>, customName: String?): Boolean {
-        // Fetch contacts from DB to get platform_uids
-        val contacts = contactDao.getContactsByIds(contactIds)
-        val platformUids = contacts.mapNotNull { it.platformUid }
-
-        if (platformUids.size < 2) {
-            Logger.d("Logger", "Not enough contacts with platform_uid for merge: ${platformUids.size}")
-            return false
-        }
-
-        val success = contactsSource.mergeContacts(platformUids, customName)
+        val success = performProviderMerge(contactIds, customName)
         if (success) {
-            // Remove merged contacts from local DB (keep first one conceptually replaced by new)
-            contactDao.deleteContacts(contactIds)
-            // Update scan result summary to reflect merged contacts
-            updateScanResultSummary()
+            rebuildLocalCacheFromProvider()
         }
         return success
     }
 
     override suspend fun saveContacts(contacts: List<Contact>): Boolean {
-        return contactsSource.restoreContacts(contacts)
+        val success = contactsSource.restoreContacts(contacts)
+        if (success) {
+            rebuildLocalCacheFromProvider()
+        }
+        return success
     }
 
     override suspend fun getDuplicateGroups(type: ContactType): List<DuplicateGroupSummary> {
@@ -488,6 +430,7 @@ class IosContactRepository(
             ContactType.DUP_NUMBER -> contactDao.getDuplicateNumberGroups()
             ContactType.DUP_EMAIL -> contactDao.getDuplicateEmailGroups()
             ContactType.DUP_NAME -> contactDao.getDuplicateNameGroups()
+            ContactType.DUP_SIMILAR_NAME -> contactDao.getSimilarNameGroups()
             else -> emptyList()
         }
     }
@@ -501,6 +444,7 @@ class IosContactRepository(
             ContactType.DUP_NUMBER -> contactDao.getContactsByNumberKey(key)
             ContactType.DUP_EMAIL -> contactDao.getContactsByEmailKey(key)
             ContactType.DUP_NAME -> contactDao.getContactsByNameKey(key)
+            ContactType.DUP_SIMILAR_NAME -> contactDao.getContactsBySimilarNameKey(key)
             else -> emptyList()
         }.map { it.toContact() }
     }
@@ -528,13 +472,16 @@ class IosContactRepository(
                     description = "Merged ${contactsInGroup.size} duplicates (${group.groupKey})"
                 )
                 
-                val success = mergeContacts(contactsInGroup.map { it.id })
+                val success = performProviderMerge(contactsInGroup.map { it.id })
                 if (success) merged++
             }
         }
-        
-        // Refresh summary
-        updateScanResultSummary()
+
+        if (merged > 0) {
+            rebuildLocalCacheFromProvider()
+        } else {
+            updateScanResultSummary()
+        }
 
         emit(CleanupStatus.Success("Merged $merged duplicate groups"))
     }
@@ -718,7 +665,7 @@ class IosContactRepository(
 
             // 4. Process contacts using extracted helper
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
-            val localContacts = withContext(Dispatchers.Default) {
+            val refreshedContacts = withContext(Dispatchers.Default) {
                 freshContacts.map { contact ->
                     processContactToEntity(contact, ignoredIds, whatsAppPhoneNumbers)
                 }
@@ -734,24 +681,20 @@ class IosContactRepository(
             // Identify which of certain UIDs were NOT found
             val missedUids = uids.filter { it !in fetchedUids }
             
-            if (missedUids.isNotEmpty()) {
-                // Find DB IDs for these UIDs.
-                // We have `contacts` input list which has ID and UID.
-                val missingDbIds = contacts.filter { it.platform_uid in missedUids }.map { it.id }
-                if (missingDbIds.isNotEmpty()) {
-                     contactDao.deleteContacts(missingDbIds)
-                }
-            }
-
-            if (localContacts.isNotEmpty()) {
-                val validatedContacts = localContacts.filter { contact ->
-                    contact.id > 0 && 
-                    (contact.displayName?.length ?: 0) <= 1000 && 
+            val missingDbIds = contacts.filter { it.platform_uid in missedUids }.map { it.id }
+            val existingContacts = contactDao.getAllContacts()
+            val refreshedIds = refreshedContacts.map { it.id }.toSet()
+            val retainedContacts = existingContacts.filterNot { it.id in missingDbIds || it.id in refreshedIds }
+            val validatedContacts = refreshedContacts.filter { contact ->
+                contact.id > 0 &&
+                    (contact.displayName?.length ?: 0) <= 1000 &&
                     contact.rawNumbers.length <= 10000 &&
                     contact.rawEmails.length <= 10000
-                }
-                contactDao.insertContacts(validatedContacts)
             }
+            val rebuiltContacts = withContext(Dispatchers.Default) {
+                ContactDuplicateMetadataResolver.apply(retainedContacts + validatedContacts, duplicateDetector)
+            }
+            contactDao.replaceAllContacts(rebuiltContacts)
 
             // 5. Update Summary
             updateScanResultSummary()
@@ -766,7 +709,11 @@ class IosContactRepository(
     }
 
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {
-        return contactsSource.restoreContacts(contacts)
+        val success = contactsSource.restoreContacts(contacts)
+        if (success) {
+            rebuildLocalCacheFromProvider()
+        }
+        return success
     }
 
     override suspend fun ignoreContact(id: String, displayName: String, reason: String): Boolean {
@@ -838,6 +785,29 @@ class IosContactRepository(
             crossAccountDuplicateCount = stats.crossAccountCount,
             nonWhatsAppCount = stats.total - stats.whatsAppCount
         )
+    }
+
+    private suspend fun performProviderMerge(contactIds: List<Long>, customName: String? = null): Boolean {
+        val contacts = contactDao.getContactsByIds(contactIds)
+        val platformUids = contacts.mapNotNull { it.platformUid }
+
+        if (platformUids.size < 2) {
+            Logger.d("Logger", "Not enough contacts with platform_uid for merge: ${platformUids.size}")
+            return false
+        }
+
+        return contactsSource.mergeContacts(platformUids, customName)
+    }
+
+    private suspend fun rebuildLocalCacheFromProvider() {
+        try {
+            scanContacts().collect()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("Logger", "Failed to refresh local cache after provider write: ${e.message}")
+            updateScanResultSummary()
+        }
     }
 
     /**

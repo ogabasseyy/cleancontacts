@@ -77,6 +77,11 @@ interface ContactRepository {
     suspend fun standardizeAllFormatIssues(): Flow<CleanupStatus>
 
     /**
+     * Get a specific set of contacts as a snapshot.
+     */
+    suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact>
+
+    /**
      * Get all contacts as a snapshot.
      */
     suspend fun getContactsAllSnapshot(): List<Contact>

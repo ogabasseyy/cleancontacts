@@ -71,12 +71,12 @@ class CategoryViewModel(
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
-    private var pendingAction: (suspend () -> Unit)? = null
+    private var pendingAction: (suspend () -> Boolean)? = null
 
     /**
      * Run an action with premium/trial check.
      */
-    private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
+    private suspend fun runWithPremiumCheck(action: suspend () -> Boolean) {
         // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
         val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
@@ -84,8 +84,8 @@ class CategoryViewModel(
 
         if (isPremium || canPerform) {
             Logger.d(TAG, "Premium check passed, executing action...")
-            action()
-            if (!isPremium) {
+            val actionSucceeded = action()
+            if (!isPremium && actionSucceeded) {
                 usageRepository.incrementFreeActions()
             }
         } else {
@@ -200,10 +200,12 @@ class CategoryViewModel(
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to merge contacts")
                     }
+                    success
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Merge failed")
+                    false
                 }
             }
         }
@@ -283,7 +285,7 @@ class CategoryViewModel(
                             BackgroundOperationManager.complete(false, "Operation did not complete")
                             _uiState.value = CategoryUiState.Error("Operation did not complete")
                         }
-                        return@runWithPremiumCheck
+                        return@runWithPremiumCheck false
                     }
 
                     // Mark operation as complete
@@ -291,12 +293,14 @@ class CategoryViewModel(
 
                     // 2026 Best Practice: Refresh list with hint to pull-to-refresh on Results page
                     loadCategory(type, "Pull down on Results to refresh counts")
+                    true
                 } catch (e: CancellationException) {
                     BackgroundOperationManager.cancel()
                     throw e
                 } catch (e: Exception) {
                     BackgroundOperationManager.complete(false, e.message ?: "Unknown error")
                     _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
+                    false
                 }
             }
         }
@@ -355,10 +359,12 @@ class CategoryViewModel(
                     } else {
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
                     }
+                    success
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = CategoryUiState.Error(e.message ?: "Deletion failed")
+                    false
                 } finally {
                     // Clear deletion tracking INSIDE the action to avoid clearing on paywall
                     _deletingContactId.value = null
@@ -400,6 +406,10 @@ class CategoryViewModel(
             is CleanupStatus.Success -> {
                 // Note: This gets overwritten by loadCategory, which provides the hint
                 _uiState.value = CategoryUiState.Success()
+            }
+            is CleanupStatus.Partial -> {
+                BackgroundOperationManager.complete(false, status.message)
+                _uiState.value = CategoryUiState.Error(status.message)
             }
             is CleanupStatus.Error -> {
                 BackgroundOperationManager.complete(false, status.message)
@@ -481,10 +491,10 @@ class CategoryViewModel(
                     temp
                 }
                 if (action != null) {
-                    action.invoke()
+                    val actionSucceeded = action.invoke()
                     // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
                     // This way, failed actions don't consume the user's free trial
-                    if (!isPremium) {
+                    if (!isPremium && actionSucceeded) {
                         usageRepository.incrementFreeActions()
                     }
                 } else {

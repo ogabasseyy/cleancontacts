@@ -731,8 +731,7 @@ class IosContactRepository(
 
     override suspend fun unignoreContact(id: String): Boolean {
         ignoredContactDao.delete(id)
-        rebuildLocalCacheFromProvider()
-        return true
+        return rebuildLocalCacheFromProvider()
     }
 
     override fun getIgnoredContacts(): Flow<List<IgnoredContact>> {
@@ -798,14 +797,29 @@ class IosContactRepository(
         return contactsSource.mergeContacts(platformUids, customName)
     }
 
-    private suspend fun rebuildLocalCacheFromProvider() {
+    private suspend fun rebuildLocalCacheFromProvider(): Boolean {
         try {
-            scanContacts().collect()
+            var sawSuccess = false
+            var sawError = false
+
+            scanContacts().collect { status ->
+                when (status) {
+                    is ScanStatus.Success -> sawSuccess = true
+                    is ScanStatus.Error -> {
+                        sawError = true
+                        Logger.e("Logger", "Failed to refresh local cache after provider write: ${status.message}")
+                    }
+                    else -> Unit
+                }
+            }
+
+            return sawSuccess && !sawError
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e("Logger", "Failed to refresh local cache after provider write: ${e.message}")
             updateScanResultSummary()
+            return false
         }
     }
 

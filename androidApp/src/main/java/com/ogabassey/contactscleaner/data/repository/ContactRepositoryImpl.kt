@@ -339,7 +339,7 @@ class ContactRepositoryImpl constructor(
 
         when {
             successCount == contacts.size -> emit(CleanupStatus.Success("Successfully deleted $successCount contacts"))
-            successCount > 0 -> emit(CleanupStatus.Success("Deleted $successCount of ${contacts.size} contacts"))
+            successCount > 0 -> emit(CleanupStatus.Partial("Deleted $successCount of ${contacts.size} contacts"))
             else -> emit(CleanupStatus.Error("Failed to delete contacts"))
         }
     }
@@ -443,7 +443,7 @@ class ContactRepositoryImpl constructor(
 
         when {
             successCount == groups.size -> emit(CleanupStatus.Success("Merged $successCount groups successfully"))
-            successCount > 0 -> emit(CleanupStatus.Success("Merged $successCount of ${groups.size} groups"))
+            successCount > 0 -> emit(CleanupStatus.Partial("Merged $successCount of ${groups.size} groups"))
             else -> emit(CleanupStatus.Error("Failed to merge duplicate groups"))
         }
     }
@@ -528,7 +528,7 @@ class ContactRepositoryImpl constructor(
 
         when {
             successCount == total -> emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
-            successCount > 0 -> emit(CleanupStatus.Success("Standardized $successCount of $total contacts"))
+            successCount > 0 -> emit(CleanupStatus.Partial("Standardized $successCount of $total contacts"))
             else -> emit(CleanupStatus.Error("Failed to standardize contacts"))
         }
     }
@@ -794,7 +794,7 @@ class ContactRepositoryImpl constructor(
 
         when {
             successCount == matchingKeys.size -> emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
-            successCount > 0 -> emit(CleanupStatus.Success("Consolidated $successCount of ${matchingKeys.size} contacts"))
+            successCount > 0 -> emit(CleanupStatus.Partial("Consolidated $successCount of ${matchingKeys.size} contacts"))
             else -> emit(CleanupStatus.Error("Failed to consolidate contacts"))
         }
     }

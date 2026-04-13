@@ -49,19 +49,19 @@ class CrossAccountViewModel(
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
-    private var pendingAction: (suspend () -> Unit)? = null
+    private var pendingAction: (suspend () -> Boolean)? = null
 
     /**
      * Run an action with premium/trial check.
      */
-    private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
+    private suspend fun runWithPremiumCheck(action: suspend () -> Boolean) {
         // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
         val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
-            action()
-            if (!isPremium) {
+            val actionSucceeded = action()
+            if (!isPremium && actionSucceeded) {
                 usageRepository.incrementFreeActions()
             }
         } else {
@@ -158,10 +158,12 @@ class CrossAccountViewModel(
                     } else {
                         _uiState.value = CrossAccountUiState.Error("Failed to consolidate contact")
                     }
+                    success
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = CrossAccountUiState.Error(e.message ?: "Consolidation failed")
+                    false
                 }
             }
         }
@@ -179,6 +181,7 @@ class CrossAccountViewModel(
                 pendingAction = null
                 _uiState.value = CrossAccountUiState.Processing(0f, "Consolidating contacts...")
                 try {
+                    var actionSucceeded = false
                     contactRepository.consolidateContactsToAccount(
                         matchingKeys = keys,
                         keepAccountType = keepAccountType,
@@ -189,18 +192,26 @@ class CrossAccountViewModel(
                                 _uiState.value = CrossAccountUiState.Processing(status.progress, status.message)
                             }
                             is CleanupStatus.Success -> {
+                                actionSucceeded = true
                                 clearSelection()
                                 loadCrossAccountContacts()
                             }
+                            is CleanupStatus.Partial -> {
+                                actionSucceeded = false
+                                _uiState.value = CrossAccountUiState.Error(status.message)
+                            }
                             is CleanupStatus.Error -> {
+                                actionSucceeded = false
                                 _uiState.value = CrossAccountUiState.Error(status.message)
                             }
                         }
                     }
+                    actionSucceeded
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = CrossAccountUiState.Error(e.message ?: "Consolidation failed")
+                    false
                 }
             }
         }
@@ -247,10 +258,10 @@ class CrossAccountViewModel(
                     temp
                 }
                 if (action != null) {
-                    action.invoke()
+                    val actionSucceeded = action.invoke()
                     // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
                     // This way, failed actions don't consume the user's free trial
-                    if (!isPremium) {
+                    if (!isPremium && actionSucceeded) {
                         usageRepository.incrementFreeActions()
                     }
                 } else {

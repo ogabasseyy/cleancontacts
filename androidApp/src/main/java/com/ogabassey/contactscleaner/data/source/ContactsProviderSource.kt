@@ -824,6 +824,7 @@ class ContactsProviderSource(
                         "ContactsProviderSource",
                         "Normalization affected $updatedRows of ${operations.size} phone rows for contact $contactId"
                     )
+                    updatedContactIds.remove(contactId)
                 }
             } catch (e: RemoteException) {
                 Logger.e("ContactsProviderSource", "Remote error normalizing contact $contactId", e)

@@ -69,22 +69,29 @@ const BlogList: React.FC = () => {
         <p className="text-gray-400 mb-10">Tips, guides, and news about contact management.</p>
 
         {loading ? (
-          <div className="space-y-6" aria-busy="true" aria-label="Loading blog posts">
+          <div
+            className="space-y-6"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+            aria-label="Loading blog posts"
+          >
+            <span className="sr-only">Loading blog posts</span>
             {[1, 2, 3].map(i => (
               <div key={i} className="animate-pulse rounded-2xl bg-white/5 h-48" aria-hidden="true" />
             ))}
           </div>
         ) : error ? (
-          <p className="text-gray-400">Failed to load posts. Please try again later.</p>
+          <p className="text-gray-400" role="alert">Failed to load posts. Please try again later.</p>
         ) : posts.length === 0 ? (
-          <p className="text-gray-400">No posts yet. Check back soon!</p>
+          <p className="text-gray-400" role="status">No posts yet. Check back soon!</p>
         ) : (
           <div className="space-y-6">
             {posts.map(post => (
               <Link
                 key={post.slug}
                 to={`/blog/${post.slug}`}
-                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
+                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:bg-white/[0.05] focus-visible:border-brand/20"
               >
                 <div className="flex items-center gap-3 mb-3 text-sm">
                   <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium text-xs">
@@ -97,7 +104,7 @@ const BlogList: React.FC = () => {
                   <span className="text-gray-400">{post.readingTime} min read</span>
                 </div>
 
-                <h2 className="text-xl md:text-2xl font-bold text-white group-hover:text-brand transition-colors mb-3">
+                <h2 className="text-xl md:text-2xl font-bold text-white group-hover:text-brand group-focus-visible:text-brand transition-colors mb-3">
                   {post.title}
                 </h2>
 

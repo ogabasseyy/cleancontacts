@@ -13,6 +13,7 @@ sealed class CleanupStatus {
         val details: CleanupDetails? = null
     ) : CleanupStatus()
 
+    data class Partial(val message: String) : CleanupStatus()
     data class Success(val message: String) : CleanupStatus()
     data class Error(val message: String) : CleanupStatus()
 }

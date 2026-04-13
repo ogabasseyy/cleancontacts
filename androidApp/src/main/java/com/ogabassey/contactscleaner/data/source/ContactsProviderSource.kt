@@ -598,27 +598,31 @@ class ContactsProviderSource(
             return@withContext false
         }
 
-        // 2026 Android Best Practice:
-        // To delete a "Contact", we must delete all its constituent "RawContacts".
-        // Using Contacts.CONTENT_URI with CONTACT_ID selection is more reliable for
-        // ensuring the entire contact aggregate is removed from all accounts.
+        // Delete aggregate Contacts rows directly and verify the affected row count.
+        // The batch API only told us whether the call threw, not whether anything was
+        // actually deleted, which could surface as "delete did nothing" in the UI.
         contactIds.chunked(MAX_PROVIDER_BATCH).forEach { batch ->
-            val batchOperations = ArrayList<android.content.ContentProviderOperation>()
-            batch.forEach { id ->
-                batchOperations.add(
-                    android.content.ContentProviderOperation.newDelete(ContactsContract.Contacts.CONTENT_URI)
-                        .withSelection("${ContactsContract.Contacts._ID} = ?", arrayOf(id.toString()))
-                        .build()
-                )
-            }
-            // 2026 Best Practice: Catch specific exceptions from applyBatch
             try {
-                contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
-            } catch (e: RemoteException) {
-                Logger.e("ContactsProviderSource", "Remote error deleting batch", e)
+                val placeholders = batch.joinToString(",") { "?" }
+                val selection = "${ContactsContract.Contacts._ID} IN ($placeholders)"
+                val selectionArgs = batch.map { it.toString() }.toTypedArray()
+                val deletedRows = contentResolver.delete(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    selection,
+                    selectionArgs
+                )
+                if (deletedRows != batch.size) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Delete affected $deletedRows of ${batch.size} requested contacts"
+                    )
+                    return@withContext false
+                }
+            } catch (e: SecurityException) {
+                Logger.e("ContactsProviderSource", "Permission error deleting contacts", e)
                 return@withContext false
-            } catch (e: OperationApplicationException) {
-                Logger.e("ContactsProviderSource", "Operation error deleting batch", e)
+            } catch (e: Exception) {
+                Logger.e("ContactsProviderSource", "Unexpected error deleting contacts", e)
                 return@withContext false
             }
         }
@@ -723,14 +727,25 @@ class ContactsProviderSource(
             allOps.addAll(ops)
         }
 
-        if (allOps.isEmpty()) return@withContext true
+        if (allOps.isEmpty()) {
+            Logger.e("ContactsProviderSource", "No provider update operations were created for ${updates.size} requested contacts")
+            return@withContext false
+        }
 
         // 2. Apply in chunky batches of 400
         // 2026 Best Practice: Catch specific exceptions from applyBatch
         var success = true
         allOps.chunked(400).forEach { batch ->
             try {
-                contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
+                val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, ArrayList(batch))
+                val updatedRows = results.sumOf { result -> result.count ?: 0 }
+                if (updatedRows != batch.size) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Bulk update affected $updatedRows of ${batch.size} requested data rows"
+                    )
+                    success = false
+                }
             } catch (e: RemoteException) {
                 Logger.e("ContactsProviderSource", "Remote error in bulk update", e)
                 success = false
@@ -740,6 +755,87 @@ class ContactsProviderSource(
             }
         }
         success
+    }
+
+    suspend fun normalizeContactNumbers(
+        contactIds: List<Long>,
+        normalizer: (String) -> String?
+    ): Set<Long> = withContext(Dispatchers.IO) {
+        if (contactIds.isEmpty()) return@withContext emptySet()
+
+        if (!hasWritePermission()) {
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for normalization")
+            return@withContext emptySet()
+        }
+
+        val updatedContactIds = mutableSetOf<Long>()
+
+        contactIds.forEach { contactId ->
+            val operations = ArrayList<android.content.ContentProviderOperation>()
+
+            contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.Data._ID,
+                    ContactsContract.Data.CONTACT_ID,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
+                "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
+                arrayOf(contactId.toString(), ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE),
+                null
+            )?.use { cursor ->
+                val dataIdIdx = cursor.getColumnIndex(ContactsContract.Data._ID)
+                val contactIdIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
+                val numberIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+                while (cursor.moveToNext()) {
+                    val rawNumber = cursor.getString(numberIdx).orEmpty()
+                    val normalized = normalizer(rawNumber)
+                    if (!normalized.isNullOrBlank() && normalized != rawNumber) {
+                        val dataId = cursor.getLong(dataIdIdx)
+                        val resolvedContactId = cursor.getLong(contactIdIdx)
+                        operations.add(
+                            android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                                .withSelection("${ContactsContract.Data._ID} = ?", arrayOf(dataId.toString()))
+                                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, normalized)
+                                .build()
+                        )
+                        updatedContactIds.add(resolvedContactId)
+                    }
+                }
+            }
+
+            if (operations.isEmpty()) {
+                updatedContactIds.remove(contactId)
+                return@forEach
+            }
+
+            try {
+                val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
+                val updatedRows = results.sumOf { result -> result.count ?: 0 }
+                if (updatedRows <= 0) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Normalization did not update any phone rows for contact $contactId"
+                    )
+                    updatedContactIds.remove(contactId)
+                } else if (updatedRows != operations.size) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Normalization affected $updatedRows of ${operations.size} phone rows for contact $contactId"
+                    )
+                    updatedContactIds.remove(contactId)
+                }
+            } catch (e: RemoteException) {
+                Logger.e("ContactsProviderSource", "Remote error normalizing contact $contactId", e)
+                updatedContactIds.remove(contactId)
+            } catch (e: OperationApplicationException) {
+                Logger.e("ContactsProviderSource", "Operation error normalizing contact $contactId", e)
+                updatedContactIds.remove(contactId)
+            }
+        }
+
+        updatedContactIds
     }
 
     suspend fun updateContactNumber(contactId: Long, newNumber: String): Boolean = updateMultipleContactNumbers(mapOf(contactId to newNumber))
@@ -763,13 +859,16 @@ class ContactsProviderSource(
                 val operations = buildRestoreOperations(contact)
                 val providerResults = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
                 val rawContactId = providerResults.firstOrNull()?.uri?.lastPathSegment?.toLongOrNull()
-                val contactId = rawContactId?.let { createdRawContactId ->
-                    try {
-                        lookupContactIdForRawContact(createdRawContactId)
-                    } catch (e: SecurityException) {
-                        Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted for restored contact lookup; falling back to raw contact ID")
-                        null
-                    }
+                if (rawContactId == null) {
+                    Logger.e("ContactsProviderSource", "Restore completed without a raw contact ID for ${contact.name ?: "unnamed contact"}")
+                    rollbackRestoredContacts(results)
+                    return null
+                }
+                val contactId = try {
+                    lookupContactIdForRawContact(rawContactId)
+                } catch (e: SecurityException) {
+                    Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted for restored contact lookup; falling back to raw contact ID")
+                    null
                 }
                 results.add(
                     RestoredContactResult(
@@ -932,7 +1031,15 @@ class ContactsProviderSource(
                 )
             }
             try {
-                contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
+                val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, batchOperations)
+                val deletedRows = results.sumOf { result -> result.count ?: 0 }
+                if (deletedRows != batch.size) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Rollback raw-contact delete affected $deletedRows of ${batch.size} requested rows"
+                    )
+                    return@withContext false
+                }
             } catch (e: RemoteException) {
                 Logger.e("ContactsProviderSource", "Remote error deleting raw contact batch", e)
                 return@withContext false

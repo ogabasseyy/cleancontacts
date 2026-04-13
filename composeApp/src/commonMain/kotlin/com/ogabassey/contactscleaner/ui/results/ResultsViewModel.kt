@@ -136,20 +136,20 @@ class ResultsViewModel(
 
     // 2026 Best Practice: Mutex for thread-safe access to pendingAction
     private val actionMutex = Mutex()
-    private var pendingAction: (suspend () -> Unit)? = null
+    private var pendingAction: (suspend () -> Boolean)? = null
 
     /**
      * Run an action with premium/trial check.
      * Shows paywall if user has exhausted free actions and is not premium.
      */
-    private suspend fun runWithPremiumCheck(action: suspend () -> Unit) {
+    private suspend fun runWithPremiumCheck(action: suspend () -> Boolean) {
         // 2026 Best Practice: Use .first() instead of .value for fresh reads in suspend context
         val isPremium = billingRepository.isPremium.first()
         val canPerform = usageRepository.canPerformFreeAction()
 
         if (isPremium || canPerform) {
-            action()
-            if (!isPremium) {
+            val actionSucceeded = action()
+            if (!isPremium && actionSucceeded) {
                 usageRepository.incrementFreeActions()
             }
         } else {
@@ -177,10 +177,10 @@ class ResultsViewModel(
                     temp
                 }
                 if (action != null) {
-                    action.invoke()
+                    val actionSucceeded = action.invoke()
                     // 2026 Fix: Increment AFTER action to match runWithPremiumCheck behavior
                     // This way, failed actions don't consume the user's free trial
-                    if (!isPremium) {
+                    if (!isPremium && actionSucceeded) {
                         usageRepository.incrementFreeActions()
                     }
                 } else {
@@ -228,24 +228,33 @@ class ResultsViewModel(
                 pendingAction = null
                 _uiState.value = ResultsUiState.Processing(0f, "Cleaning up...")
                 try {
+                    var actionSucceeded = false
                     cleanupContactsUseCase.deleteByType(type).collect { status ->
                         when (status) {
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Progress -> {
                                 _uiState.value = ResultsUiState.Processing(status.progress, status.message)
                             }
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Success -> {
+                                actionSucceeded = true
                                 _uiState.value = ResultsUiState.Success(status.message, canUndo = true)
                                 loadContacts(type)
                             }
+                            is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Partial -> {
+                                actionSucceeded = false
+                                _uiState.value = ResultsUiState.Error(status.message)
+                            }
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Error -> {
+                                actionSucceeded = false
                                 _uiState.value = ResultsUiState.Error(status.message)
                             }
                         }
                     }
+                    actionSucceeded
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
+                    false
                 }
             }
         }
@@ -257,24 +266,33 @@ class ResultsViewModel(
                 pendingAction = null
                 _uiState.value = ResultsUiState.Processing(0f, "Merging duplicates...")
                 try {
+                    var actionSucceeded = false
                     cleanupContactsUseCase.mergeDuplicates(type).collect { status ->
                         when (status) {
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Progress -> {
                                 _uiState.value = ResultsUiState.Processing(status.progress, status.message)
                             }
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Success -> {
+                                actionSucceeded = true
                                 _uiState.value = ResultsUiState.Success(status.message, canUndo = true)
                                 loadDuplicateGroups(type)
                             }
+                            is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Partial -> {
+                                actionSucceeded = false
+                                _uiState.value = ResultsUiState.Error(status.message)
+                            }
                             is com.ogabassey.contactscleaner.domain.model.CleanupStatus.Error -> {
+                                actionSucceeded = false
                                 _uiState.value = ResultsUiState.Error(status.message)
                             }
                         }
                     }
+                    actionSucceeded
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     _uiState.value = ResultsUiState.Error(e.message ?: "Unknown error")
+                    false
                 }
             }
         }

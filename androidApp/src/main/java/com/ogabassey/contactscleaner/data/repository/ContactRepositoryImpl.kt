@@ -764,8 +764,7 @@ class ContactRepositoryImpl constructor(
             val returnedIds = refreshedEntities.map { it.id }.toSet()
             val deletedIds = ids.filter { it !in returnedIds }
             val existingContacts = contactDao.getAllContacts()
-            val refreshedIds = refreshedEntities.map { it.id }.toSet()
-            val retainedContacts = existingContacts.filterNot { it.id in deletedIds || it.id in refreshedIds }
+            val retainedContacts = existingContacts.filterNot { it.id in returnedIds || it.id in ids }
             val validatedEntities = refreshedEntities.filter { contact ->
                 val isValid = contact.id > 0 &&
                     (contact.displayName?.length ?: 0) <= 1000 &&

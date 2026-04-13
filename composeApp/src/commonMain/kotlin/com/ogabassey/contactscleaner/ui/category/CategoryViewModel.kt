@@ -244,9 +244,12 @@ class CategoryViewModel(
                 _uiState.value = CategoryUiState.Success()
 
                 try {
+                    var finalStatus: CleanupStatus? = null
+
                     when (type) {
                         ContactType.JUNK -> {
                             contactRepository.deleteContactsByType(type).collect { status ->
+                                finalStatus = status
                                 updateStatus(status)
                             }
                         }
@@ -256,20 +259,31 @@ class CategoryViewModel(
                         ContactType.DUP_NAME,
                         ContactType.DUP_SIMILAR_NAME -> {
                             contactRepository.mergeDuplicateGroups(type).collect { status ->
+                                finalStatus = status
                                 updateStatus(status)
                             }
                         }
                         ContactType.FORMAT_ISSUE -> {
                             contactRepository.standardizeAllFormatIssues().collect { status ->
+                                finalStatus = status
                                 updateStatus(status)
                             }
                         }
                         else -> {
                             // For other types, maybe deletion?
                             contactRepository.deleteContactsByType(type).collect { status ->
+                                finalStatus = status
                                 updateStatus(status)
                             }
                         }
+                    }
+
+                    if (finalStatus !is CleanupStatus.Success) {
+                        if (finalStatus == null) {
+                            BackgroundOperationManager.complete(false, "Operation did not complete")
+                            _uiState.value = CategoryUiState.Error("Operation did not complete")
+                        }
+                        return@runWithPremiumCheck
                     }
 
                     // Mark operation as complete

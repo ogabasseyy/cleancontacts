@@ -69,9 +69,9 @@ const BlogList: React.FC = () => {
         <p className="text-gray-400 mb-10">Tips, guides, and news about contact management.</p>
 
         {loading ? (
-          <div className="space-y-6">
+          <div className="space-y-6" aria-busy="true" aria-label="Loading blog posts">
             {[1, 2, 3].map(i => (
-              <div key={i} className="animate-pulse rounded-2xl bg-white/5 h-48" />
+              <div key={i} className="animate-pulse rounded-2xl bg-white/5 h-48" aria-hidden="true" />
             ))}
           </div>
         ) : error ? (
@@ -84,7 +84,7 @@ const BlogList: React.FC = () => {
               <Link
                 key={post.slug}
                 to={`/blog/${post.slug}`}
-                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8"
+                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
               >
                 <div className="flex items-center gap-3 mb-3 text-sm">
                   <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium text-xs">

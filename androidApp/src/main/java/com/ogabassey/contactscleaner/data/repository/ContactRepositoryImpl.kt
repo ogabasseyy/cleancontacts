@@ -339,7 +339,7 @@ class ContactRepositoryImpl constructor(
     override suspend fun mergeContacts(contactIds: List<Long>, customName: String?): Boolean {
         val success = performProviderMerge(contactIds, customName)
         if (success) {
-            rebuildLocalCacheFromProvider()
+            return rebuildLocalCacheFromProvider()
         }
         return success
     }
@@ -347,7 +347,7 @@ class ContactRepositoryImpl constructor(
     override suspend fun saveContacts(contacts: List<Contact>): Boolean {
         val success = contactsProviderSource.restoreContacts(contacts)
         if (success) {
-            rebuildLocalCacheFromProvider()
+            return rebuildLocalCacheFromProvider()
         }
         return success
     }
@@ -405,7 +405,11 @@ class ContactRepositoryImpl constructor(
         }
 
         if (successCount > 0) {
-            rebuildLocalCacheFromProvider()
+            val cacheRebuilt = rebuildLocalCacheFromProvider()
+            if (!cacheRebuilt) {
+                emit(CleanupStatus.Error("Merged $successCount groups but failed to refresh local cache"))
+                return@flow
+            }
         } else {
             updateScanResultSummary()
         }
@@ -573,14 +577,29 @@ class ContactRepositoryImpl constructor(
         return contactsProviderSource.mergeContacts(contactIds, customName)
     }
 
-    private suspend fun rebuildLocalCacheFromProvider() {
+    private suspend fun rebuildLocalCacheFromProvider(): Boolean {
         try {
-            scanContacts().collect()
+            var sawSuccess = false
+            var sawError = false
+
+            scanContacts().collect { status ->
+                when (status) {
+                    is ScanStatus.Success -> sawSuccess = true
+                    is ScanStatus.Error -> {
+                        sawError = true
+                        Logger.e("ContactRepository", "Failed to refresh local cache after provider write: ${status.message}")
+                    }
+                    else -> Unit
+                }
+            }
+
+            return sawSuccess && !sawError
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e("ContactRepository", "Failed to refresh local cache after provider write", e)
             updateScanResultSummary()
+            return false
         }
     }
 
@@ -593,7 +612,7 @@ class ContactRepositoryImpl constructor(
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {
         val success = contactsProviderSource.restoreContacts(contacts)
         if (success) {
-            rebuildLocalCacheFromProvider()
+            return rebuildLocalCacheFromProvider()
         }
         return success
     }

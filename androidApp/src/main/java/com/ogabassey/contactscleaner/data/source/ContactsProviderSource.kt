@@ -22,6 +22,10 @@ class ContactsProviderSource(
     private val contentResolver: ContentResolver
 ) {
 
+    private companion object {
+        const val MAX_PROVIDER_BATCH = 200
+    }
+
     private data class RestoredContactResult(
         val contact: Contact,
         val contactId: Long?,
@@ -598,7 +602,7 @@ class ContactsProviderSource(
         // To delete a "Contact", we must delete all its constituent "RawContacts".
         // Using Contacts.CONTENT_URI with CONTACT_ID selection is more reliable for
         // ensuring the entire contact aggregate is removed from all accounts.
-        contactIds.chunked(200).forEach { batch ->
+        contactIds.chunked(MAX_PROVIDER_BATCH).forEach { batch ->
             val batchOperations = ArrayList<android.content.ContentProviderOperation>()
             batch.forEach { id ->
                 batchOperations.add(
@@ -636,6 +640,14 @@ class ContactsProviderSource(
             whatsAppIds = emptySet(),
             telegramIds = emptySet()
         )
+
+        if (contactIds.size > MAX_PROVIDER_BATCH) {
+            Logger.e(
+                "ContactsProviderSource",
+                "Refusing Android merge for ${contactIds.size} contacts because deleting originals would exceed the single-batch rollback limit"
+            )
+            return@withContext false
+        }
 
         val mergedContact = AndroidMergeUtils.buildMergedContact(contactsToMerge, customName)
         if (mergedContact == null) {
@@ -751,7 +763,14 @@ class ContactsProviderSource(
                 val operations = buildRestoreOperations(contact)
                 val providerResults = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
                 val rawContactId = providerResults.firstOrNull()?.uri?.lastPathSegment?.toLongOrNull()
-                val contactId = rawContactId?.let(::lookupContactIdForRawContact)
+                val contactId = rawContactId?.let { createdRawContactId ->
+                    try {
+                        lookupContactIdForRawContact(createdRawContactId)
+                    } catch (e: SecurityException) {
+                        Logger.w("ContactsProviderSource", "READ_CONTACTS permission not granted for restored contact lookup; falling back to raw contact ID")
+                        null
+                    }
+                }
                 results.add(
                     RestoredContactResult(
                         contact = contact,
@@ -903,7 +922,7 @@ class ContactsProviderSource(
             return@withContext false
         }
 
-        rawContactIds.chunked(200).forEach { batch ->
+        rawContactIds.chunked(MAX_PROVIDER_BATCH).forEach { batch ->
             val batchOperations = ArrayList<android.content.ContentProviderOperation>()
             batch.forEach { id ->
                 batchOperations.add(

@@ -121,6 +121,21 @@ class ContactRepositoryImpl constructor(
             }
         }
 
+        if (junkType == null && !isSensitive && !isFormatIssue) {
+            contact.numbers.forEach { number ->
+                if (isFormatIssue) return@forEach
+
+                val firstChar = number.firstOrNull()
+                val hasBlockedPrefix = firstChar == '+' || firstChar == '*' || firstChar == '#'
+                if (!number.isBlank() && !hasBlockedPrefix) {
+                    formatDetector.analyze(number)?.let { issue ->
+                        isFormatIssue = true
+                        detectedNormalized = issue.normalizedNumber
+                    }
+                }
+            }
+        }
+
         return LocalContact(
             id = contact.id,
             displayName = contact.name,
@@ -269,6 +284,7 @@ class ContactRepositoryImpl constructor(
     private suspend fun deleteContactsFromProviderAndSync(contactIds: List<Long>): Boolean {
         if (contactIds.isEmpty()) return true
 
+        val requiresDuplicateRebuild = contactDao.getContactsByIds(contactIds).any { it.duplicateType != null }
         val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
         if (!providerSuccess) {
             Logger.e(
@@ -280,8 +296,12 @@ class ContactRepositoryImpl constructor(
 
         return try {
             contactDao.deleteContacts(contactIds)
-            updateScanResultSummary()
-            true
+            if (requiresDuplicateRebuild) {
+                rebuildDuplicateMetadataFromLocalCache()
+            } else {
+                updateScanResultSummary()
+                true
+            }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -431,7 +451,10 @@ class ContactRepositoryImpl constructor(
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {
         if (ids.isEmpty()) return true
         val result = standardizeFormatBatch(ids)
-        return result.attemptedCount > 0 && result.updatedIds.size == result.attemptedCount
+        if (result.updatedIds.isNotEmpty()) {
+            return rebuildLocalCacheFromProvider() && result.updatedIds.size == result.attemptedCount
+        }
+        return result.attemptedCount == 0
     }
 
     override suspend fun standardizeAllFormatIssues(): Flow<CleanupStatus> = flow {
@@ -493,8 +516,15 @@ class ContactRepositoryImpl constructor(
             ))
         }
 
-        // Refresh summary
-        updateScanResultSummary()
+        if (successCount > 0) {
+            val cacheRebuilt = rebuildLocalCacheFromProvider()
+            if (!cacheRebuilt) {
+                emit(CleanupStatus.Error("Standardized $successCount contacts but failed to refresh local cache"))
+                return@flow
+            }
+        } else {
+            updateScanResultSummary()
+        }
 
         when {
             successCount == total -> emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
@@ -611,6 +641,23 @@ class ContactRepositoryImpl constructor(
         }
     }
 
+    private suspend fun rebuildDuplicateMetadataFromLocalCache(): Boolean {
+        return try {
+            val rebuiltContacts = ContactDuplicateMetadataResolver.apply(
+                contactDao.getAllContacts(),
+                duplicateDetector
+            )
+            contactDao.replaceAllContacts(rebuiltContacts)
+            updateScanResultSummary()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("ContactRepository", "Failed to rebuild duplicate metadata after delete", e)
+            rebuildLocalCacheFromProvider()
+        }
+    }
+
     override suspend fun recalculateWhatsAppCounts() {
         // Android uses native WhatsApp detection via account_type, no VPS cache needed.
         // Just refresh the summary which already has correct counts.
@@ -635,9 +682,7 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun unignoreContact(id: String): Boolean {
         ignoredContactDao.delete(id)
-        // Update scan result to reflect unignored contact
-        updateScanResultSummary()
-        return true
+        return rebuildLocalCacheFromProvider()
     }
 
     override fun getIgnoredContacts(): Flow<List<com.ogabassey.contactscleaner.data.db.entity.IgnoredContact>> {
@@ -765,30 +810,19 @@ class ContactRepositoryImpl constructor(
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
         if (contacts.isEmpty()) return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
 
-        val contactsWithNormalizedNumbers = contacts.filter { !it.normalizedNumber.isNullOrBlank() }
-        if (contactsWithNormalizedNumbers.isEmpty()) {
-            return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
+        val updatedIds = contactsProviderSource.normalizeContactNumbers(contacts.map { it.id }) { rawNumber ->
+            val firstChar = rawNumber.firstOrNull()
+            val hasBlockedPrefix = firstChar == '+' || firstChar == '*' || firstChar == '#'
+            if (rawNumber.isBlank() || hasBlockedPrefix) {
+                null
+            } else {
+                formatDetector.analyze(rawNumber)?.normalizedNumber
+            }
         }
 
-        val updates = contactsWithNormalizedNumbers.associate { it.id to requireNotNull(it.normalizedNumber) }
-        val success = contactsProviderSource.updateMultipleContactNumbers(updates)
-        if (!success) {
-            return FormatStandardizationResult(
-                updatedIds = emptyList(),
-                attemptedCount = contactsWithNormalizedNumbers.size
-            )
-        }
-
-        val updatedEntities = contactsWithNormalizedNumbers.map { contact ->
-            contact.copy(
-                isFormatIssue = false,
-                rawNumbers = contact.normalizedNumber ?: contact.rawNumbers
-            )
-        }
-        contactDao.insertContacts(updatedEntities)
         return FormatStandardizationResult(
-            updatedIds = updatedEntities.map { it.id },
-            attemptedCount = contactsWithNormalizedNumbers.size
+            updatedIds = updatedIds.toList(),
+            attemptedCount = contacts.size
         )
     }
 

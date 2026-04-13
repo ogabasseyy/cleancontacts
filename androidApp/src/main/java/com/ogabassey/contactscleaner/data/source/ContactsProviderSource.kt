@@ -757,6 +757,86 @@ class ContactsProviderSource(
         success
     }
 
+    suspend fun normalizeContactNumbers(
+        contactIds: List<Long>,
+        normalizer: (String) -> String?
+    ): Set<Long> = withContext(Dispatchers.IO) {
+        if (contactIds.isEmpty()) return@withContext emptySet()
+
+        if (!hasWritePermission()) {
+            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for normalization")
+            return@withContext emptySet()
+        }
+
+        val updatedContactIds = mutableSetOf<Long>()
+
+        contactIds.forEach { contactId ->
+            val operations = ArrayList<android.content.ContentProviderOperation>()
+
+            contentResolver.query(
+                ContactsContract.Data.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.Data._ID,
+                    ContactsContract.Data.CONTACT_ID,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
+                "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
+                arrayOf(contactId.toString(), ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE),
+                null
+            )?.use { cursor ->
+                val dataIdIdx = cursor.getColumnIndex(ContactsContract.Data._ID)
+                val contactIdIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
+                val numberIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+
+                while (cursor.moveToNext()) {
+                    val rawNumber = cursor.getString(numberIdx).orEmpty()
+                    val normalized = normalizer(rawNumber)
+                    if (!normalized.isNullOrBlank() && normalized != rawNumber) {
+                        val dataId = cursor.getLong(dataIdIdx)
+                        val resolvedContactId = cursor.getLong(contactIdIdx)
+                        operations.add(
+                            android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                                .withSelection("${ContactsContract.Data._ID} = ?", arrayOf(dataId.toString()))
+                                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, normalized)
+                                .build()
+                        )
+                        updatedContactIds.add(resolvedContactId)
+                    }
+                }
+            }
+
+            if (operations.isEmpty()) {
+                updatedContactIds.remove(contactId)
+                return@forEach
+            }
+
+            try {
+                val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
+                val updatedRows = results.sumOf { result -> result.count ?: 0 }
+                if (updatedRows <= 0) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Normalization did not update any phone rows for contact $contactId"
+                    )
+                    updatedContactIds.remove(contactId)
+                } else if (updatedRows != operations.size) {
+                    Logger.e(
+                        "ContactsProviderSource",
+                        "Normalization affected $updatedRows of ${operations.size} phone rows for contact $contactId"
+                    )
+                }
+            } catch (e: RemoteException) {
+                Logger.e("ContactsProviderSource", "Remote error normalizing contact $contactId", e)
+                updatedContactIds.remove(contactId)
+            } catch (e: OperationApplicationException) {
+                Logger.e("ContactsProviderSource", "Operation error normalizing contact $contactId", e)
+                updatedContactIds.remove(contactId)
+            }
+        }
+
+        updatedContactIds
+    }
+
     suspend fun updateContactNumber(contactId: Long, newNumber: String): Boolean = updateMultipleContactNumbers(mapOf(contactId to newNumber))
 
     suspend fun restoreContacts(contacts: List<Contact>): Boolean = withContext(Dispatchers.IO) {

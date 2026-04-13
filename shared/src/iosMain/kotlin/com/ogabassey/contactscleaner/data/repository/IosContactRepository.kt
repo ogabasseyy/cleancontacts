@@ -731,8 +731,7 @@ class IosContactRepository(
 
     override suspend fun unignoreContact(id: String): Boolean {
         ignoredContactDao.delete(id)
-        // Update scan result to reflect unignored contact
-        updateScanResultSummary()
+        rebuildLocalCacheFromProvider()
         return true
     }
 

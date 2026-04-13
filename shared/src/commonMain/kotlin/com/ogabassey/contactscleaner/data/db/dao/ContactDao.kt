@@ -206,6 +206,9 @@ interface ContactDao {
     @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NAME_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
     suspend fun getDuplicateNameGroups(): List<DuplicateGroupSummary>
 
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    suspend fun getSimilarNameGroups(): List<DuplicateGroupSummary>
+
     @Query("SELECT account_type as accountType, account_name as accountName, COUNT(*) as count FROM contacts WHERE account_type IS NOT NULL AND account_type != '' GROUP BY account_type, account_name ORDER BY count DESC")
     suspend fun getAccountGroups(): List<AccountGroupSummary>
 
@@ -218,6 +221,9 @@ interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NAME_MATCH'")
     suspend fun getContactsByNameKey(key: String): List<LocalContact>
+
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'SIMILAR_NAME_MATCH'")
+    suspend fun getContactsBySimilarNameKey(key: String): List<LocalContact>
 
     // --- ID Lists ---
     @Query("SELECT id FROM contacts WHERE is_whatsapp = 0")

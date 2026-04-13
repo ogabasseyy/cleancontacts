@@ -1,8 +1,26 @@
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
 buildscript {
     val jose4jVersion = "0.9.6"
     val jdom2Version = "2.0.6.1"
     val commonsLang3Version = "3.20.0"
     val httpClientVersion = "4.5.14"
+    val libsCatalog = project.extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+    val nettyVersion = libsCatalog.findVersion("netty").get().requiredVersion
+    val forcedNettyModules = listOf(
+        "io.netty:netty-codec-http",
+        "io.netty:netty-codec-http2",
+        "io.netty:netty-codec",
+        "io.netty:netty-buffer",
+        "io.netty:netty-common",
+        "io.netty:netty-handler",
+        "io.netty:netty-handler-proxy",
+        "io.netty:netty-resolver",
+        "io.netty:netty-transport",
+        "io.netty:netty-transport-native-unix-common",
+        "io.netty:netty-codec-socks"
+    ).map { "$it:$nettyVersion" }
+    project.extra["forcedNettyModules"] = forcedNettyModules
 
     configurations.all {
         resolutionStrategy {
@@ -10,6 +28,7 @@ buildscript {
             force("org.jdom:jdom2:$jdom2Version")
             force("org.apache.commons:commons-lang3:$commonsLang3Version")
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+            forcedNettyModules.forEach(::force)
         }
     }
 }
@@ -37,6 +56,9 @@ plugins {
 }
 
 subprojects {
+    @Suppress("UNCHECKED_CAST")
+    val forcedNettyModules = rootProject.extra["forcedNettyModules"] as List<String>
+
     configurations.all {
         resolutionStrategy {
             val jose4jVersion = libs.versions.jose4j.get()
@@ -65,6 +87,9 @@ subprojects {
 
             // Apache HttpClient: CVE-2020-13956 XSS
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+
+            // Netty: CVE-2026-33870, CVE-2026-33871
+            forcedNettyModules.forEach(::force)
         }
     }
 }

@@ -250,38 +250,44 @@ class ContactRepositoryImpl constructor(
             }
 
             val ids = contacts.map { it.id }
-            val providerSuccess = contactsProviderSource.deleteContacts(ids)
-
-            // 2026 Best Practice: Always cascade delete to local cache
-            // Even if provider delete fails, clean local cache to avoid stale data
-            try {
-                contactDao.deleteContacts(ids)
-            } catch (e: Exception) {
-                Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
+            if (deleteContactsFromProviderAndSync(ids)) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete contacts"))
             }
-
-            // Update scan result summary to reflect changes
-            updateScanResultSummary()
-
-            if (providerSuccess) Result.success(Unit) else Result.failure(Exception("Failed to delete contacts"))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
     override suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean {
-        val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
+        return deleteContactsFromProviderAndSync(contactIds)
+    }
 
-        // 2026 Best Practice: Always cascade delete to local cache
-        // Even if provider delete fails, clean local cache to avoid stale data
-        // On next scan, contacts still on device will be re-synced
-        try {
-            contactDao.deleteContacts(contactIds)
-        } catch (e: Exception) {
-            Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
+    private suspend fun deleteContactsFromProviderAndSync(contactIds: List<Long>): Boolean {
+        if (contactIds.isEmpty()) return true
+
+        val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
+        if (!providerSuccess) {
+            Logger.e(
+                "ContactRepository",
+                "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete"
+            )
+            return false
         }
 
-        return providerSuccess
+        return try {
+            contactDao.deleteContacts(contactIds)
+            updateScanResultSummary()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
+            rebuildLocalCacheFromProvider()
+        }
     }
 
     override suspend fun deleteContactsByType(type: ContactType): Flow<CleanupStatus> = flow {
@@ -311,10 +317,11 @@ class ContactRepositoryImpl constructor(
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Deleted $successCount of ${contacts.size}"))
         }
 
-        // Refresh summary
-        updateScanResultSummary()
-
-        emit(CleanupStatus.Success("Successfully deleted $successCount contacts"))
+        when {
+            successCount == contacts.size -> emit(CleanupStatus.Success("Successfully deleted $successCount contacts"))
+            successCount > 0 -> emit(CleanupStatus.Success("Deleted $successCount of ${contacts.size} contacts"))
+            else -> emit(CleanupStatus.Error("Failed to delete contacts"))
+        }
     }
 
     private fun LocalContact.toDomain() = Contact(
@@ -414,23 +421,17 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
         }
 
-        emit(CleanupStatus.Success("Merged $successCount groups successfully"))
+        when {
+            successCount == groups.size -> emit(CleanupStatus.Success("Merged $successCount groups successfully"))
+            successCount > 0 -> emit(CleanupStatus.Success("Merged $successCount of ${groups.size} groups"))
+            else -> emit(CleanupStatus.Error("Failed to merge duplicate groups"))
+        }
     }
 
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {
         if (ids.isEmpty()) return true
-        val contacts = contactDao.getFormatIssueContactsByIds(ids)
-        if (contacts.isEmpty()) return true
-
-        val updates = contacts.associate { it.id to (it.normalizedNumber ?: "") }.filterValues { it.isNotBlank() }
-        if (updates.isEmpty()) return true
-
-        val success = contactsProviderSource.updateMultipleContactNumbers(updates)
-        if (success) {
-            val updatedEntities = contacts.map { it.copy(isFormatIssue = false, rawNumbers = it.normalizedNumber ?: it.rawNumbers) }
-            contactDao.insertContacts(updatedEntities)
-        }
-        return success
+        val result = standardizeFormatBatch(ids)
+        return result.attemptedCount > 0 && result.updatedIds.size == result.attemptedCount
     }
 
     override suspend fun standardizeAllFormatIssues(): Flow<CleanupStatus> = flow {
@@ -441,6 +442,7 @@ class ContactRepositoryImpl constructor(
         }
 
         var successCount = 0
+        var processedCount = 0
         val total = ids.size
 
         // Pre-fetch contact names for streaming display
@@ -460,12 +462,13 @@ class ContactRepositoryImpl constructor(
 
         // 2026 Optimization: Smaller batches (50) for 10x faster visual feedback
         // Previously used 500 which caused "stuck at 0%" perception
-        ids.chunked(50).forEachIndexed { batchIndex, batch ->
-            if (standardizeFormat(batch)) {
-                successCount += batch.size
+        ids.chunked(50).forEach { batch ->
+            val batchResult = standardizeFormatBatch(batch)
+            if (batchResult.updatedIds.isNotEmpty()) {
+                successCount += batchResult.updatedIds.size
 
                 // Add batch items to recent list for streaming display
-                batch.forEach { id ->
+                batchResult.updatedIds.forEach { id ->
                     val name = contactNames[id]
                     if (name != null) {
                         recentItems.add(0, "Updated: $name")
@@ -474,14 +477,15 @@ class ContactRepositoryImpl constructor(
                 }
             }
 
-            val progress = successCount.toFloat() / total.toFloat()
+            processedCount += batch.size
+            val progress = processedCount.toFloat() / total.toFloat()
             val currentItem = batch.lastOrNull()?.let { contactNames[it] }
 
             emit(CleanupStatus.Progress(
                 progress = progress.coerceAtMost(1f),
-                message = "Standardizing: ${currentItem ?: "..."} [$successCount of $total]",
+                message = "Standardizing: ${currentItem ?: "..."} [$processedCount of $total]",
                 details = CleanupDetails(
-                    processed = successCount,
+                    processed = processedCount,
                     total = total,
                     currentItem = currentItem,
                     recentItems = recentItems.toList()
@@ -492,7 +496,11 @@ class ContactRepositoryImpl constructor(
         // Refresh summary
         updateScanResultSummary()
 
-        emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
+        when {
+            successCount == total -> emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
+            successCount > 0 -> emit(CleanupStatus.Success("Standardized $successCount of $total contacts"))
+            else -> emit(CleanupStatus.Error("Failed to standardize contacts"))
+        }
     }
 
     override suspend fun getContactsAllSnapshot(): List<Contact> {
@@ -739,7 +747,49 @@ class ContactRepositoryImpl constructor(
         // Refresh summary
         updateScanResultSummary()
 
-        emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
+        when {
+            successCount == matchingKeys.size -> emit(CleanupStatus.Success("Consolidated $successCount contacts successfully"))
+            successCount > 0 -> emit(CleanupStatus.Success("Consolidated $successCount of ${matchingKeys.size} contacts"))
+            else -> emit(CleanupStatus.Error("Failed to consolidate contacts"))
+        }
+    }
+
+    private data class FormatStandardizationResult(
+        val updatedIds: List<Long>,
+        val attemptedCount: Int
+    )
+
+    private suspend fun standardizeFormatBatch(ids: List<Long>): FormatStandardizationResult {
+        if (ids.isEmpty()) return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
+
+        val contacts = contactDao.getFormatIssueContactsByIds(ids)
+        if (contacts.isEmpty()) return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
+
+        val contactsWithNormalizedNumbers = contacts.filter { !it.normalizedNumber.isNullOrBlank() }
+        if (contactsWithNormalizedNumbers.isEmpty()) {
+            return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
+        }
+
+        val updates = contactsWithNormalizedNumbers.associate { it.id to requireNotNull(it.normalizedNumber) }
+        val success = contactsProviderSource.updateMultipleContactNumbers(updates)
+        if (!success) {
+            return FormatStandardizationResult(
+                updatedIds = emptyList(),
+                attemptedCount = contactsWithNormalizedNumbers.size
+            )
+        }
+
+        val updatedEntities = contactsWithNormalizedNumbers.map { contact ->
+            contact.copy(
+                isFormatIssue = false,
+                rawNumbers = contact.normalizedNumber ?: contact.rawNumbers
+            )
+        }
+        contactDao.insertContacts(updatedEntities)
+        return FormatStandardizationResult(
+            updatedIds = updatedEntities.map { it.id },
+            attemptedCount = contactsWithNormalizedNumbers.size
+        )
     }
 
     override suspend fun refreshContacts(contacts: List<Contact>): Boolean {

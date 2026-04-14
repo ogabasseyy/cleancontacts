@@ -97,3 +97,8 @@
 
 **Learning:** In Jetpack Compose, when overriding the screen reader announcement for a parent container (like a `Column` containing multiple `Text` elements), using `semantics(mergeDescendants = true) { contentDescription = "..." }` can result in the screen reader announcing both the custom description and the text of the child nodes.
 **Action:** Use `Modifier.clearAndSetSemantics { contentDescription = "..." }` on the parent container to completely replace the semantics of all descendants, ensuring a single, cohesive, non-repetitive read-out.
+
+## 2026-04-14 - Accessible Skeleton Loaders in React
+
+**Learning:** When displaying skeleton loaders in React (like a pulsating list), parent containers lack inherent semantic meaning to convey a "loading" state. Furthermore, the repetitive structural child elements (like empty pulsating divs) create unwanted noise for screen reader users.
+**Action:** Always add `aria-busy="true"` and an `aria-label` (e.g., "Loading posts") to the parent container of skeleton loaders. Concurrently, apply `aria-hidden="true"` to the repetitive inner structural elements to ensure a clean, meaningful screen reader experience.

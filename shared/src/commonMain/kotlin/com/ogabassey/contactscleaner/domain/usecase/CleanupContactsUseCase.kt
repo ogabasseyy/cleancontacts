@@ -37,7 +37,16 @@ class CleanupContactsUseCase(
     suspend fun deleteByIds(ids: List<Long>): Boolean {
         // 1. Get contacts
         val allContacts = contactRepository.getContactsAllSnapshot()
-        val contactsToDelete = allContacts.filter { ids.contains(it.id) }
+
+        // ⚡ Bolt Optimization: Convert reference list to HashSet for O(1) lookups
+        // and avoid intermediate collection allocations by using a pre-sized ArrayList.
+        val idSet = ids.toHashSet()
+        val contactsToDelete = ArrayList<com.ogabassey.contactscleaner.domain.model.Contact>(ids.size.coerceAtMost(allContacts.size))
+        for (contact in allContacts) {
+            if (idSet.contains(contact.id)) {
+                contactsToDelete.add(contact)
+            }
+        }
 
         if (contactsToDelete.isNotEmpty()) {
             // Backup (non-blocking - don't fail operation if backup fails)

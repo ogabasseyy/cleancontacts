@@ -40,7 +40,7 @@ export const SupportCard: React.FC = () => {
           
           <a 
             href="mailto:support@contactscleaner.tech" 
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand text-black hover:bg-white transition-colors font-bold text-lg shadow-lg shadow-brand/20"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-brand text-black hover:bg-white transition-colors font-bold text-lg shadow-lg shadow-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
             Contact Support

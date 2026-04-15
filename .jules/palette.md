@@ -102,3 +102,8 @@
 
 **Learning:** Skeleton loading states made purely of `div`s with `animate-pulse` are invisible to screen readers, leaving users wondering what is happening.
 **Action:** Always add `aria-busy="true"` and an `aria-label` (e.g., "Loading blog posts") to the parent container of skeleton loaders. Additionally, add `aria-hidden="true"` to the inner decorative pulse `div`s to prevent them from creating structural noise for screen readers.
+
+## 2026-04-15 - Interactive Card Links Missing Focus Indicators
+
+**Learning:** Reusable card components (`SupportCard`, `TermsCard`) in the React/Tailwind landing page that utilize interactive <a> tags heavily rely on hover states but often overlook keyboard focus indicators, making them invisible to keyboard navigation.
+**Action:** When implementing custom interactive elements (`<a>` or `<button>`) that override standard browser styling, always explicitly provide high-contrast keyboard focus indicators using the `focus-visible` pseudo-class (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark`) to ensure WCAG compliance and keyboard accessibility.

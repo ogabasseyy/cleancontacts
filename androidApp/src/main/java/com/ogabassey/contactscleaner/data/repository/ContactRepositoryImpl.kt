@@ -17,7 +17,9 @@ import com.ogabassey.contactscleaner.domain.model.ScanStatus
 import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
 import com.ogabassey.contactscleaner.domain.model.AccountInstance
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import com.ogabassey.contactscleaner.util.firstNonBlankSegment
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.splitAndFilterNotBlank
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
@@ -347,8 +349,8 @@ class ContactRepositoryImpl constructor(
     private fun LocalContact.toDomain() = Contact(
         id = id,
         name = displayName,
-        numbers = rawNumbers.split(",").filter { it.isNotBlank() },
-        emails = rawEmails.split(",").filter { it.isNotBlank() },
+        numbers = rawNumbers.splitAndFilterNotBlank(','),
+        emails = rawEmails.splitAndFilterNotBlank(','),
         normalizedNumber = normalizedNumber,
         isWhatsApp = isWhatsApp,
         isTelegram = isTelegram,
@@ -707,8 +709,8 @@ class ContactRepositoryImpl constructor(
                 CrossAccountContact(
                     name = first.displayName,
                     matchingKey = key,
-                    primaryNumber = first.rawNumbers.split(",").filter { it.isNotBlank() }.firstOrNull(),
-                    primaryEmail = first.rawEmails.split(",").filter { it.isNotBlank() }.firstOrNull(),
+                    primaryNumber = first.rawNumbers.firstNonBlankSegment(','),
+                    primaryEmail = first.rawEmails.firstNonBlankSegment(','),
                     accounts = instances.map { instance ->
                         AccountInstance(
                             contactId = instance.id,

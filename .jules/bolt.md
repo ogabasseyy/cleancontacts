@@ -287,3 +287,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing functional character filtering with primitive extraction
 **Learning:** Using functional chains like `filter { it.isDigit() }` or `filter { it.isDigit() || it == '+' }` creates intermediate `List` allocations and unnecessary object creation. In high-frequency paths like phone number formatting and parsing, this accumulates significant garbage collection overhead.
 **Action:** Replace functional character filtering chains with specialized extension functions (like `extractDigits()` or `extractDigitsAndPlus()`) that use a single-pass `StringBuilder` loop to extract characters into a new string directly.
+
+## 2026-10-18 - Single-Pass Splitting and Filtering
+**Learning:** Using `split(",").filter { it.isNotBlank() }` in high-frequency parsing paths like processing duplicates or raw contacts from the database generates multiple intermediate collection allocations (`List`, new string lists from `filter`) which slows down list iteration execution significantly.
+**Action:** Use a dedicated single-pass split function (e.g., `splitAndFilterNotBlank`) that uses `substring` in a loop and populates an `ArrayList` directly without creating any intermediate string arrays or filter lists.

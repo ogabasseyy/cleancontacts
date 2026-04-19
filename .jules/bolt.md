@@ -284,6 +284,8 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 
 **Action:** Always verify that complex `SELECT COUNT(*) FROM (SELECT ... GROUP BY ... HAVING ...)` subqueries use the same restrictive `WHERE` filters as their corresponding individual detailed queries to avoid processing irrelevant rows in heavy grouping operations.
 
-## 2026-10-18 - Replacing functional character filtering with primitive extraction
-**Learning:** Using functional chains like `filter { it.isDigit() }` or `filter { it.isDigit() || it == '+' }` creates intermediate `List` allocations and unnecessary object creation. In high-frequency paths like phone number formatting and parsing, this accumulates significant garbage collection overhead.
-**Action:** Replace functional character filtering chains with specialized extension functions (like `extractDigits()` or `extractDigitsAndPlus()`) that use a single-pass `StringBuilder` loop to extract characters into a new string directly.
+
+
+## 2026-10-18 - Avoid Intermediate List Allocation in String Splitting
+**Learning:** Using `String.split(",").filter { it.isNotBlank() }` in high-frequency string processing paths (like database entity mapping) causes excessive object creation. It allocates a new List for the split strings, an intermediate String object for every blank segment, performs a second iteration for filtering, and allocates a final List for the results. This causes high GC pressure when loading thousands of contacts.
+**Action:** Replace two-step split-and-filter chains with a single-pass character traversal algorithm (e.g., a custom `splitAndFilterNotBlank()` extension). This reads the string character by character, avoids allocating blank substrings, and populates a single `ArrayList` directly.

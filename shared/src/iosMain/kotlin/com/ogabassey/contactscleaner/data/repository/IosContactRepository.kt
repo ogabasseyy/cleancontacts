@@ -22,6 +22,7 @@ import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.UsageRepository
 import com.ogabassey.contactscleaner.domain.repository.CacheSnapshot
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
+import com.ogabassey.contactscleaner.util.splitAndFilterNotBlank
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -858,7 +859,7 @@ class IosContactRepository(
 
                 // Process batch
                 val updatedContacts = batch.mapNotNull { contact ->
-                    val numbers = contact.rawNumbers.split(",").filter { it.isNotBlank() }
+                    val numbers = contact.rawNumbers.splitAndFilterNotBlank()
                     val isOnWhatsApp = numbers.any { num ->
                         val normalized = num.extractDigits()
                         cachedNumbers.contains(normalized)
@@ -905,8 +906,8 @@ class IosContactRepository(
                 CrossAccountContact(
                     name = first.displayName,
                     matchingKey = key,
-                    primaryNumber = first.rawNumbers.split(",").filter { it.isNotBlank() }.firstOrNull(),
-                    primaryEmail = first.rawEmails.split(",").filter { it.isNotBlank() }.firstOrNull(),
+                    primaryNumber = first.rawNumbers.splitAndFilterNotBlank().firstOrNull(),
+                    primaryEmail = first.rawEmails.splitAndFilterNotBlank().firstOrNull(),
                     accounts = instances.map { instance ->
                         AccountInstance(
                             contactId = instance.id,
@@ -1017,8 +1018,8 @@ class IosContactRepository(
         return Contact(
             id = id,
             name = displayName,
-            numbers = rawNumbers.split(",").filter { it.isNotBlank() },
-            emails = rawEmails.split(",").filter { it.isNotBlank() },
+            numbers = rawNumbers.splitAndFilterNotBlank(),
+            emails = rawEmails.splitAndFilterNotBlank(),
             normalizedNumber = normalizedNumber,
             isWhatsApp = isWhatsApp,
             isTelegram = isTelegram,

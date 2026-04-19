@@ -5,6 +5,7 @@ import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
 import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroup
 import com.ogabassey.contactscleaner.domain.model.DuplicateType
+import com.ogabassey.contactscleaner.util.splitAndFilterNotBlank
 
 object ContactDuplicateMetadataResolver {
 
@@ -66,8 +67,8 @@ object ContactDuplicateMetadataResolver {
         return Contact(
             id = id,
             name = displayName,
-            numbers = rawNumbers.split(",").filter { it.isNotBlank() },
-            emails = rawEmails.split(",").filter { it.isNotBlank() },
+            numbers = rawNumbers.splitAndFilterNotBlank(),
+            emails = rawEmails.splitAndFilterNotBlank(),
             normalizedNumber = normalizedNumber,
             isWhatsApp = isWhatsApp,
             isTelegram = isTelegram,

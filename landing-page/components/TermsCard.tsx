@@ -64,7 +64,7 @@ export const TermsCard: React.FC = () => {
           </p>
           <a 
             href="mailto:legal@contactscleaner.tech" 
-            className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all font-semibold no-underline"
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all font-semibold no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
           >
             legal@contactscleaner.tech
           </a>

@@ -603,6 +603,11 @@ class IosContactRepository(
         return contactDao.getAllContacts().map { it.toContact() }
     }
 
+    override suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact> {
+        if (ids.isEmpty()) return emptyList()
+        return contactDao.getContactsByIds(ids).map { it.toContact() }
+    }
+
     override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> {
         return when (type) {
             ContactType.ALL -> contactDao.getAllContacts().map { it.toContact() }

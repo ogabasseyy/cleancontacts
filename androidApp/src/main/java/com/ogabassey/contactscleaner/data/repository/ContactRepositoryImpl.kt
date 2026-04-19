@@ -539,6 +539,11 @@ class ContactRepositoryImpl constructor(
         return contactDao.getAllContacts().map { it.toDomain() }
     }
 
+    override suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact> {
+        if (ids.isEmpty()) return emptyList()
+        return contactDao.getContactsByIds(ids).map { it.toDomain() }
+    }
+
     override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> {
         val entities = when (type) {
             ContactType.ALL -> contactDao.getAllContacts()

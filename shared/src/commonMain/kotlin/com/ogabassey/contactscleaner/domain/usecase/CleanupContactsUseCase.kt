@@ -35,9 +35,8 @@ class CleanupContactsUseCase(
     }
 
     suspend fun deleteByIds(ids: List<Long>): Boolean {
-        // 1. Get contacts
-        val allContacts = contactRepository.getContactsAllSnapshot()
-        val contactsToDelete = allContacts.filter { ids.contains(it.id) }
+        // 1. Get only the contacts we actually need for backup.
+        val contactsToDelete = contactRepository.getContactsSnapshotByIds(ids)
 
         if (contactsToDelete.isNotEmpty()) {
             // Backup (non-blocking - don't fail operation if backup fails)

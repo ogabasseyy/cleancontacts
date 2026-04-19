@@ -133,6 +133,12 @@ class MockContactRepository : ContactRepository {
         return mockContacts
     }
 
+    override suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact> {
+        if (ids.isEmpty()) return emptyList()
+        val idSet = ids.toSet()
+        return mockContacts.filter { it.id in idSet }
+    }
+
     override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> {
         return when (type) {
             ContactType.JUNK -> mockContacts.filter { it.isJunk }

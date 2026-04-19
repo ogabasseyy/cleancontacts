@@ -34,6 +34,24 @@ function escapeHtml(str: string): string {
     .replace(/\n/g, "<br>");
 }
 
+// 2026 Security Fix: Implement rate limiting to prevent email spam/DoS
+// Simple in-memory rate limiter for serverless environment
+// Note: In a highly distributed serverless environment, this is per-instance,
+// but it's sufficient for basic protection against burst attacks.
+const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_REQUESTS_PER_WINDOW = 5;
+
+// Clean up old entries periodically to prevent memory leaks
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  for (const [ip, data] of rateLimitMap.entries()) {
+    if (now - data.timestamp > RATE_LIMIT_WINDOW_MS) {
+      rateLimitMap.delete(ip);
+    }
+  }
+}
+
 export default async function handler(req: FeedbackRequest, res: FeedbackResponse) {
   // Restrict CORS to specific origins
   const origin = req.headers?.origin || req.headers?.Origin;
@@ -59,6 +77,31 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
 
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
+  }
+
+  // 2026 Security Fix: Apply rate limiting based on client IP
+  const forwardedFor = req.headers?.["x-forwarded-for"];
+  const clientIp = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor?.split(',')[0]?.trim() || "unknown-ip";
+
+  cleanupRateLimitMap();
+
+  const now = Date.now();
+  const limitData = rateLimitMap.get(clientIp);
+
+  if (limitData) {
+    if (now - limitData.timestamp < RATE_LIMIT_WINDOW_MS) {
+      if (limitData.count >= MAX_REQUESTS_PER_WINDOW) {
+        console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+        return res.status(429).json({ success: false, error: "Too many requests. Please try again later." });
+      }
+      limitData.count++;
+    } else {
+      rateLimitMap.set(clientIp, { count: 1, timestamp: now });
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, timestamp: now });
   }
 
   if (!RESEND_API_KEY || !FEEDBACK_EMAIL) {

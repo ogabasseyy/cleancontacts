@@ -107,3 +107,8 @@
 
 **Learning:** Reusable card components (`SupportCard`, `TermsCard`) in the React/Tailwind landing page that utilize interactive <a> tags heavily rely on hover states but often overlook keyboard focus indicators, making them invisible to keyboard navigation.
 **Action:** When implementing custom interactive elements (`<a>` or `<button>`) that override standard browser styling, always explicitly provide high-contrast keyboard focus indicators using the `focus-visible` pseudo-class (e.g., `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark`) to ensure WCAG compliance and keyboard accessibility.
+
+## 2026-04-16 - Web Decorative SVGs Inside Links (Focusability)
+
+**Learning:** When using decorative `<svg>` elements within interactive components (like `<a>` or `<button>`), `aria-hidden="true"` correctly prevents screen reader announcements, but older browsers or certain environments can still apply keyboard focus to the SVG itself, resulting in redundant tab stops for a single link.
+**Action:** Always add both `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.

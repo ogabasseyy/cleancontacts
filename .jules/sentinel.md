@@ -75,3 +75,7 @@
 **Vulnerability:** The API endpoint `feedback.ts` used an overly permissive CORS policy (`Access-Control-Allow-Origin: *`).
 **Learning:** This wildcard allowed any site to make requests to the endpoint, which is a potential risk for API abuse (e.g., spamming the email service).
 **Prevention:** Use an explicit allowlist of trusted origins, validating `req.headers.origin` and defaulting to a safe origin (the app domain).
+## 2026-04-19 - Rate Limiting API Endpoints
+**Vulnerability:** The public-facing `feedback.ts` API endpoint lacked rate limiting, allowing unlimited POST requests which could lead to DoS or exhaustion of third-party API quotas (Resend).
+**Learning:** Serverless functions must implement rudimentary application-layer rate limiting by default, especially when bridging to paid third-party APIs.
+**Prevention:** Apply rate limiting logic (e.g., in-memory map tracking IPs via `x-forwarded-for`) on all unauthenticated endpoints that trigger external actions.

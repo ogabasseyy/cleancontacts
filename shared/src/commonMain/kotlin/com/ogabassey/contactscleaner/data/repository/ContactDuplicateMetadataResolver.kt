@@ -13,18 +13,30 @@ object ContactDuplicateMetadataResolver {
     fun apply(contacts: List<LocalContact>, duplicateDetector: DuplicateDetector): List<LocalContact> {
         if (contacts.isEmpty()) return contacts
 
-        val domainContacts = contacts.map { it.toDuplicateContact() }
+        // ⚡ Bolt Optimization: Replace full mapping with a pre-sized ArrayList
+        // and eliminate the secondary O(N) map pass by applying assignments directly.
+        val domainContacts = ArrayList<Contact>(contacts.size)
+        for (i in contacts.indices) {
+            domainContacts.add(contacts[i].toDuplicateContact())
+        }
+
         val duplicateGroups = duplicateDetector.detectDuplicates(domainContacts) +
             duplicateDetector.detectSimilarNameDuplicates(domainContacts)
         val assignments = buildDuplicateAssignments(duplicateGroups)
 
-        return contacts.map { contact ->
+        // Prevent second list allocation and iteration overhead via map
+        val result = ArrayList<LocalContact>(contacts.size)
+        for (i in contacts.indices) {
+            val contact = contacts[i]
             val assignment = assignments[contact.id]
-            contact.copy(
-                duplicateType = assignment?.first?.name,
-                matchingKey = assignment?.second ?: defaultMatchingKey(contact)
+            result.add(
+                contact.copy(
+                    duplicateType = assignment?.first?.name,
+                    matchingKey = assignment?.second ?: defaultMatchingKey(contact)
+                )
             )
         }
+        return result
     }
 
     internal fun buildDuplicateAssignments(

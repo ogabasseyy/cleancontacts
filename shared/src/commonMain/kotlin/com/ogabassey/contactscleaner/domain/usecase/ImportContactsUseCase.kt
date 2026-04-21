@@ -22,10 +22,22 @@ class ImportContactsUseCase(
         // Detect duplicates
         val duplicates = duplicateDetector.detectDuplicates(parseResult.validContacts)
         
+        // ⚡ Bolt Optimization: Replace O(N*M) lookup with O(1) HashSet lookup
+        // and replace `.filterNot` with a pre-sized ArrayList loop to eliminate allocations.
+        val junkIds = HashSet<Long>(junkContacts.size)
+        for (junk in junkContacts) {
+            junkIds.add(junk.id)
+        }
+
+        val filteredValidContacts = ArrayList<Contact>(parseResult.validContacts.size)
+        for (contact in parseResult.validContacts) {
+            if (!junkIds.contains(contact.id)) {
+                filteredValidContacts.add(contact)
+            }
+        }
+
         return ImportResult(
-            validContacts = parseResult.validContacts.filterNot { contact ->
-                junkContacts.any { it.id == contact.id }
-            },
+            validContacts = filteredValidContacts,
             junkContacts = junkContacts,
             duplicates = duplicates
         )

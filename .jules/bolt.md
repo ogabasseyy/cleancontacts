@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 2026-01-18 - Animation Layout Thrashing
 
 **Learning:** Using `Modifier.offset` with generic `Dp` values inside an infinite animation loop causes a full layout pass on every frame, which is expensive.
@@ -301,7 +302,6 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 **Learning:** When determining which items to retain or remove based on another list, chaining operations like `existingContacts.filterNot { it.id in missingDbIds }` where `missingDbIds` is a `List` creates a hidden `O(N * M)` operation. In paths like `IosContactRepository.refreshContacts`, this leads to significant lag when processing large contact lists.
 
 **Action:** Always convert the secondary lookup collection (e.g., `missingDbIds`) into a `HashSet` before performing intersection checks like `it.id in missingDbIds`, ensuring O(1) lookups and an overall `O(N)` time complexity.
-
 ## 2026-10-18 - Replacing multi-pass List Mapping with Indexed Loops
 **Learning:** Using chained `.map { ... }` transformations to process large lists (such as contact duplicates mapping domain and local entities) creates intermediate `ArrayList` allocations and uses iterator overhead internally. In pathways processing tens of thousands of items, this creates significant GC pauses.
 **Action:** Replace `.map {}` calls with pre-allocated `ArrayList` instances and indexed `for` loops (`for (i in list.indices) { results.add(transform(list[i])) }`) to eliminate multiple allocations and iterator overhead.
@@ -317,3 +317,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid Repeated Filter and Map Passes in Selective Extraction
 **Learning:** Building one list with `filter { ... }.map { ... }` and then scanning the source again to derive a second related list creates avoidable allocations and repeated work.
 **Action:** When a loop is already deciding which items to keep or remove, accumulate every needed derived value in that same pass instead of rebuilding related collections afterward.
+
+## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
+**Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) performance bottleneck, as the inner collection is fully iterated for every item in the outer collection.
+**Action:** Always extract the IDs into an O(1) lookup structure (like a `HashSet`) *before* filtering. Combine this with a pre-sized `ArrayList` loop to avoid both intermediate collection allocations and massive CPU overhead.

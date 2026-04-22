@@ -168,19 +168,18 @@ class WhatsAppDetectorRepositoryImpl(
                 }
 
                 // Convert contacts to cache entries
-                val entries = response.contacts.map { contact ->
-                    val normalized = contact.phoneNumber.extractDigits()
-                    WhatsAppCacheEntry(
-                        normalizedNumber = normalized,
-                        isBusiness = contact.isBusiness,
-                        lastSynced = Clock.System.now().toEpochMilliseconds()
+                val now = Clock.System.now().toEpochMilliseconds()
+                for (i in response.contacts.indices) {
+                    val contact = response.contacts[i]
+                    allEntries.add(
+                        WhatsAppCacheEntry(
+                            normalizedNumber = contact.phoneNumber.extractDigits(),
+                            isBusiness = contact.isBusiness,
+                            lastSynced = now
+                        )
                     )
+                    if (contact.isBusiness) businessCount++ else personalCount++
                 }
-                allEntries.addAll(entries)
-
-                // Update counts
-                businessCount += response.contacts.count { it.isBusiness }
-                personalCount += response.contacts.count { !it.isBusiness }
 
                 // Emit progress
                 emit(WhatsAppSyncProgress.InProgress(

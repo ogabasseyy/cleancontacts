@@ -110,24 +110,32 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
 
   const { category, message, email, deviceInfo } = req.body ?? {};
 
+  // 2026 Security Fix: Enforce early length limits to prevent ReDoS / CPU exhaustion
+  // before string allocations or manipulations (like .trim()) occur.
+  if (message && typeof message === "string" && message.length > 5000) {
+    return res.status(400).json({ success: false, error: "Message too long" });
+  }
+  if (email && typeof email === "string" && email.length > 254) {
+    return res.status(400).json({ success: false, error: "Email too long" });
+  }
+  if (deviceInfo && typeof deviceInfo === "string" && deviceInfo.length > 500) {
+    return res.status(400).json({ success: false, error: "Device info too long" });
+  }
+
   if (!message || typeof message !== "string" || message.trim().length === 0) {
     return res.status(400).json({ success: false, error: "Message is required" });
   }
 
   const trimmedMessage = message.trim();
 
-  if (trimmedMessage.length > 5000) {
-    return res.status(400).json({ success: false, error: "Message too long" });
-  }
-
   if (!category || !VALID_CATEGORIES.includes(category)) {
     return res.status(400).json({ success: false, error: "Invalid category" });
   }
 
   const sanitizedEmail =
-    email && typeof email === "string" ? email.trim().slice(0, 254) : "Not provided";
+    email && typeof email === "string" ? email.trim() : "Not provided";
   const sanitizedDevice =
-    deviceInfo && typeof deviceInfo === "string" ? deviceInfo.trim().slice(0, 500) : "Not provided";
+    deviceInfo && typeof deviceInfo === "string" ? deviceInfo.trim() : "Not provided";
 
   try {
     const response = await fetch("https://api.resend.com/emails", {

@@ -79,7 +79,13 @@
 **Vulnerability:** The public-facing `feedback.ts` API endpoint lacked rate limiting, allowing unlimited POST requests which could lead to DoS or exhaustion of third-party API quotas (Resend).
 **Learning:** Serverless functions must implement rudimentary application-layer rate limiting by default, especially when bridging to paid third-party APIs.
 **Prevention:** Apply rate limiting logic (e.g., in-memory map tracking IPs via `x-forwarded-for`) on all unauthenticated endpoints that trigger external actions.
+
 ## 2026-10-24 - [HIGH] Defense in Depth against XSS with DOMPurify
 **Vulnerability:** `landing-page/components/BlogPost.tsx` used `dangerouslySetInnerHTML={{ __html: html }}` with dynamically fetched content. While the HTML was compiled from our own markdown files, this violated the 'defense in depth' principle. If a vulnerability ever occurred in the markdown parser or the source changed to include user inputs, XSS would be immediately possible.
 **Learning:** Even statically generated or seemingly 'trusted' dynamically fetched HTML should be sanitized at runtime when using `dangerouslySetInnerHTML` to adhere to 'Trust nothing, verify everything'.
 **Prevention:** Always use a runtime sanitization library (like `DOMPurify`) for `dangerouslySetInnerHTML` regardless of the assumed source of the HTML.
+
+## 2026-10-24 - DoS via Unbounded String Manipulation
+**Vulnerability:** The API endpoint `feedback.ts` processed unbounded user inputs (`message`, `email`, `deviceInfo`) by calling string manipulation methods like `.trim()` before validating their length. This exposed the serverless function to CPU exhaustion and ReDoS attacks.
+**Learning:** String manipulation operations (like trimming or regex replacements) on massive payloads can spike CPU usage and crash instances before length checks are reached.
+**Prevention:** Always check the raw length of inputs (`input.length`) *before* executing any string manipulation or processing functions, especially in serverless environments.

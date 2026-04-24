@@ -313,3 +313,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Faster Aggregate Queries for Cross-Account Contacts
 **Learning:** The `crossAccountCount` queries in `ContactDao.kt` were grouping and evaluating thousands of synced WhatsApp and Telegram contacts unnecessarily, wasting CPU and memory.
 **Action:** Appended `AND is_whatsapp = 0 AND is_telegram = 0` to filter out synced contacts before the expensive `GROUP BY` execution, aligning with `getScanStats` optimization guidelines.
+
+## 2026-10-18 - Avoid Repeated Filter and Map Passes in Selective Extraction
+**Learning:** Building one list with `filter { ... }.map { ... }` and then scanning the source again to derive a second related list creates avoidable allocations and repeated work.
+**Action:** When a loop is already deciding which items to keep or remove, accumulate every needed derived value in that same pass instead of rebuilding related collections afterward.

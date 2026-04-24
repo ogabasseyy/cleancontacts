@@ -112,3 +112,8 @@
 
 **Learning:** When using decorative `<svg>` elements within interactive components (like `<a>` or `<button>`), `aria-hidden="true"` correctly prevents screen reader announcements, but older browsers or certain environments can still apply keyboard focus to the SVG itself, resulting in redundant tab stops for a single link.
 **Action:** Always add both `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.
+
+## 2026-04-18 - Semantic HTML Structure for Accordions
+
+**Learning:** Nesting a heading tag (like `<h3>`) inside an interactive `<button>` element is invalid HTML and breaks the screen reader document outline, as interactive elements cannot contain structural headings. This forces screen readers to either ignore the heading level or misinterpret the interactive element.
+**Action:** Always wrap the accordion `<button>` inside the heading tag (e.g., `<h3><button>...</button></h3>`), rather than placing the heading inside the button. This preserves both the structural outline of the page and the interactive role for accessibility tools.

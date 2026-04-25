@@ -916,26 +916,47 @@ class IosContactRepository(
     override suspend fun getCrossAccountContacts(): List<CrossAccountContact> {
         val allInstances = contactDao.getCrossAccountContactsSnapshot()
 
-        return allInstances.groupBy { it.matchingKey ?: "" }
-            .filter { it.key.isNotBlank() && it.value.isNotEmpty() }
-            .mapNotNull { (key, instances) ->
-                val first = instances.firstOrNull() ?: return@mapNotNull null
-                CrossAccountContact(
-                    name = first.displayName,
-                    matchingKey = key,
-                    primaryNumber = first.rawNumbers.firstNonBlankSegment(','),
-                    primaryEmail = first.rawEmails.firstNonBlankSegment(','),
-                    accounts = instances.map { instance ->
+        // ⚡ Bolt Optimization: Replace multiple passes (.groupBy.filter.mapNotNull.sortedBy)
+        // with a single-pass loop into a LinkedHashMap to eliminate intermediate allocations.
+        val groups = LinkedHashMap<String, MutableList<com.ogabassey.contactscleaner.data.db.entity.LocalContact>>()
+        for (instance in allInstances) {
+            val key = instance.matchingKey
+            if (!key.isNullOrBlank()) {
+                groups.getOrPut(key) { ArrayList() }.add(instance)
+            }
+        }
+
+        val result = ArrayList<CrossAccountContact>(groups.size)
+        for ((key, instances) in groups) {
+            if (instances.isNotEmpty()) {
+                val first = instances.first()
+
+                val accounts = ArrayList<AccountInstance>(instances.size)
+                for (instance in instances) {
+                    accounts.add(
                         AccountInstance(
                             contactId = instance.id,
                             accountType = instance.accountType,
                             accountName = instance.accountName,
                             displayLabel = getAccountDisplayLabel(instance.accountType, instance.accountName)
                         )
-                    }
+                    )
+                }
+
+                result.add(
+                    CrossAccountContact(
+                        name = first.displayName,
+                        matchingKey = key,
+                        primaryNumber = first.rawNumbers.firstNonBlankSegment(','),
+                        primaryEmail = first.rawEmails.firstNonBlankSegment(','),
+                        accounts = accounts
+                    )
                 )
             }
-            .sortedBy { it.name ?: "" }
+        }
+
+        result.sortBy { it.name ?: "" }
+        return result
     }
 
     override suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact> {

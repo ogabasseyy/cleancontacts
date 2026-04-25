@@ -91,7 +91,7 @@ const BlogList: React.FC = () => {
               <Link
                 key={post.slug}
                 to={`/blog/${post.slug}`}
-                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:bg-white/[0.05] focus-visible:border-brand/20"
+                className="block group rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] hover:border-brand/20 transition-all duration-300 p-6 md:p-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark focus-visible:bg-white/[0.05] focus-visible:border-brand/20 relative overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-3 text-sm">
                   <span className="px-2.5 py-0.5 rounded-full bg-brand/10 text-brand font-medium text-xs">
@@ -112,12 +112,20 @@ const BlogList: React.FC = () => {
                   {post.description}
                 </p>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {post.tags.slice(0, 4).map(tag => (
-                    <span key={tag} className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.slice(0, 4).map(tag => (
+                      <span key={tag} className="text-xs text-gray-400 bg-white/5 px-2 py-1 rounded">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="flex items-center gap-2 text-sm font-medium text-brand opacity-0 translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300" aria-hidden="true">
+                    Read article
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </span>
                 </div>
               </Link>
             ))}

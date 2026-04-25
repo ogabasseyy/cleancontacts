@@ -79,3 +79,7 @@
 **Vulnerability:** The public-facing `feedback.ts` API endpoint lacked rate limiting, allowing unlimited POST requests which could lead to DoS or exhaustion of third-party API quotas (Resend).
 **Learning:** Serverless functions must implement rudimentary application-layer rate limiting by default, especially when bridging to paid third-party APIs.
 **Prevention:** Apply rate limiting logic (e.g., in-memory map tracking IPs via `x-forwarded-for`) on all unauthenticated endpoints that trigger external actions.
+## 2026-04-25 - Prevent XSS in BlogPost via runtime sanitization
+**Vulnerability:** The `landing-page/components/BlogPost.tsx` component injected dynamically fetched HTML using `dangerouslySetInnerHTML` without runtime sanitization. While the HTML is built from markdown during the build process, assuming the external source remains completely safe is a security risk.
+**Learning:** Even statically generated or seemingly trusted external HTML needs runtime sanitization before being injected into the DOM to enforce defense-in-depth.
+**Prevention:** Always use `DOMPurify.sanitize(html)` or a similar robust library when rendering external HTML content using `dangerouslySetInnerHTML`.

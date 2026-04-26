@@ -117,3 +117,8 @@
 
 **Learning:** When building accordions or similar interactive UI elements, placing heading tags (e.g., `<h3>`) inside a button breaks the document outline for screen readers and results in invalid HTML.
 **Action:** Always wrap the interactive element (e.g., `<button>`) with the heading tag (e.g., `<h3><button>...</button></h3>`), not the other way around. Keep structural/decorative classes on inner `<span>` elements inside the button to preserve visual design without compromising semantics.
+
+## 2026-04-26 - Accordion Heading Structure Accessibility
+
+**Learning:** When building accordions or similar interactive UI elements, placing heading tags (e.g., `<h3>`) inside a button breaks the document outline for screen readers and results in invalid HTML.
+**Action:** Always wrap the interactive element (e.g., `<button>`) with the heading tag (e.g., `<h3><button>...</button></h3>`), not the other way around. Keep structural/decorative classes on inner `<span>` elements inside the button to preserve visual design without compromising semantics.

@@ -49,24 +49,27 @@ export const FAQ: React.FC = () => {
               key={index}
               className="glass-panel rounded-2xl overflow-hidden transition-all duration-300"
             >
-              <button
-                type="button"
-                onClick={() => toggle(index)}
-                className="w-full flex items-center justify-between p-6 text-left gap-4 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors"
-                aria-expanded={openIndex === index}
-                aria-controls={`faq-answer-${index}`}
-              >
-                <h3 id={`faq-question-${index}`} className="text-base md:text-lg font-semibold text-white">{faq.question}</h3>
-                <svg
-                  className={`w-5 h-5 text-brand shrink-0 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
+              <h3 id={`faq-question-${index}`}>
+                <button
+                  type="button"
+                  onClick={() => toggle(index)}
+                  className="w-full flex items-center justify-between p-6 text-left gap-4 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors"
+                  aria-expanded={openIndex === index}
+                  aria-controls={`faq-answer-${index}`}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                  <span className="text-base md:text-lg font-semibold text-white">{faq.question}</span>
+                  <svg
+                    className={`w-5 h-5 text-brand shrink-0 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </h3>
               <div
                 id={`faq-answer-${index}`}
                 role="region"

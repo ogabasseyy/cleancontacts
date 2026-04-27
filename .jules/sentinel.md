@@ -79,3 +79,8 @@
 **Vulnerability:** The public-facing `feedback.ts` API endpoint lacked rate limiting, allowing unlimited POST requests which could lead to DoS or exhaustion of third-party API quotas (Resend).
 **Learning:** Serverless functions must implement rudimentary application-layer rate limiting by default, especially when bridging to paid third-party APIs.
 **Prevention:** Apply rate limiting logic (e.g., in-memory map tracking IPs via `x-forwarded-for`) on all unauthenticated endpoints that trigger external actions.
+
+## 2026-04-20 - Prevent XSS in dynamically injected HTML using dangerouslySetInnerHTML
+**Vulnerability:** The `BlogPost` component used `dangerouslySetInnerHTML` to render HTML string fetched from the server without any runtime sanitization.
+**Learning:** Even if the source of HTML is deemed safe (e.g. build-time generated markdown), directly injecting HTML into the DOM without sanitization creates a defense-in-depth vulnerability against XSS if the data source is compromised.
+**Prevention:** Always sanitize HTML strings using a library like DOMPurify (`DOMPurify.sanitize(html)`) before passing them to `dangerouslySetInnerHTML` in React applications.

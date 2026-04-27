@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import type { BlogPostMeta, TocHeading } from '../types';
 
 const SITE_URL = 'https://contactscleaner.tech';
@@ -184,10 +185,10 @@ const BlogPost: React.FC = () => {
         {/* Table of Contents */}
         <TableOfContents headings={meta.headings} />
 
-        {/* Pre-rendered HTML content (build-time markdown→HTML, safe: our own output) */}
+        {/* 2026 Security Enhancement: Even for internally generated build-time HTML, enforce defense-in-depth against XSS by sanitizing before dangerouslySetInnerHTML */}
         <div
           className="prose prose-invert max-w-none prose-headings:font-bold prose-headings:text-white prose-p:text-gray-300 prose-p:leading-relaxed prose-a:text-brand prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-li:text-gray-300 prose-blockquote:border-brand/30 prose-blockquote:text-gray-400 prose-code:text-brand prose-code:bg-white/5 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-[''] prose-th:text-white prose-td:text-gray-300 prose-hr:border-white/10 prose-table:border-white/10 prose-thead:border-white/10 prose-tr:border-white/10"
-          dangerouslySetInnerHTML={{ __html: html }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}
         />
 
         {/* Tags */}

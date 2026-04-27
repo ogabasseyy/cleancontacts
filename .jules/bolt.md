@@ -309,3 +309,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-04-25 - Prevent Multi-Pass Grouping Overheads in Kotlin Collections
 **Learning:** Using functional chains like `.groupBy { ... }.filter { ... }.mapNotNull { ... }` creates significant intermediate allocations (multiple HashMaps and ArrayLists) and iterates the data multiple times, causing garbage collection overhead in memory-sensitive environments.
 **Action:** When aggregating or grouping collections, use a single imperative pass with an explicit `LinkedHashMap` (for insertion order) or `HashMap` to construct the final grouped result without intermediate data structures.
+
+## 2026-10-18 - Faster Aggregate Queries for Cross-Account Contacts
+**Learning:** The `crossAccountCount` queries in `ContactDao.kt` were grouping and evaluating thousands of synced WhatsApp and Telegram contacts unnecessarily, wasting CPU and memory.
+**Action:** Appended `AND is_whatsapp = 0 AND is_telegram = 0` to filter out synced contacts before the expensive `GROUP BY` execution, aligning with `getScanStats` optimization guidelines.

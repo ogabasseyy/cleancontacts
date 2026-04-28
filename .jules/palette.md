@@ -112,3 +112,8 @@
 
 **Learning:** When using decorative `<svg>` elements within interactive components (like `<a>` or `<button>`), `aria-hidden="true"` correctly prevents screen reader announcements, but older browsers or certain environments can still apply keyboard focus to the SVG itself, resulting in redundant tab stops for a single link.
 **Action:** Always add both `aria-hidden="true"` and `focusable="false"` to decorative `<svg>` elements inside interactive components to reduce screen reader clutter and prevent redundant focus tab stops.
+
+## 2024-05-18 - Decorative Animated Indicators
+
+**Learning:** Purely decorative animated elements, such as a pulsating dot (`<span className="animate-pulse"></span>`) used for visual emphasis (like a "live" or "new" status), can be interpreted as structural noise by screen readers if left without ARIA attributes.
+**Action:** Always apply `aria-hidden="true"` to purely decorative, content-less animated elements to ensure screen readers ignore them and focus on the meaningful sibling text.

@@ -686,12 +686,23 @@ class IosContactRepository(
             // Map fetched UIDs
             val fetchedUids = freshContacts.mapNotNull { it.platform_uid }.toSet()
             // Identify which of certain UIDs were NOT found
-            val missedUids = uids.filter { it !in fetchedUids }
+            val uidsSet = uids.toSet()
+            val missingDbIds = HashSet<Long>()
+            for (contact in contacts) {
+                val uid = contact.platform_uid
+                if (uid != null && uid in uidsSet && uid !in fetchedUids) {
+                    missingDbIds.add(contact.id)
+                }
+            }
             
-            val missingDbIds = contacts.filter { it.platform_uid in missedUids }.map { it.id }
             val existingContacts = contactDao.getAllContacts()
             val refreshedIds = refreshedContacts.map { it.id }.toSet()
-            val retainedContacts = existingContacts.filterNot { it.id in missingDbIds || it.id in refreshedIds }
+            val retainedContacts = ArrayList<LocalContact>(existingContacts.size)
+            for (contact in existingContacts) {
+                if (contact.id !in missingDbIds && contact.id !in refreshedIds) {
+                    retainedContacts.add(contact)
+                }
+            }
             val validatedContacts = refreshedContacts.filter { contact ->
                 contact.id > 0 &&
                     (contact.displayName?.length ?: 0) <= 1000 &&

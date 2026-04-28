@@ -291,6 +291,13 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing functional string splitting with direct parsing
 **Learning:** Extracting data from delimited strings using chained operations like `split(",").filter { it.isNotBlank() }` creates intermediate `List` allocations and temporary string objects. In high-frequency paths like database parsing for contact records, this puts unnecessary pressure on the Garbage Collector.
 **Action:** Replace `split().filter()` chains with custom, allocation-free string parsing extension functions that use a single-pass `while` loop to find non-blank segments directly and construct the final collection or find the first valid element.
+
 ## 2026-10-18 - Avoid grouped multi-pass transformations in WhatsApp Detector Repository
 **Learning:** In `WhatsAppDetectorRepositoryImpl.kt`, processing network responses using chained functional operations like `response.contacts.map { ... }` combined with separate passes like `response.contacts.count { ... }` creates multiple intermediate collection allocations and traverses the list multiple times.
 **Action:** Replaced multi-pass transformations with a single `ArrayList` iteration that executes all formatting operations (`map` and `count`) concurrently to eliminate intermediate objects and reduce GC pressure.
+
+## 2026-10-18 - Avoid Hidden O(N^2) in List Intersections
+
+**Learning:** When determining which items to retain or remove based on another list, chaining operations like `existingContacts.filterNot { it.id in missingDbIds }` where `missingDbIds` is a `List` creates a hidden `O(N * M)` operation. In paths like `IosContactRepository.refreshContacts`, this leads to significant lag when processing large contact lists.
+
+**Action:** Always convert the secondary lookup collection (e.g., `missingDbIds`) into a `HashSet` before performing intersection checks like `it.id in missingDbIds`, ensuring O(1) lookups and an overall `O(N)` time complexity.

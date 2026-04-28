@@ -117,3 +117,8 @@
 
 **Learning:** Purely decorative animated elements, such as a pulsating dot (`<span className="animate-pulse"></span>`) used for visual emphasis (like a "live" or "new" status), can be interpreted as structural noise by screen readers if left without ARIA attributes.
 **Action:** Always apply `aria-hidden="true"` to purely decorative, content-less animated elements to ensure screen readers ignore them and focus on the meaningful sibling text.
+
+## 2026-04-27 - Valid HTML Headings for Accordion Buttons
+
+**Learning:** When building accordions or similar interactive UI elements, placing a block-level heading (`<h3>`) inside an inline `<button>` is invalid HTML and breaks the document outline for screen readers. This creates a confusing experience and degrades accessibility.
+**Action:** Always wrap the interactive element with the heading tag (e.g., `<h3><button>...</button></h3>`), rather than placing the heading inside the button. Additionally, ensure decorative SVGs within these buttons have `focusable="false"` to prevent double-focus bugs.

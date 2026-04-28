@@ -772,17 +772,19 @@ class ContactRepositoryImpl constructor(
         if (instances.size < 2) return false
 
         // Find IDs to delete (all except the one to keep)
-        val idsToDelete = instances
-            .filter { it.accountType != keepAccountType || it.accountName != keepAccountName }
-            .map { it.id }
+        val idsToDelete = ArrayList<Long>(instances.size)
+        val contactsToDelete = ArrayList<Contact>(instances.size)
+
+        for (instance in instances) {
+            if (instance.accountType != keepAccountType || instance.accountName != keepAccountName) {
+                idsToDelete.add(instance.id)
+                contactsToDelete.add(instance.toDomain())
+            }
+        }
 
         if (idsToDelete.isEmpty()) return false
 
         // Record for backup
-        val contactsToDelete = instances
-            .filter { it.id in idsToDelete }
-            .map { it.toDomain() }
-
         backupRepository.performBackup(
             contacts = contactsToDelete,
             actionType = "CONSOLIDATE",

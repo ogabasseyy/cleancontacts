@@ -79,3 +79,7 @@
 **Vulnerability:** The public-facing `feedback.ts` API endpoint lacked rate limiting, allowing unlimited POST requests which could lead to DoS or exhaustion of third-party API quotas (Resend).
 **Learning:** Serverless functions must implement rudimentary application-layer rate limiting by default, especially when bridging to paid third-party APIs.
 **Prevention:** Apply rate limiting logic (e.g., in-memory map tracking IPs via `x-forwarded-for`) on all unauthenticated endpoints that trigger external actions.
+## 2026-10-24 - [HIGH] Defense in Depth against XSS with DOMPurify
+**Vulnerability:** `landing-page/components/BlogPost.tsx` used `dangerouslySetInnerHTML={{ __html: html }}` with dynamically fetched content. While the HTML was compiled from our own markdown files, this violated the 'defense in depth' principle. If a vulnerability ever occurred in the markdown parser or the source changed to include user inputs, XSS would be immediately possible.
+**Learning:** Even statically generated or seemingly 'trusted' dynamically fetched HTML should be sanitized at runtime when using `dangerouslySetInnerHTML` to adhere to 'Trust nothing, verify everything'.
+**Prevention:** Always use a runtime sanitization library (like `DOMPurify`) for `dangerouslySetInnerHTML` regardless of the assumed source of the HTML.

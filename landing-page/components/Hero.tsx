@@ -11,7 +11,7 @@ export const Hero: React.FC = () => {
                {/* Text Content */}
                <div className="flex-1 text-center lg:text-left z-10">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-semibold mb-6 uppercase tracking-wider">
-                     <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
+                     <span className="w-2 h-2 rounded-full bg-brand animate-pulse" aria-hidden="true"></span>
                      v2.0 Now Available
                   </div>
 

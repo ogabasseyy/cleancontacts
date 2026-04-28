@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "dompurify": "^3.4.1",
     "picomatch": "^4.0.4",
+    "postcss": "8.5.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^7.1.0"

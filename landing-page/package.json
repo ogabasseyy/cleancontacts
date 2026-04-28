@@ -24,7 +24,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "gray-matter": "^4.0.3",
     "picomatch": "^4.0.4",
-    "postcss": "8.5.10",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-pretty-code": "^0.14.1",

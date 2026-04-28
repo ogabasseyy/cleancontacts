@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 7b18673 (fix: address review findings in PR #364)
 # 2026-01-18 - Animation Layout Thrashing
 
 **Learning:** Using `Modifier.offset` with generic `Dp` values inside an infinite animation loop causes a full layout pass on every frame, which is expensive.
@@ -319,5 +322,5 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 **Action:** When a loop is already deciding which items to keep or remove, accumulate every needed derived value in that same pass instead of rebuilding related collections afterward.
 
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
-**Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) performance bottleneck, as the inner collection is fully iterated for every item in the outer collection.
-**Action:** Always extract the IDs into an O(1) lookup structure (like a `HashSet`) *before* filtering. Combine this with a pre-sized `ArrayList` loop to avoid both intermediate collection allocations and massive CPU overhead.
+**Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
+**Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.

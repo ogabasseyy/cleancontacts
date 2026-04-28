@@ -56,6 +56,8 @@ interface ContactDao {
                 SELECT matching_key FROM contacts
                 WHERE matching_key IS NOT NULL AND matching_key != ''
                 AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+                -- ⚡ Bolt Optimization: Filter out synced contacts before expensive GROUP BY
+                AND is_whatsapp = 0 AND is_telegram = 0
                 GROUP BY matching_key
                 HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
             )) as crossAccountCount
@@ -146,6 +148,8 @@ interface ContactDao {
             SELECT matching_key FROM contacts
             WHERE matching_key IS NOT NULL AND matching_key != ''
             AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+            -- ⚡ Bolt Optimization: Filter out synced contacts before expensive GROUP BY
+            AND is_whatsapp = 0 AND is_telegram = 0
             GROUP BY matching_key
             HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
         )
@@ -162,10 +166,13 @@ interface ContactDao {
     @Query("""
         SELECT * FROM contacts
         WHERE (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+        AND is_whatsapp = 0 AND is_telegram = 0
         AND matching_key IN (
             SELECT matching_key FROM contacts
             WHERE matching_key IS NOT NULL AND matching_key != ''
             AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+            -- ⚡ Bolt Optimization: Filter out synced contacts before expensive GROUP BY
+            AND is_whatsapp = 0 AND is_telegram = 0
             GROUP BY matching_key
             HAVING COUNT(DISTINCT COALESCE(account_type,'') || ':' || COALESCE(account_name,'')) > 1
         )
@@ -182,6 +189,7 @@ interface ContactDao {
         SELECT * FROM contacts
         WHERE matching_key = :matchingKey
         AND (account_type IS NULL OR account_type = '' OR account_type = 'com.google' OR account_type = 'Local')
+        AND is_whatsapp = 0 AND is_telegram = 0
         ORDER BY account_type, account_name
     """)
     suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<LocalContact>

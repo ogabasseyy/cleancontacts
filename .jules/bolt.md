@@ -305,3 +305,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing multi-pass List Mapping with Indexed Loops
 **Learning:** Using chained `.map { ... }` transformations to process large lists (such as contact duplicates mapping domain and local entities) creates intermediate `ArrayList` allocations and uses iterator overhead internally. In pathways processing tens of thousands of items, this creates significant GC pauses.
 **Action:** Replace `.map {}` calls with pre-allocated `ArrayList` instances and indexed `for` loops (`for (i in list.indices) { results.add(transform(list[i])) }`) to eliminate multiple allocations and iterator overhead.
+
+## 2026-04-25 - Prevent Multi-Pass Grouping Overheads in Kotlin Collections
+**Learning:** Using functional chains like `.groupBy { ... }.filter { ... }.mapNotNull { ... }` creates significant intermediate allocations (multiple HashMaps and ArrayLists) and iterates the data multiple times, causing garbage collection overhead in memory-sensitive environments.
+**Action:** When aggregating or grouping collections, use a single imperative pass with an explicit `LinkedHashMap` (for insertion order) or `HashMap` to construct the final grouped result without intermediate data structures.

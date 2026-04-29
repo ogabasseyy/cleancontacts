@@ -534,7 +534,12 @@ data class WhatsAppContactsResponse(
     val personalCount: Int = 0,
     val contacts: List<WhatsAppContact> = emptyList(),
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WhatsAppContactsResponse(success=$success, total=$total, businessCount=$businessCount, personalCount=$personalCount, contacts=[***REDACTED (size=${contacts.size})***], error=$error, userId=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class WhatsAppContact(

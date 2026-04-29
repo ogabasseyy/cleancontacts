@@ -24,7 +24,7 @@ const TableOfContents: React.FC<{ headings: TocHeading[] }> = ({ headings }) => 
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
-              className="text-sm text-gray-400 hover:text-brand transition-colors"
+              className="text-sm text-gray-400 hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-sm"
             >
               {heading.text}
             </a>
@@ -106,10 +106,17 @@ const BlogPost: React.FC = () => {
   if (loading) {
     return (
       <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl">
-        <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl animate-pulse">
-          <div className="h-8 bg-white/5 rounded w-3/4 mb-4" />
-          <div className="h-4 bg-white/5 rounded w-1/2 mb-8" />
-          <div className="space-y-3">
+        <div
+          className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl animate-pulse"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+          aria-label="Loading blog post"
+        >
+          <span className="sr-only">Loading blog post</span>
+          <div className="h-8 bg-white/5 rounded w-3/4 mb-4" aria-hidden="true" />
+          <div className="h-4 bg-white/5 rounded w-1/2 mb-8" aria-hidden="true" />
+          <div className="space-y-3" aria-hidden="true">
             {[1, 2, 3, 4, 5].map(i => (
               <div key={i} className="h-4 bg-white/5 rounded" />
             ))}
@@ -122,7 +129,7 @@ const BlogPost: React.FC = () => {
   if (notFound || !meta) {
     return (
       <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl text-center">
-        <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
+        <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl" role="alert">
           <h1 className="text-2xl font-bold mb-4">Post Not Found</h1>
           <p className="text-gray-400 mb-6">The blog post you're looking for doesn't exist.</p>
           <Link

@@ -382,7 +382,7 @@ private data class WebSocketMessage(
 ) {
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     override fun toString(): String {
-        return "WebSocketMessage(type=$type, userId=$userId, phoneNumber=***REDACTED***)"
+        return "WebSocketMessage(type=$type, userId=***REDACTED***, phoneNumber=***REDACTED***)"
     }
 }
 
@@ -443,7 +443,7 @@ data class SessionStatus(
 ) {
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     override fun toString(): String {
-        return "SessionStatus(connected=$connected, userId=$userId, lastActivity=$lastActivity, createdAt=$createdAt, contactsCount=$contactsCount, businessDetectionProgress=$businessDetectionProgress, error=$error, phoneNumber=***REDACTED***)"
+        return "SessionStatus(connected=$connected, userId=***REDACTED***, lastActivity=$lastActivity, createdAt=$createdAt, contactsCount=$contactsCount, businessDetectionProgress=$businessDetectionProgress, error=$error, phoneNumber=***REDACTED***)"
     }
 }
 

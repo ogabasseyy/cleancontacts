@@ -324,3 +324,6 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+## 2025-02-18 - Collection Iteration Overhead in Data Merging
+**Learning:** Chaining functional collection operators (e.g., `.map { it.trim() }.filter { it.isNotBlank() }`) in high-frequency data processing utility functions like `AndroidMergeUtils` causes unnecessary intermediate list allocations and iterator overhead, creating significant Garbage Collection pressure.
+**Action:** Always replace multi-pass collection chains in critical utility or parsing functions with single-pass indexed loops (`for (i in list.indices)`) to construct final values directly, especially when parsing or merging datasets like contacts on Android.

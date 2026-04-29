@@ -24,7 +24,7 @@ const TableOfContents: React.FC<{ headings: TocHeading[] }> = ({ headings }) => 
           <li key={heading.id}>
             <a
               href={`#${heading.id}`}
-              className="text-sm text-gray-400 hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-sm"
+              className="text-sm text-gray-400 hover:text-brand transition-colors focus-visible:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-sm"
             >
               {heading.text}
             </a>

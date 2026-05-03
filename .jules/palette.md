@@ -122,3 +122,12 @@
 
 **Learning:** When building accordions or similar interactive UI elements, placing a block-level heading (`<h3>`) inside an inline `<button>` is invalid HTML and breaks the document outline for screen readers. This creates a confusing experience and degrades accessibility.
 **Action:** Always wrap the interactive element with the heading tag (e.g., `<h3><button>...</button></h3>`), rather than placing the heading inside the button. Additionally, ensure decorative SVGs within these buttons have `focusable="false"` to prevent double-focus bugs.
+## 2026-05-03 - Screen Reader Warnings for External Links
+
+**Learning:** When custom UI components use `target="_blank"` for external links (like App Store / Google Play links), screen reader users can become disoriented if a new tab opens without warning.
+**Action:** Always include a visually hidden span (e.g., `<span className="sr-only">(opens in a new tab)</span>`) inside anchor tags with `target="_blank"` to explicitly alert screen reader users of the context switch.
+
+## 2026-05-03 - Redundant Alt Text on Sibling Images
+
+**Learning:** When an image (like a logo) is placed inside an interactive element alongside visible text that perfectly describes its function (e.g., `<img alt="Contacts Cleaner" />` next to `<span>Contacts Cleaner</span>`), screen readers will announce the text redundantly.
+**Action:** If an image is purely decorative or its meaning is conveyed by adjacent visible text, set `alt=""` and add `aria-hidden="true"` to prevent duplicate and annoying screen reader announcements.

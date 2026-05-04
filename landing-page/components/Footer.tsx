@@ -15,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="flex items-center gap-2">
           <picture>
             <source srcSet="/logo.webp" type="image/webp" />
-            <img src="/logo.png" alt="Contacts Cleaner" width="32" height="32" loading="lazy" className="w-8 h-8 rounded-lg" />
+            <img src="/logo.png" alt="" aria-hidden="true" width="32" height="32" loading="lazy" className="w-8 h-8 rounded-lg" />
           </picture>
           <span className="font-semibold text-gray-300">ContactsCleaner</span>
         </div>
@@ -28,6 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               rel="noopener noreferrer"
               className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
+              <span className="sr-only">(opens in a new tab)</span>
               App Store
             </a>
             <a
@@ -36,6 +37,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               rel="noopener noreferrer"
               className="hover:text-brand transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
+              <span className="sr-only">(opens in a new tab)</span>
               Google Play
             </a>
           </div>

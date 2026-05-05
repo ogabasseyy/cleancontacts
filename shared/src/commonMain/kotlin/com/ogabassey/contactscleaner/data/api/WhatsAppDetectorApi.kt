@@ -407,8 +407,12 @@ private data class WebSocketEvent(
  * Pairing events for real-time updates
  */
 sealed class PairingEvent {
-    data class SessionCreated(val phoneNumber: String) : PairingEvent()
-    data class PairingCode(val code: String) : PairingEvent()
+    data class SessionCreated(val phoneNumber: String) : PairingEvent() {
+        override fun toString(): String = "SessionCreated(phoneNumber=***REDACTED***)"
+    }
+    data class PairingCode(val code: String) : PairingEvent() {
+        override fun toString(): String = "PairingCode(code=***REDACTED***)"
+    }
     data object Connected : PairingEvent()
     data class Error(val message: String) : PairingEvent()
 }

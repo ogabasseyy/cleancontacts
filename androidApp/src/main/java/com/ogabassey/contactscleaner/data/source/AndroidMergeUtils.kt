@@ -23,16 +23,23 @@ internal object AndroidMergeUtils {
         val mergedNumbers = linkedSetOf<String>()
         val mergedEmails = linkedSetOf<String>()
 
-        contacts.forEach { contact ->
-            contact.numbers
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-                .forEach(mergedNumbers::add)
+        // ⚡ Bolt Optimization: Replaced `.map { it.trim() }.filter { it.isNotBlank() }`
+        // with explicit single-pass loops to prevent unnecessary List allocations
+        // and reduce Garbage Collection pressure during contact merging.
+        for (contact in contacts) {
+            for (j in contact.numbers.indices) {
+                val number = contact.numbers[j].trim()
+                if (number.isNotBlank()) {
+                    mergedNumbers.add(number)
+                }
+            }
 
-            contact.emails
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-                .forEach(mergedEmails::add)
+            for (j in contact.emails.indices) {
+                val email = contact.emails[j].trim()
+                if (email.isNotBlank()) {
+                    mergedEmails.add(email)
+                }
+            }
         }
 
         val mergedName = customName?.trim()?.takeIf { it.isNotBlank() }

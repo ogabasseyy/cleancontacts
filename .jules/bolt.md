@@ -324,3 +324,6 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+## 2026-05-08 - Avoid O(N*M) lag using HashSet and Pre-Sized ArrayList
+**Learning:** In `ContactRepositoryImpl.refreshContacts`, using `filterNot { it.id in returnedIds || it.id in ids }` where `ids` is a List creates an O(N*M) lookup latency and intermediate collection allocations.
+**Action:** Replace functional loops combining multiple collections with a pre-sized `ArrayList` iteration, and convert secondary lookup lists into `HashSet` to guarantee O(1) matching time.

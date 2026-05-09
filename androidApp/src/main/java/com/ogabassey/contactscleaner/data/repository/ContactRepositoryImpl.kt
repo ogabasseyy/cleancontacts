@@ -875,9 +875,16 @@ class ContactRepositoryImpl constructor(
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
             val returnedIds = refreshedEntities.map { it.id }.toSet()
+            val idsSet = ids.toSet()
             val deletedIds = ids.filter { it !in returnedIds }
             val existingContacts = contactDao.getAllContacts()
-            val retainedContacts = existingContacts.filterNot { it.id in returnedIds || it.id in ids }
+            val retainedContacts = ArrayList<com.ogabassey.contactscleaner.data.db.entity.LocalContact>(existingContacts.size)
+            for (i in existingContacts.indices) {
+                val contact = existingContacts[i]
+                if (contact.id !in returnedIds && contact.id !in idsSet) {
+                    retainedContacts.add(contact)
+                }
+            }
             val validatedEntities = refreshedEntities.filter { contact ->
                 val isValid = contact.id > 0 &&
                     (contact.displayName?.length ?: 0) <= 1000 &&

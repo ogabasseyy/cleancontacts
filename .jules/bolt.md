@@ -324,3 +324,10 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+## 2026-05-09 - Avoid Hidden O(N^2) in List Intersections
+**Learning:** When determining which items to retain or remove based on another list, chaining operations like `existingContacts.filterNot { it.id in missingDbIds }` where `missingDbIds` is a `List` creates a hidden `O(N * M)` operation. In paths like `IosContactRepository.refreshContacts`, this leads to significant lag when processing large contact lists.
+**Action:** Always convert the secondary lookup collection (e.g., `missingDbIds`) into a `HashSet` before performing intersection checks like `it.id in missingDbIds`, ensuring O(1) lookups and an overall `O(N)` time complexity.
+
+## 2026-05-09 - Replacing multi-pass List Mapping with Indexed Loops
+**Learning:** Using chained `.map { ... }` transformations to process large lists (such as contact duplicates mapping domain and local entities) creates intermediate `ArrayList` allocations and uses iterator overhead internally. In pathways processing tens of thousands of items, this creates significant GC pauses.
+**Action:** Replace `.map {}` calls with pre-allocated `ArrayList` instances and indexed `for` loops (`for (i in list.indices) { results.add(transform(list[i])) }`) to eliminate multiple allocations and iterator overhead.

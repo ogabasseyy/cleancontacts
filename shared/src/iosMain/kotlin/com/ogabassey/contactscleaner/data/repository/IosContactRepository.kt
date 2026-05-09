@@ -985,16 +985,18 @@ class IosContactRepository(
         val instances = contactDao.getContactInstancesByMatchingKey(matchingKey)
         if (instances.size < 2) return false
 
-        val idsToDelete = instances
-            .filter { it.accountType != keepAccountType || it.accountName != keepAccountName }
-            .map { it.id }
+        val idsToDelete = ArrayList<Long>(instances.size)
+        val contactsToDelete = ArrayList<Contact>(instances.size)
+
+        for (i in instances.indices) {
+            val instance = instances[i]
+            if (instance.accountType != keepAccountType || instance.accountName != keepAccountName) {
+                idsToDelete.add(instance.id)
+                contactsToDelete.add(instance.toContact())
+            }
+        }
 
         if (idsToDelete.isEmpty()) return false
-
-        // Record for backup
-        val contactsToDelete = instances
-            .filter { it.id in idsToDelete }
-            .map { it.toContact() }
 
         backupRepository.performBackup(
             contacts = contactsToDelete,

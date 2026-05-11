@@ -875,9 +875,22 @@ class ContactRepositoryImpl constructor(
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
             val returnedIds = refreshedEntities.map { it.id }.toSet()
+
+            // ⚡ Bolt Optimization: Convert ids list to Set for O(1) lookups
+            val idsSet = ids.toSet()
+
             val deletedIds = ids.filter { it !in returnedIds }
             val existingContacts = contactDao.getAllContacts()
-            val retainedContacts = existingContacts.filterNot { it.id in returnedIds || it.id in ids }
+
+            // ⚡ Bolt Optimization: Replace filterNot with a single-pass ArrayList
+            // loop to eliminate intermediate allocations and reduce GC pressure.
+            val retainedContacts = ArrayList<LocalContact>(existingContacts.size)
+            for (contact in existingContacts) {
+                if (contact.id !in returnedIds && contact.id !in idsSet) {
+                    retainedContacts.add(contact)
+                }
+            }
+
             val validatedEntities = refreshedEntities.filter { contact ->
                 val isValid = contact.id > 0 &&
                     (contact.displayName?.length ?: 0) <= 1000 &&

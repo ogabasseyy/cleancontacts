@@ -324,3 +324,6 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+## 2026-05-11 - Replace filterNot and in List with Single-Pass Loop and HashSet in refreshContacts
+**Learning:** Checking existence in a List (`it.id in ids`) inside a `.filterNot` closure effectively results in an O(N * M) time complexity because `in ids` performs a linear search for every element. Also, `filterNot` creates an intermediate `ArrayList` resulting in memory overhead.
+**Action:** Convert the target `List` to a `Set` or `HashSet` prior to iteration to guarantee O(1) lookups. In addition, construct a single-pass `ArrayList` with a manual `for` loop to eliminate the intermediate collection overhead caused by `filterNot`.

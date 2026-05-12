@@ -122,3 +122,8 @@
 
 **Learning:** When building accordions or similar interactive UI elements, placing a block-level heading (`<h3>`) inside an inline `<button>` is invalid HTML and breaks the document outline for screen readers. This creates a confusing experience and degrades accessibility.
 **Action:** Always wrap the interactive element with the heading tag (e.g., `<h3><button>...</button></h3>`), rather than placing the heading inside the button. Additionally, ensure decorative SVGs within these buttons have `focusable="false"` to prevent double-focus bugs.
+
+## 2024-05-18 - Screen Reader Context for External Links
+
+**Learning:** When anchor tags use `target="_blank"` to open links in a new browser tab, screen reader users may become disoriented if they are not explicitly informed that a new window will open. This is a common accessibility gap in marketing landing pages.
+**Action:** Always append visually hidden text, such as `<span className="sr-only">(opens in a new tab)</span>`, inside any `<a>` element that has `target="_blank"`. This ensures the visual design remains clean while providing necessary context to assistive technologies.

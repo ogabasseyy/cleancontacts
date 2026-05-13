@@ -324,3 +324,6 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+## 2026-10-18 - Replacing chained map and filter with single-pass ArrayList loops
+**Learning:** Using chained functional operations like `.map { ... }` followed by `.filter { ... }` or `.toSet()` on large lists creates unnecessary intermediate collections. In high-frequency paths like contact scanning or refreshing, this forces the garbage collector to clean up large temporary lists.
+**Action:** Always combine multi-pass mappings and filters into a single `ArrayList` iteration when transforming large collections in performance-critical paths (e.g., repository syncs). Pre-allocate the `ArrayList(size)` and conditionally `add()` elements.

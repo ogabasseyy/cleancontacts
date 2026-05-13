@@ -676,15 +676,13 @@ class IosContactRepository(
                 val resultList = ArrayList<LocalContact>(freshContacts.size)
                 for (i in freshContacts.indices) {
                     val entity = processContactToEntity(freshContacts[i], ignoredIds, whatsAppPhoneNumbers)
-                    if (entity.id > 0) {
-                        refreshedIds.add(entity.id)
-                    }
                     val isValid = entity.id > 0 &&
                         (entity.displayName?.length ?: 0) <= 1000 &&
                         entity.rawNumbers.length <= 10000 &&
                         entity.rawEmails.length <= 10000
                     if (isValid) {
                         resultList.add(entity)
+                        refreshedIds.add(entity.id)
                     }
                 }
                 resultList

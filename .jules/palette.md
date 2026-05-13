@@ -122,3 +122,6 @@
 
 **Learning:** When building accordions or similar interactive UI elements, placing a block-level heading (`<h3>`) inside an inline `<button>` is invalid HTML and breaks the document outline for screen readers. This creates a confusing experience and degrades accessibility.
 **Action:** Always wrap the interactive element with the heading tag (e.g., `<h3><button>...</button></h3>`), rather than placing the heading inside the button. Additionally, ensure decorative SVGs within these buttons have `focusable="false"` to prevent double-focus bugs.
+## 2024-04-29 - Accessible Error States and Skeleton Loaders
+**Learning:** React error boundaries (`BlogErrorBoundary.tsx`) and conditional empty states (`BlogPost.tsx` "not found") need explicit `role="alert"` for screen readers to immediately announce the failure to the user. Additionally, skeleton loaders must wrap their structural decorative elements in `aria-hidden="true"` while providing an `aria-busy="true"` container with an accessible label to prevent noisy, confusing readouts.
+**Action:** Always add `role="alert"` to fallback UI containers rendered during errors or 404s. For skeleton loaders, use the `role="status"`, `aria-busy="true"`, `aria-label="..."` pattern on the parent, and `aria-hidden="true"` on the pulsating children.

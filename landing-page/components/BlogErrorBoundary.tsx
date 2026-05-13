@@ -26,7 +26,7 @@ class BlogErrorBoundary extends React.Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="pt-32 pb-20 container mx-auto px-6 max-w-4xl text-center">
-          <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl">
+          <div className="glass-panel backdrop-blur-xl rounded-3xl p-8 md:p-12 shadow-2xl" role="alert">
             <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
             <p className="text-gray-400 mb-6">
               There was an error loading this page. Please try again.

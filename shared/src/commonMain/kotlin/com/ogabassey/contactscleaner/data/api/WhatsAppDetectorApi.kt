@@ -382,7 +382,7 @@ private data class WebSocketMessage(
 ) {
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     override fun toString(): String {
-        return "WebSocketMessage(type=$type, userId=$userId, phoneNumber=***REDACTED***)"
+        return "WebSocketMessage(type=$type, userId=***REDACTED***, phoneNumber=***REDACTED***)"
     }
 }
 
@@ -407,8 +407,12 @@ private data class WebSocketEvent(
  * Pairing events for real-time updates
  */
 sealed class PairingEvent {
-    data class SessionCreated(val phoneNumber: String) : PairingEvent()
-    data class PairingCode(val code: String) : PairingEvent()
+    data class SessionCreated(val phoneNumber: String) : PairingEvent() {
+        override fun toString(): String = "SessionCreated(phoneNumber=***REDACTED***)"
+    }
+    data class PairingCode(val code: String) : PairingEvent() {
+        override fun toString(): String = "PairingCode(code=***REDACTED***)"
+    }
     data object Connected : PairingEvent()
     data class Error(val message: String) : PairingEvent()
 }
@@ -443,7 +447,7 @@ data class SessionStatus(
 ) {
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     override fun toString(): String {
-        return "SessionStatus(connected=$connected, userId=$userId, lastActivity=$lastActivity, createdAt=$createdAt, contactsCount=$contactsCount, businessDetectionProgress=$businessDetectionProgress, error=$error, phoneNumber=***REDACTED***)"
+        return "SessionStatus(connected=$connected, userId=***REDACTED***, lastActivity=$lastActivity, createdAt=$createdAt, contactsCount=$contactsCount, businessDetectionProgress=$businessDetectionProgress, error=$error, phoneNumber=***REDACTED***)"
     }
 }
 
@@ -534,7 +538,12 @@ data class WhatsAppContactsResponse(
     val personalCount: Int = 0,
     val contacts: List<WhatsAppContact> = emptyList(),
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "WhatsAppContactsResponse(success=$success, total=$total, businessCount=$businessCount, personalCount=$personalCount, contacts=[***REDACTED (size=${contacts.size})***], error=$error, userId=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class WhatsAppContact(

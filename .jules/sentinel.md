@@ -89,3 +89,8 @@
 **Vulnerability:** The API endpoint `feedback.ts` processed unbounded user inputs (`message`, `email`, `deviceInfo`) by calling string manipulation methods like `.trim()` before validating their length. This exposed the serverless function to CPU exhaustion and ReDoS attacks.
 **Learning:** String manipulation operations (like trimming or regex replacements) on massive payloads can spike CPU usage and crash instances before length checks are reached.
 **Prevention:** Always check the raw length of inputs (`input.length`) *before* executing any string manipulation or processing functions, especially in serverless environments.
+
+## 2026-10-24 - Transitive PII Leak via Default toString() in API Responses
+**Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
+**Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
+**Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.

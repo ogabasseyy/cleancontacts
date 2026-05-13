@@ -874,26 +874,32 @@ class ContactRepositoryImpl constructor(
 
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
-            val returnedIds = refreshedEntities.map { it.id }.toSet()
-            val idsSet = ids.toSet()
+            val returnedIds = HashSet<Long>(refreshedEntities.size)
+            val validatedEntities = ArrayList<LocalContact>(refreshedEntities.size)
+            for (i in refreshedEntities.indices) {
+                val contact = refreshedEntities[i]
+                returnedIds.add(contact.id)
+
+                val isValid = contact.id > 0 &&
+                    (contact.displayName?.length ?: 0) <= 1000 &&
+                    contact.rawNumbers.length <= 10000 &&
+                    contact.rawEmails.length <= 10000
+                if (isValid) {
+                    validatedEntities.add(contact)
+                } else {
+                    Logger.w("ContactRepository", "Filtered invalid refreshed contact: id=${contact.id}")
+                }
+            }
+
+            val idsSet = HashSet<Long>(ids)
             val deletedIds = ids.filter { it !in returnedIds }
             val existingContacts = contactDao.getAllContacts()
-            val retainedContacts = ArrayList<com.ogabassey.contactscleaner.data.db.entity.LocalContact>(existingContacts.size)
+            val retainedContacts = ArrayList<LocalContact>(existingContacts.size)
             for (i in existingContacts.indices) {
                 val contact = existingContacts[i]
                 if (contact.id !in returnedIds && contact.id !in idsSet) {
                     retainedContacts.add(contact)
                 }
-            }
-            val validatedEntities = refreshedEntities.filter { contact ->
-                val isValid = contact.id > 0 &&
-                    (contact.displayName?.length ?: 0) <= 1000 &&
-                    contact.rawNumbers.length <= 10000 &&
-                    contact.rawEmails.length <= 10000
-                if (!isValid) {
-                    Logger.w("ContactRepository", "Filtered invalid refreshed contact: id=${contact.id}")
-                }
-                isValid
             }
             val rebuiltContacts = ContactDuplicateMetadataResolver.apply(retainedContacts + validatedEntities, duplicateDetector)
             contactDao.replaceAllContacts(rebuiltContacts)

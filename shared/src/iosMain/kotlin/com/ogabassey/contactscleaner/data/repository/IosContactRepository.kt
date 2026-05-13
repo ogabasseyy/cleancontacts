@@ -227,27 +227,26 @@ class IosContactRepository(
         val ignoredIds = ignoredContactDao.getAllIds().toSet()
 
         // 5. Process each contact - 2026 Best Practice: Use extracted helper for consistency
-        val localContacts = withContext(Dispatchers.Default) {
-            contacts.map { contact ->
-                processContactToEntity(contact, ignoredIds, whatsAppPhoneNumbers)
+        val validatedContacts = withContext(Dispatchers.Default) {
+            val resultList = ArrayList<LocalContact>(contacts.size)
+            for (i in contacts.indices) {
+                val entity = processContactToEntity(contacts[i], ignoredIds, whatsAppPhoneNumbers)
+                val isValid = entity.id > 0 &&
+                    (entity.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
+                    entity.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
+                    entity.rawEmails.length <= 10000
+                if (!isValid) {
+                    Logger.e("Logger", "⚠️ Filtered invalid contact: id=${entity.id}")
+                } else {
+                    resultList.add(entity)
+                }
             }
+            resultList
         }
 
         // 5. Atomic replace: Delete old + Insert new in single transaction
         // 2026 Best Practice: Prevents data loss if operation fails
         emit(ScanStatus.Progress(0.70f, "Saving contacts to database..."))
-
-        // 2026 Best Practice: Validate data before insert
-        val validatedContacts = localContacts.filter { contact ->
-            val isValid = contact.id > 0 &&
-                (contact.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
-                contact.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
-                contact.rawEmails.length <= 10000
-            if (!isValid) {
-                Logger.e("Logger", "⚠️ Filtered invalid contact: id=${contact.id}")
-            }
-            isValid
-        }
 
         emit(ScanStatus.Progress(0.80f, "Analyzing duplicates..."))
         val finalContacts = withContext(Dispatchers.Default) {
@@ -672,10 +671,23 @@ class IosContactRepository(
 
             // 4. Process contacts using extracted helper
             val ignoredIds = ignoredContactDao.getAllIds().toSet()
-            val refreshedContacts = withContext(Dispatchers.Default) {
-                freshContacts.map { contact ->
-                    processContactToEntity(contact, ignoredIds, whatsAppPhoneNumbers)
+            val refreshedIds = HashSet<Long>(freshContacts.size)
+            val validatedContacts = withContext(Dispatchers.Default) {
+                val resultList = ArrayList<LocalContact>(freshContacts.size)
+                for (i in freshContacts.indices) {
+                    val entity = processContactToEntity(freshContacts[i], ignoredIds, whatsAppPhoneNumbers)
+                    if (entity.id > 0) {
+                        refreshedIds.add(entity.id)
+                    }
+                    val isValid = entity.id > 0 &&
+                        (entity.displayName?.length ?: 0) <= 1000 &&
+                        entity.rawNumbers.length <= 10000 &&
+                        entity.rawEmails.length <= 10000
+                    if (isValid) {
+                        resultList.add(entity)
+                    }
                 }
+                resultList
             }
 
             // 4. Update DB
@@ -696,18 +708,11 @@ class IosContactRepository(
             }
             
             val existingContacts = contactDao.getAllContacts()
-            val refreshedIds = refreshedContacts.map { it.id }.toSet()
             val retainedContacts = ArrayList<LocalContact>(existingContacts.size)
             for (contact in existingContacts) {
                 if (contact.id !in missingDbIds && contact.id !in refreshedIds) {
                     retainedContacts.add(contact)
                 }
-            }
-            val validatedContacts = refreshedContacts.filter { contact ->
-                contact.id > 0 &&
-                    (contact.displayName?.length ?: 0) <= 1000 &&
-                    contact.rawNumbers.length <= 10000 &&
-                    contact.rawEmails.length <= 10000
             }
             val rebuiltContacts = withContext(Dispatchers.Default) {
                 ContactDuplicateMetadataResolver.apply(retainedContacts + validatedContacts, duplicateDetector)

@@ -47,21 +47,21 @@ export const WhatsAppSection: React.FC = () => {
                  </div>
                  
                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center text-brand text-xs">WA</div>
                           <span className="text-sm">WhatsApp Personal</span>
                        </div>
                        <span className="font-mono text-brand">432</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 text-xs">WB</div>
                           <span className="text-sm">WhatsApp Business</span>
                        </div>
                        <span className="font-mono text-blue-400">85</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 opacity-50">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 opacity-50 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs">NA</div>
                           <span className="text-sm">Not on WhatsApp</span>

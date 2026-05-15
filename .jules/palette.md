@@ -125,3 +125,8 @@
 ## 2024-04-29 - Accessible Error States and Skeleton Loaders
 **Learning:** React error boundaries (`BlogErrorBoundary.tsx`) and conditional empty states (`BlogPost.tsx` "not found") need explicit `role="alert"` for screen readers to immediately announce the failure to the user. Additionally, skeleton loaders must wrap their structural decorative elements in `aria-hidden="true"` while providing an `aria-busy="true"` container with an accessible label to prevent noisy, confusing readouts.
 **Action:** Always add `role="alert"` to fallback UI containers rendered during errors or 404s. For skeleton loaders, use the `role="status"`, `aria-busy="true"`, `aria-label="..."` pattern on the parent, and `aria-hidden="true"` on the pulsating children.
+
+## 2024-05-14 - Interactive Feature Cards Hover States
+
+**Learning:** Static feature cards, while informative, can feel dead and unresponsive to user interaction. Even if they don't navigate anywhere, providing visual feedback on hover improves the micro-UX and makes the application feel more polished and alive.
+**Action:** When implementing grids of feature cards or informative panels, always apply subtle hover effects (e.g., a background color change and a slight negative Y translation like `hover:bg-white/10 hover:-translate-y-1 transition-all duration-300`) to provide users with immediate, pleasant visual feedback.

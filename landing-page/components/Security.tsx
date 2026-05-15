@@ -16,15 +16,15 @@ export const Security: React.FC = () => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 text-left">
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
             <h3 className="text-lg font-semibold text-white mb-2">Local Processing</h3>
             <p className="text-sm text-gray-400">No contact lists are ever uploaded to our servers. Processing is done entirely on-device using local heuristics.</p>
           </div>
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-semibold text-white mb-2">No Tracking</h3>
              <p className="text-sm text-gray-400">We don't track who you call or message. Our business model is software sales, not data sales.</p>
           </div>
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-semibold text-white mb-2">Undo Protection</h3>
              <p className="text-sm text-gray-400">Accidentally deleted a contact? Our granular undo system restores it instantly.</p>
           </div>

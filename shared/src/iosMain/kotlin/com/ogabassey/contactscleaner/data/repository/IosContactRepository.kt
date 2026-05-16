@@ -647,9 +647,15 @@ class IosContactRepository(
 
             // 1. Build existing account metadata map to preserve during refresh
             // 2026 Fix: Preserve account info that may not be available from CNContact directly
-            val existingAccountInfo = contacts
-                .filter { it.platform_uid != null }
-                .associate { it.platform_uid!! to Pair(it.accountType, it.accountName) }
+            // ⚡ Bolt Optimization: Replace multiple passes (.filter.associate) with a single-pass loop
+            val existingAccountInfo = HashMap<String, Pair<String?, String?>>(contacts.size)
+            for (i in contacts.indices) {
+                val contact = contacts[i]
+                val platformUid = contact.platform_uid
+                if (platformUid != null) {
+                    existingAccountInfo[platformUid] = Pair(contact.accountType, contact.accountName)
+                }
+            }
 
             // 2. Fetch fresh data from source with preserved account info
             val freshContacts = contactsSource.getContactsByUids(uids, existingAccountInfo)

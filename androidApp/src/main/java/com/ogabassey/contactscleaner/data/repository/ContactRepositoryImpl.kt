@@ -892,7 +892,6 @@ class ContactRepositoryImpl constructor(
             }
 
             val idsSet = HashSet<Long>(ids)
-            val deletedIds = ids.filter { it !in returnedIds }
             val existingContacts = contactDao.getAllContacts()
             val retainedContacts = ArrayList<LocalContact>(existingContacts.size)
             for (i in existingContacts.indices) {

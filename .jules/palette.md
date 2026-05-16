@@ -130,3 +130,8 @@
 
 **Learning:** Static feature cards, while informative, can feel dead and unresponsive to user interaction. Even if they don't navigate anywhere, providing visual feedback on hover improves the micro-UX and makes the application feel more polished and alive.
 **Action:** When implementing grids of feature cards or informative panels, always apply subtle hover effects (e.g., a background color change and a slight negative Y translation like `hover:bg-white/10 hover:-translate-y-1 transition-all duration-300`) to provide users with immediate, pleasant visual feedback.
+
+## 2026-05-18 - Interactive Feature Cards Hover States
+
+**Learning:** Static feature cards, while informative, can feel dead and unresponsive to user interaction. Even if they don't navigate anywhere, providing visual feedback on hover improves the micro-UX and makes the application feel more polished and alive.
+**Action:** When implementing grids of feature cards or informative panels, always apply subtle hover effects (e.g., a background color change and a slight negative Y translation like `hover:bg-white/10 hover:-translate-y-1 transition-all duration-300`) to provide users with immediate, pleasant visual feedback.

@@ -1,71 +1,28 @@
 package com.ogabassey.contactscleaner.domain.usecase
 
-import com.ogabassey.contactscleaner.platform.Logger
-
 import com.ogabassey.contactscleaner.domain.model.CleanupStatus
 import com.ogabassey.contactscleaner.domain.model.ContactType
-import com.ogabassey.contactscleaner.domain.repository.BackupRepository
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Use case for cleaning up contacts (delete junk, duplicates, etc.).
  */
 class CleanupContactsUseCase(
-    private val contactRepository: ContactRepository,
-    private val backupRepository: BackupRepository
+    private val contactRepository: ContactRepository
 ) {
     suspend fun deleteByType(type: ContactType): Flow<CleanupStatus> {
-        // 1. Get contacts to be deleted
-        val contactsToDelete = contactRepository.getContactsSnapshotByType(type)
-        if (contactsToDelete.isNotEmpty()) {
-             // 2. Backup (non-blocking - don't fail operation if backup fails)
-             try {
-                 backupRepository.performBackup(contactsToDelete, "Delete", "Deleted ${contactsToDelete.size} ${type.name} contacts")
-             } catch (e: CancellationException) {
-                 // 2026 Best Practice: Always re-throw CancellationException
-                 throw e
-             } catch (e: Exception) {
-                 Logger.w("Logger", "Backup failed before delete: ${e.message}")
-             }
-        }
-        // 3. Delete
+        // Backups are performed by repository implementations after write-path execution.
         return contactRepository.deleteContactsByType(type)
     }
 
     suspend fun deleteByIds(ids: List<Long>): Boolean {
-        // 1. Get only the contacts we actually need for backup.
-        val contactsToDelete = contactRepository.getContactsSnapshotByIds(ids)
-
-        if (contactsToDelete.isNotEmpty()) {
-            // Backup (non-blocking - don't fail operation if backup fails)
-            try {
-                backupRepository.performBackup(contactsToDelete, "Delete", "Deleted ${contactsToDelete.size} contacts")
-            } catch (e: CancellationException) {
-                // 2026 Best Practice: Always re-throw CancellationException
-                throw e
-            } catch (e: Exception) {
-                Logger.w("Logger", "Backup failed before delete: ${e.message}")
-            }
-        }
+        // Backups are performed by repository implementations after write-path execution.
         return contactRepository.deleteContactsByIds(ids)
     }
 
     suspend fun mergeDuplicates(type: ContactType): Flow<CleanupStatus> {
-        // 1. Get contacts before merge (simplified backup for now)
-        val contactsToMerge = contactRepository.getContactsSnapshotByType(type)
-        if (contactsToMerge.isNotEmpty()) {
-             // Backup (non-blocking - don't fail operation if backup fails)
-             try {
-                 backupRepository.performBackup(contactsToMerge, "Merge", "Merged duplicates")
-             } catch (e: CancellationException) {
-                 // 2026 Best Practice: Always re-throw CancellationException
-                 throw e
-             } catch (e: Exception) {
-                 Logger.w("Logger", "Backup failed before merge: ${e.message}")
-             }
-        }
+        // Backups are performed by repository implementations after write-path execution.
         return contactRepository.mergeDuplicateGroups(type)
     }
 

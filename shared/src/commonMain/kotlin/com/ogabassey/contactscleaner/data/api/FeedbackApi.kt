@@ -9,6 +9,9 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -20,6 +23,7 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 object FeedbackApi {
     private const val BASE_URL = "https://contactscleaner.tech"
+    private val json = Json { ignoreUnknownKeys = true }
 
     private val client = HttpClient {
         install(ContentNegotiation) {
@@ -41,13 +45,34 @@ object FeedbackApi {
             if (response.status.isSuccess()) {
                 FeedbackResponse(success = true)
             } else {
-                FeedbackResponse(success = false, error = "Server error: ${response.status.value}")
+                val payload = runCatching { response.bodyAsText() }.getOrNull()
+                FeedbackResponse(success = false, error = extractErrorMessage(response.status, payload))
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             FeedbackResponse(success = false, error = e.message ?: "Failed to send feedback")
         }
+    }
+
+    private fun extractErrorMessage(status: HttpStatusCode, payload: String?): String {
+        if (payload.isNullOrBlank()) {
+            return "Server error: ${status.value}"
+        }
+
+        val serverMessage = runCatching {
+            json.parseToJsonElement(payload)
+                .jsonObject["error"]
+                ?.jsonPrimitive
+                ?.contentOrNull
+                ?.trim()
+        }.getOrNull()
+
+        if (!serverMessage.isNullOrEmpty()) {
+            return serverMessage
+        }
+
+        return "Server error: ${status.value}"
     }
 }
 

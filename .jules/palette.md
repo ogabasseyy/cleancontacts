@@ -130,3 +130,7 @@
 
 **Learning:** Static feature cards, while informative, can feel dead and unresponsive to user interaction. Even if they don't navigate anywhere, providing visual feedback on hover improves the micro-UX and makes the application feel more polished and alive.
 **Action:** When implementing grids of feature cards or informative panels, always apply subtle hover effects (e.g., a background color change and a slight negative Y translation like `hover:bg-white/10 hover:-translate-y-1 transition-all duration-300`) to provide users with immediate, pleasant visual feedback.
+## 2026-05-18 - Visual Affordance for Contact Links
+
+**Learning:** `mailto:` links often appear as standard buttons but trigger unexpected external application launches. Providing clear visual affordance (such as an envelope icon) sets accurate user expectations and improves interface consistency when other contact methods (like phone or external website links) also use iconography.
+**Action:** Always include a visually distinct, accessible icon (with `aria-hidden="true"` and `focusable="false"`) inside contact action buttons (like `mailto:`) to improve visual affordance and set clear expectations for the resulting interaction.

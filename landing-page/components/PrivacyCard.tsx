@@ -88,29 +88,29 @@ export const PrivacyCard: React.FC = () => {
           <p className="leading-relaxed mb-6">
             Under GDPR and CCPA, you have the right to:
           </p>
-          <div className="space-y-3 not-prose">
-            <div className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
-              <span className="text-brand font-mono font-bold">01</span>
+          <ol className="space-y-3 not-prose list-none p-0 m-0">
+            <li className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
+              <span className="text-brand font-mono font-bold" aria-hidden="true">01</span>
               <div>
                 <h4 className="text-white font-medium">Access & Portability</h4>
                 <p className="text-xs text-gray-400">Request a copy of the data we process about you.</p>
               </div>
-            </div>
-            <div className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
-              <span className="text-brand font-mono font-bold">02</span>
+            </li>
+            <li className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
+              <span className="text-brand font-mono font-bold" aria-hidden="true">02</span>
               <div>
                 <h4 className="text-white font-medium">Erasure</h4>
                 <p className="text-xs text-gray-400">Request the deletion of your account and associated data.</p>
               </div>
-            </div>
-            <div className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
-              <span className="text-brand font-mono font-bold">03</span>
+            </li>
+            <li className="flex gap-4 p-4 rounded-xl border border-white/5 hover:border-brand/50 transition-colors bg-white/5">
+              <span className="text-brand font-mono font-bold" aria-hidden="true">03</span>
               <div>
                 <h4 className="text-white font-medium">Opt-Out</h4>
                 <p className="text-xs text-gray-400">Revoke contact permissions at any time via device settings.</p>
               </div>
-            </div>
-          </div>
+            </li>
+          </ol>
         </section>
 
         <section className="mt-16 pt-12 border-t border-white/10">

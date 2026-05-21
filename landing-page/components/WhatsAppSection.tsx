@@ -46,29 +46,29 @@ export const WhatsAppSection: React.FC = () => {
                     <span className="text-brand text-xs bg-brand/10 px-2 py-1 rounded">Active</span>
                  </div>
                  
-                 <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                 <ul className="space-y-3">
+                    <li className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center text-brand text-xs">WA</div>
+                          <div className="w-8 h-8 rounded-full bg-green-900/50 flex items-center justify-center text-brand text-xs" aria-hidden="true">WA</div>
                           <span className="text-sm">WhatsApp Personal</span>
                        </div>
                        <span className="font-mono text-brand">432</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                    </li>
+                    <li className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 text-xs">WB</div>
+                          <div className="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 text-xs" aria-hidden="true">WB</div>
                           <span className="text-sm">WhatsApp Business</span>
                        </div>
                        <span className="font-mono text-blue-400">85</span>
-                    </div>
-                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 opacity-50 hover:bg-white/10 transition-colors">
+                    </li>
+                    <li className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 opacity-50 hover:bg-white/10 transition-colors">
                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs">NA</div>
+                          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs" aria-hidden="true">NA</div>
                           <span className="text-sm">Not on WhatsApp</span>
                        </div>
                        <span className="font-mono text-gray-400">12</span>
-                    </div>
-                 </div>
+                    </li>
+                 </ul>
               </div>
             </div>
 

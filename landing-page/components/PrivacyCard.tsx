@@ -34,20 +34,20 @@ export const PrivacyCard: React.FC = () => {
           <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
             2. Information We Collect
           </h2>
-          <div className="grid md:grid-cols-2 gap-6 not-prose">
-            <div className="bg-black/40 border border-white/5 p-5 rounded-2xl">
+          <ul className="grid md:grid-cols-2 gap-6 not-prose list-none p-0 m-0">
+            <li className="bg-black/40 border border-white/5 p-5 rounded-2xl">
               <h3 className="text-brand font-semibold mb-3">Contact Data</h3>
               <p className="text-sm text-gray-400">
                 We request permission to access your device's contact list to identify duplicates, incomplete entries, and optimize your address book.
               </p>
-            </div>
-            <div className="bg-black/40 border border-white/5 p-5 rounded-2xl">
+            </li>
+            <li className="bg-black/40 border border-white/5 p-5 rounded-2xl">
               <h3 className="text-brand font-semibold mb-3">Device Information</h3>
               <p className="text-sm text-gray-400">
                 Technical data such as device model, OS version, and unique device identifiers may be collected to improve app performance.
               </p>
-            </div>
-          </div>
+            </li>
+          </ul>
         </section>
 
         <section className="mb-12">

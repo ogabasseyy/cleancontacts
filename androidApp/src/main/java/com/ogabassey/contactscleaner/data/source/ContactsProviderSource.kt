@@ -302,15 +302,8 @@ class ContactsProviderSource(
 
         // 2026 Best Practice: Removed unused getContactAccountTypes() call
         // Account types are fetched atomically in getContactsStreaming() via RawContactsEntity
-        val contactsMap = batchIds.associateWith { id ->
-            Contact(
-                id = id,
-                name = null,
-                numbers = mutableListOf(),
-                emails = mutableListOf(),
-                normalizedNumber = null
-            )
-        }.toMutableMap()
+        // Only keep contacts that actually exist in the provider result set.
+        val contactsMap = mutableMapOf<Long, Contact>()
 
         // 2026 Best Practice: Use parameterized queries to prevent SQL injection
         val placeholders = batchIds.joinToString(",") { "?" }
@@ -328,7 +321,13 @@ class ContactsProviderSource(
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idIdx)
                 val name = cursor.getString(nameIdx)
-                contactsMap[id]?.let { contactsMap[id] = it.copy(name = name) }
+                contactsMap[id] = Contact(
+                    id = id,
+                    name = name,
+                    numbers = mutableListOf(),
+                    emails = mutableListOf(),
+                    normalizedNumber = null
+                )
             }
         }
 

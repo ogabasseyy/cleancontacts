@@ -734,9 +734,9 @@ class IosContactRepository(
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {
         val success = contactsSource.restoreContacts(contacts)
         if (success) {
-            rebuildLocalCacheFromProvider()
+            return rebuildLocalCacheFromProvider()
         }
-        return success
+        return false
     }
 
     override suspend fun ignoreContact(id: String, displayName: String, reason: String): Boolean {

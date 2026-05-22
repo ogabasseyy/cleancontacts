@@ -281,7 +281,11 @@ fun FeedbackBottomSheet(
                             }
                         } else {
                             isSubmitting = false
-                            submissionResult = SubmissionResult.Error("Failed to send. Please try again.")
+                            val errorMessage = result.error
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { "Failed to send: $it" }
+                                ?: "Failed to send. Please try again."
+                            submissionResult = SubmissionResult.Error(errorMessage)
                         }
                     }
                 },

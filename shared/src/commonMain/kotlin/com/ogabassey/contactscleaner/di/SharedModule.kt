@@ -76,7 +76,7 @@ val sharedModule = module {
 
     // Use Cases (repository will be provided by platform module)
     single { ScanContactsUseCase(get()) }
-    single { CleanupContactsUseCase(get(), get()) }
+    single { CleanupContactsUseCase(get()) }
     single { UndoUseCase(get(), get()) }
     single { ExportUseCase(get(), get()) }
     single { ImportContactsUseCase(get(), get(), get()) }

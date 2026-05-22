@@ -39,6 +39,26 @@ class ContactRepositoryImpl constructor(
     private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository
 ) : ContactRepository {
 
+    private suspend fun recordBackupSafely(
+        contacts: List<Contact>,
+        actionType: String,
+        description: String
+    ) {
+        if (contacts.isEmpty()) return
+
+        try {
+            backupRepository.performBackup(
+                contacts = contacts,
+                actionType = actionType,
+                description = description
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.w("ContactRepository", "Backup failed after successful $actionType operation: ${e.message}")
+        }
+    }
+
     /**
      * 2026 Best Practice: Extract shared contact processing logic.
      * Processes a single contact through all detectors and builds a LocalContact entity.
@@ -257,17 +277,13 @@ class ContactRepositoryImpl constructor(
 
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
-            // Record for history/undo before deletion
-            if (contacts.isNotEmpty()) {
-                backupRepository.performBackup(
+            val ids = contacts.map { it.id }
+            if (deleteContactsFromProviderAndSync(ids)) {
+                recordBackupSafely(
                     contacts = contacts,
                     actionType = "DELETE",
                     description = "Deleted ${contacts.size} contact${if (contacts.size > 1) "s" else ""}"
                 )
-            }
-
-            val ids = contacts.map { it.id }
-            if (deleteContactsFromProviderAndSync(ids)) {
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Failed to delete contacts"))
@@ -293,6 +309,12 @@ class ContactRepositoryImpl constructor(
                 "ContactRepository",
                 "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete"
             )
+            // Provider delete can fail after deleting a subset (for example, mixed writable/read-only contacts).
+            // Re-scan cache so UI reflects actual device state instead of stale local rows.
+            val rebuilt = rebuildLocalCacheFromProvider()
+            if (!rebuilt) {
+                Logger.e("ContactRepository", "Local cache rebuild failed after provider delete failure")
+            }
             return false
         }
 
@@ -319,24 +341,27 @@ class ContactRepositoryImpl constructor(
             return@flow
         }
 
-        // Record for history
-        backupRepository.performBackup(
-            contacts = contacts,
-            actionType = "DELETE",
-            description = "Deleted ${contacts.size} contacts from $type"
-        )
-
         // 2026 Best Practice: Track processed count accurately for progress
         var successCount = 0
         var processedCount = 0
+        val deletedContacts = mutableListOf<Contact>()
         contacts.chunked(50).forEach { batch ->
             val ids = batch.map { it.id }
             if (deleteContactsByIds(ids)) {
                 successCount += batch.size
+                deletedContacts.addAll(batch)
             }
             processedCount += batch.size
             val progress = processedCount.toFloat() / contacts.size.toFloat()
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Deleted $successCount of ${contacts.size}"))
+        }
+
+        if (deletedContacts.isNotEmpty()) {
+            recordBackupSafely(
+                contacts = deletedContacts,
+                actionType = "DELETE",
+                description = "Deleted ${deletedContacts.size} contacts from $type"
+            )
         }
 
         when {
@@ -417,15 +442,13 @@ class ContactRepositoryImpl constructor(
         groups.forEachIndexed { index, group ->
             val contacts = getContactsInGroup(group.groupKey, type)
             if (contacts.size > 1) {
-                // Record for history
-                backupRepository.performBackup(
-                    contacts = contacts,
-                    actionType = "MERGE",
-                    description = "Merged ${contacts.size} duplicates (${group.groupKey})"
-                )
-
                 val ids = contacts.map { it.id }
                 if (performProviderMerge(ids)) {
+                    recordBackupSafely(
+                        contacts = contacts,
+                        actionType = "MERGE",
+                        description = "Merged ${contacts.size} duplicates (${group.groupKey})"
+                    )
                     successCount++
                 }
             }
@@ -469,18 +492,11 @@ class ContactRepositoryImpl constructor(
         var successCount = 0
         var processedCount = 0
         val total = ids.size
+        val updatedContactIds = linkedSetOf<Long>()
 
         // Pre-fetch contact names for streaming display
         val contactEntities = contactDao.getFormatIssueContactsByIds(ids)
         val contactNames = contactEntities.associate { it.id to (it.displayName ?: "Unknown") }
-
-        // Record for history
-        val formatIssues = contactEntities.map { it.toDomain() }
-        backupRepository.performBackup(
-            contacts = formatIssues,
-            actionType = "FORMAT",
-            description = "Standardized ${formatIssues.size} numbers"
-        )
 
         // Track recent items for streaming log
         val recentItems = mutableListOf<String>()
@@ -491,6 +507,7 @@ class ContactRepositoryImpl constructor(
             val batchResult = standardizeFormatBatch(batch)
             if (batchResult.updatedIds.isNotEmpty()) {
                 successCount += batchResult.updatedIds.size
+                updatedContactIds.addAll(batchResult.updatedIds)
 
                 // Add batch items to recent list for streaming display
                 batchResult.updatedIds.forEach { id ->
@@ -516,6 +533,21 @@ class ContactRepositoryImpl constructor(
                     recentItems = recentItems.toList()
                 )
             ))
+        }
+
+        if (updatedContactIds.isNotEmpty()) {
+            val updatedContacts = contactEntities
+                .asSequence()
+                .filter { it.id in updatedContactIds }
+                .map { it.toDomain() }
+                .toList()
+            if (updatedContacts.isNotEmpty()) {
+                recordBackupSafely(
+                    contacts = updatedContacts,
+                    actionType = "FORMAT",
+                    description = "Standardized ${updatedContacts.size} numbers"
+                )
+            }
         }
 
         if (successCount > 0) {
@@ -784,16 +816,14 @@ class ContactRepositoryImpl constructor(
 
         if (idsToDelete.isEmpty()) return false
 
-        // Record for backup
-        backupRepository.performBackup(
-            contacts = contactsToDelete,
-            actionType = "CONSOLIDATE",
-            description = "Consolidated contact to ${getAccountDisplayLabel(keepAccountType)} ($keepAccountName)"
-        )
-
         // Delete from device
         val success = deleteContactsByIds(idsToDelete)
         if (success) {
+            recordBackupSafely(
+                contacts = contactsToDelete,
+                actionType = "CONSOLIDATE",
+                description = "Consolidated contact to ${getAccountDisplayLabel(keepAccountType)} ($keepAccountName)"
+            )
             updateScanResultSummary()
         }
         return success

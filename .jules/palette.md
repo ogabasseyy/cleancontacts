@@ -130,3 +130,11 @@
 
 **Learning:** Static feature cards, while informative, can feel dead and unresponsive to user interaction. Even if they don't navigate anywhere, providing visual feedback on hover improves the micro-UX and makes the application feel more polished and alive.
 **Action:** When implementing grids of feature cards or informative panels, always apply subtle hover effects (e.g., a background color change and a slight negative Y translation like `hover:bg-white/10 hover:-translate-y-1 transition-all duration-300`) to provide users with immediate, pleasant visual feedback.
+
+## 2026-05-18 - Semantic HTML Lists vs Generic Divs
+**Learning:** Using generic `<div>` containers with spacing classes (e.g., `space-y-3`) to create visual lists is an anti-pattern that strips inherent structure from screen readers. Screen readers rely on semantic `<ol>` and `<ul>` tags to announce the number of items and provide list navigation shortcuts. Additionally, purely visual decorative markers (like "01", "WA") inside these lists create redundant and confusing audio clutter if not hidden.
+**Action:** Always prefer native `<ol>` and `<ul>` tags for lists, using utility classes like `list-none p-0 m-0` to reset default browser styling if a custom visual design is required. Always add `aria-hidden="true"` to purely visual decorative markers within these lists.
+
+## 2026-05-18 - Consistent Visual Affordance for Actions
+**Learning:** Inconsistent visual affordances (such as lacking an email icon on a `mailto:` link in one card while having it in others) degrades the micro-UX and user trust. Users rely on consistent iconography to quickly identify the nature of an action.
+**Action:** Ensure that recurring action types (like `mailto:` links, external links) utilize a consistent set of iconography across all similar components (e.g., all informational cards) to establish a predictable interaction pattern.

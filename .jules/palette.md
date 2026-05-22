@@ -1,3 +1,7 @@
 ## 2026-05-19 - Semantic HTML Lists for Data Layouts
 **Learning:** Generic `<div>` wrappers are frequently used for sequential content or list items instead of semantic `<ol>` and `<ul>` tags, breaking the document outline and list context for screen reader users. Additionally, custom visual list bullets (like numbered text "01" or visual badges "WA") cause redundant auditory announcements when read alongside the list container's implicit index.
 **Action:** When working on lists of features or sequential content, wrap the container in semantic `<ol>` or `<ul>` tags, use `<li>` for each item, and apply `aria-hidden="true"` to any custom visual numbers, bullets, or badges to provide a cleaner auditory experience.
+
+## 2026-05-19 - Semantic HTML Lists for Data Layouts
+**Learning:** Generic `<div>` wrappers are frequently used for sequential content or list items instead of semantic `<ol>` and `<ul>` tags, breaking the document outline and list context for screen reader users. Additionally, custom visual list bullets (like numbered text "01" or visual badges "WA") cause redundant auditory announcements when read alongside the list container's implicit index.
+**Action:** When working on lists of features or sequential content, wrap the container in semantic `<ol>` or `<ul>` tags, use `<li>` for each item, and apply `aria-hidden="true"` to any custom visual numbers, bullets, or badges to provide a cleaner auditory experience.

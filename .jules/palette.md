@@ -138,3 +138,8 @@
 ## 2026-05-18 - Consistent Visual Affordance for Actions
 **Learning:** Inconsistent visual affordances (such as lacking an email icon on a `mailto:` link in one card while having it in others) degrades the micro-UX and user trust. Users rely on consistent iconography to quickly identify the nature of an action.
 **Action:** Ensure that recurring action types (like `mailto:` links, external links) utilize a consistent set of iconography across all similar components (e.g., all informational cards) to establish a predictable interaction pattern.
+
+## 2026-05-22 - Keyboard Parity for Interactive Indicators
+
+**Learning:** When using visual cues that trigger on parent interaction (like a "Read article ->" indicator fading in on `group-hover` in a `<Link>`), relying exclusively on mouse-centric hover pseudo-classes leaves keyboard users unaware of the interactive state since tabbing onto the element does not trigger `hover`.
+**Action:** Always pair `group-hover` visibility classes (e.g., `group-hover:opacity-100 group-hover:translate-x-0`) with their corresponding `group-focus-visible` equivalents (e.g., `group-focus-visible:opacity-100 group-focus-visible:translate-x-0`) to ensure consistent, accessible visual feedback for all interaction modalities.

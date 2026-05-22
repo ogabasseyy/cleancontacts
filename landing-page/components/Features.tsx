@@ -57,7 +57,7 @@ export const Features: React.FC = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, i) => (
-            <div key={i} className="glass-panel p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 group">
+            <div key={i} className="glass-panel p-8 rounded-2xl hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 group">
               <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:bg-brand group-hover:text-black transition-all duration-300">
                 {f.icon}
               </div>

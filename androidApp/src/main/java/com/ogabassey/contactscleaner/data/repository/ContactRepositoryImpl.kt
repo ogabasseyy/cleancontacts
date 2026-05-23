@@ -230,34 +230,35 @@ class ContactRepositoryImpl constructor(
 
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
             .collect { batchContacts ->
-                // 2026 Best Practice: Use extracted helper to process contacts
-                val entities = batchContacts.map { contact ->
-                    processContactToEntity(contact, ignoredIds)
+                // ⚡ Bolt Optimization: Replace multiple passes (.map + .addAll + .filter)
+                // with a single manual loop to eliminate intermediate ArrayList allocations
+                // and minimize garbage collection overhead during large contact scans.
+                for (i in batchContacts.indices) {
+                    val contact = batchContacts[i]
+                    val entity = processContactToEntity(contact, ignoredIds)
+
+                    val isValid = entity.id > 0 &&
+                        (entity.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
+                        entity.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
+                        entity.rawEmails.length <= 10000
+
+                    if (isValid) {
+                        allEntities.add(entity)
+                    } else {
+                        Logger.w("ContactRepository", "Filtered invalid contact: id=${entity.id}")
+                    }
                 }
 
-                allEntities.addAll(entities)
                 processedCount += batchContacts.size
 
                 val syncProgress = 0.05f + (processedCount.toFloat() / totalToProcess.toFloat()) * 0.70f
                 emit(ScanStatus.Progress(syncProgress.coerceAtMost(0.75f), "Processing contacts (${processedCount.formatWithCommas()})..."))
             }
 
-        // 3.5 Validate Data Before Analysis
-        val validatedEntities = allEntities.filter { contact ->
-            val isValid = contact.id > 0 &&
-                (contact.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
-                contact.rawNumbers.length <= 10000 && // Reasonable limit for multiple numbers
-                contact.rawEmails.length <= 10000
-            if (!isValid) {
-                Logger.w("ContactRepository", "Filtered invalid contact: id=${contact.id}")
-            }
-            isValid
-        }
-
         // 4. In-Memory Duplicate Detection (⚡ Bolt Optimization: Combine with initial insert)
         emit(ScanStatus.Progress(0.76f, "Analyzing duplicates..."))
 
-        val finalEntities = ContactDuplicateMetadataResolver.apply(validatedEntities, duplicateDetector)
+        val finalEntities = ContactDuplicateMetadataResolver.apply(allEntities, duplicateDetector)
 
         // 5. Atomic Replace: Delete old + Insert new in single transaction
         emit(ScanStatus.Progress(0.85f, "Saving contacts to database..."))

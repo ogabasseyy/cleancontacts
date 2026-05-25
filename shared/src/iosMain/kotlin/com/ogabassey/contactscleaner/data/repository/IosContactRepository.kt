@@ -608,33 +608,36 @@ class IosContactRepository(
     }
 
     override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> {
-        return when (type) {
-            ContactType.ALL -> contactDao.getAllContacts().map { it.toContact() }
-            ContactType.JUNK -> contactDao.getJunkContactsSnapshot().map { it.toContact() }
-            ContactType.DUPLICATE -> contactDao.getDuplicateContactsSnapshot().map { it.toContact() }
-            ContactType.DUP_NUMBER -> contactDao.getDuplicateNumberContactsSnapshot().map { it.toContact() }
-            ContactType.DUP_EMAIL -> contactDao.getDuplicateEmailContactsSnapshot().map { it.toContact() }
-            ContactType.DUP_NAME -> contactDao.getDuplicateNameContactsSnapshot().map { it.toContact() }
-            ContactType.DUP_SIMILAR_NAME -> contactDao.getSimilarNameContactsSnapshot().map { it.toContact() }
-            ContactType.DUP_CROSS_ACCOUNT -> contactDao.getCrossAccountContactsSnapshot().map { it.toContact() }
-            ContactType.FORMAT_ISSUE -> contactDao.getFormatIssueContactsSnapshot().map { it.toContact() }
-            ContactType.SENSITIVE -> contactDao.getSensitiveContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_NO_NAME -> contactDao.getNoNameContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_NO_NUMBER -> contactDao.getNoNumberContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_INVALID_CHAR -> contactDao.getInvalidCharContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_LONG_NUMBER -> contactDao.getLongNumberContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_SHORT_NUMBER -> contactDao.getShortNumberContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_REPETITIVE -> contactDao.getRepetitiveNumberContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_SYMBOL -> contactDao.getSymbolNameContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_NUMERICAL_NAME -> contactDao.getNumericalNameContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_EMOJI_NAME -> contactDao.getEmojiNameContactsSnapshot().map { it.toContact() }
-            ContactType.JUNK_FANCY_FONT -> contactDao.getFancyFontNameContactsSnapshot().map { it.toContact() }
-            ContactType.WHATSAPP -> contactDao.getWhatsAppContactsSnapshot().map { it.toContact() }
-            ContactType.TELEGRAM -> contactDao.getTelegramContactsSnapshot().map { it.toContact() }
-            ContactType.NON_WHATSAPP -> contactDao.getNonWhatsAppContactsSnapshot().map { it.toContact() }
-            ContactType.ACCOUNT -> contactDao.getAllContacts().map { it.toContact() }
-            ContactType.JUNK_SUSPICIOUS -> contactDao.getJunkContactsSnapshot().map { it.toContact() }
+        val entities = when (type) {
+            ContactType.ALL -> contactDao.getAllContacts()
+            ContactType.JUNK -> contactDao.getJunkContactsSnapshot()
+            ContactType.DUPLICATE -> contactDao.getDuplicateContactsSnapshot()
+            ContactType.DUP_NUMBER -> contactDao.getDuplicateNumberContactsSnapshot()
+            ContactType.DUP_EMAIL -> contactDao.getDuplicateEmailContactsSnapshot()
+            ContactType.DUP_NAME -> contactDao.getDuplicateNameContactsSnapshot()
+            ContactType.DUP_SIMILAR_NAME -> contactDao.getSimilarNameContactsSnapshot()
+            ContactType.DUP_CROSS_ACCOUNT -> contactDao.getCrossAccountContactsSnapshot()
+            ContactType.FORMAT_ISSUE -> contactDao.getFormatIssueContactsSnapshot()
+            ContactType.SENSITIVE -> contactDao.getSensitiveContactsSnapshot()
+            ContactType.JUNK_NO_NAME -> contactDao.getNoNameContactsSnapshot()
+            ContactType.JUNK_NO_NUMBER -> contactDao.getNoNumberContactsSnapshot()
+            ContactType.JUNK_INVALID_CHAR -> contactDao.getInvalidCharContactsSnapshot()
+            ContactType.JUNK_LONG_NUMBER -> contactDao.getLongNumberContactsSnapshot()
+            ContactType.JUNK_SHORT_NUMBER -> contactDao.getShortNumberContactsSnapshot()
+            ContactType.JUNK_REPETITIVE -> contactDao.getRepetitiveNumberContactsSnapshot()
+            ContactType.JUNK_SYMBOL -> contactDao.getSymbolNameContactsSnapshot()
+            ContactType.JUNK_NUMERICAL_NAME -> contactDao.getNumericalNameContactsSnapshot()
+            ContactType.JUNK_EMOJI_NAME -> contactDao.getEmojiNameContactsSnapshot()
+            ContactType.JUNK_FANCY_FONT -> contactDao.getFancyFontNameContactsSnapshot()
+            ContactType.WHATSAPP -> contactDao.getWhatsAppContactsSnapshot()
+            ContactType.TELEGRAM -> contactDao.getTelegramContactsSnapshot()
+            ContactType.NON_WHATSAPP -> contactDao.getNonWhatsAppContactsSnapshot()
+            ContactType.ACCOUNT -> contactDao.getAllContacts()
+            ContactType.JUNK_SUSPICIOUS -> contactDao.getJunkContactsSnapshot()
         }
+
+        // ⚡ Bolt Optimization: Unify mapping operation to improve readability and DRY
+        return entities.map { it.toContact() }
     }
 
     override suspend fun refreshContacts(contacts: List<Contact>): Boolean {

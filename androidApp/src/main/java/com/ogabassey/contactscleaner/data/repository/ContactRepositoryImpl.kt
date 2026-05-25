@@ -607,7 +607,14 @@ class ContactRepositoryImpl constructor(
             ContactType.ACCOUNT -> contactDao.getAllContacts() // Default fallback for accounts
             else -> contactDao.getAllContacts()
         }
-        return entities.map { it.toDomain() }.sortedBy { it.name ?: "" }
+
+        // ⚡ Bolt Optimization: Replace multiple passes (.map + .sortedBy) with single pass and in-place sort
+        val domainContacts = ArrayList<Contact>(entities.size)
+        for (i in entities.indices) {
+            domainContacts.add(entities[i].toDomain())
+        }
+        domainContacts.sortBy { it.name ?: "" }
+        return domainContacts
     }
 
     override suspend fun updateScanResultSummary() {

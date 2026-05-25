@@ -15,20 +15,20 @@ export const Security: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 text-left">
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+        <ul className="grid md:grid-cols-3 gap-8 text-left list-none p-0 m-0">
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
             <h3 className="text-lg font-semibold text-white mb-2">Local Processing</h3>
             <p className="text-sm text-gray-400">No contact lists are ever uploaded to our servers. Processing is done entirely on-device using local heuristics.</p>
-          </div>
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+          </li>
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-semibold text-white mb-2">No Tracking</h3>
              <p className="text-sm text-gray-400">We don't track who you call or message. Our business model is software sales, not data sales.</p>
-          </div>
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+          </li>
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-semibold text-white mb-2">Undo Protection</h3>
              <p className="text-sm text-gray-400">Accidentally deleted a contact? Our granular undo system restores it instantly.</p>
-          </div>
-        </div>
+          </li>
+        </ul>
       </div>
     </section>
   );

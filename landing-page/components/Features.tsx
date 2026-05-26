@@ -55,17 +55,17 @@ export const Features: React.FC = () => {
           <p className="text-gray-400">Our algorithm uses fuzzy matching with 82% similarity threshold to find duplicates that other apps miss.</p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ul className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 list-none p-0 m-0">
           {features.map((f, i) => (
-            <div key={i} className="glass-panel p-8 rounded-2xl hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 group">
+            <li key={i} className="glass-panel p-8 rounded-2xl hover:bg-white/10 hover:-translate-y-1 transition-all duration-300 group">
               <div className="w-12 h-12 bg-gray-800 rounded-xl flex items-center justify-center text-white mb-6 group-hover:scale-110 group-hover:bg-brand group-hover:text-black transition-all duration-300">
                 {f.icon}
               </div>
               <h3 className="text-xl font-bold mb-3">{f.title}</h3>
               <p className="text-gray-400 text-sm leading-relaxed">{f.desc}</p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

@@ -589,20 +589,29 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
         }
 
-        when {
-            successCount == total -> {
-                Logger.i("ContactRepository", "standardizeAllFormatIssues success successCount=$successCount total=$total")
-                emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
-            }
-            successCount > 0 -> {
-                Logger.w("ContactRepository", "standardizeAllFormatIssues partial successCount=$successCount total=$total")
-                emit(CleanupStatus.Partial("Standardized $successCount of $total contacts"))
-            }
-            else -> {
-                Logger.e("ContactRepository", "standardizeAllFormatIssues failed successCount=0 total=$total")
-                emit(CleanupStatus.Error("Failed to standardize contacts"))
-            }
+        val remainingCount = contactDao.countFormatIssues()
+        val finalStatus = FormatStandardizationCompletion.status(
+            total = total,
+            remainingCount = remainingCount
+        )
+
+        when (finalStatus) {
+            is CleanupStatus.Success -> Logger.i(
+                "ContactRepository",
+                "standardizeAllFormatIssues completed successCount=$successCount total=$total remaining=$remainingCount message=${finalStatus.message}"
+            )
+            is CleanupStatus.Error -> Logger.e(
+                "ContactRepository",
+                "standardizeAllFormatIssues failed successCount=$successCount total=$total remaining=$remainingCount"
+            )
+            is CleanupStatus.Partial -> Logger.w(
+                "ContactRepository",
+                "standardizeAllFormatIssues partial successCount=$successCount total=$total remaining=$remainingCount message=${finalStatus.message}"
+            )
+            is CleanupStatus.Progress -> Unit
         }
+
+        emit(finalStatus)
     }
 
     override suspend fun getContactsAllSnapshot(): List<Contact> {
@@ -914,13 +923,12 @@ class ContactRepositoryImpl constructor(
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
         if (contacts.isEmpty()) return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
 
-        val updatedIds = contactsProviderSource.normalizeContactNumbers(contacts.map { it.id }) { rawNumber ->
-            val firstChar = rawNumber.firstOrNull()
-            val hasBlockedPrefix = firstChar == '+' || firstChar == '*' || firstChar == '#'
-            if (rawNumber.isBlank() || hasBlockedPrefix) {
-                null
-            } else {
-                formatDetector.analyze(rawNumber)?.normalizedNumber
+        val updatedIds = contactsProviderSource.normalizeContactNumbers(contacts.map { it.id }) { rawNumber, providerNormalizedNumber ->
+            FormatStandardizationTarget.resolve(
+                rawNumber = rawNumber,
+                providerNormalizedNumber = providerNormalizedNumber
+            ) { candidate ->
+                formatDetector.analyze(candidate)?.normalizedNumber
             }
         }
 

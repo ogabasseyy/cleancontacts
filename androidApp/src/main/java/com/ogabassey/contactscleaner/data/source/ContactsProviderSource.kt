@@ -863,96 +863,128 @@ class ContactsProviderSource(
 
     suspend fun normalizeContactNumbers(
         contactIds: List<Long>,
-        normalizer: (String) -> String?
+        normalizer: (rawNumber: String, providerNormalizedNumber: String?) -> String?
     ): Set<Long> = withContext(Dispatchers.IO) {
-        if (contactIds.isEmpty()) return@withContext emptySet()
+        val distinctContactIds = contactIds.distinct()
+        if (distinctContactIds.isEmpty()) return@withContext emptySet()
 
         if (!hasReadWritePermissions("normalization")) {
             return@withContext emptySet()
         }
 
-        val updatedContactIds = mutableSetOf<Long>()
+        val updatedContactIds = linkedSetOf<Long>()
         var processedCount = 0
+        var rowsRead = 0
+        var plannedUpdates = 0
+        var affectedRows = 0
 
-        Logger.i("ContactsProviderSource", "normalizeContactNumbers started requested=${contactIds.size}")
+        Logger.i("ContactsProviderSource", "normalizeContactNumbers started requested=${distinctContactIds.size}")
 
         try {
-            contactIds.forEach { contactId ->
+            distinctContactIds.chunked(MAX_PROVIDER_BATCH).forEachIndexed { batchIndex, batchIds ->
                 currentCoroutineContext().ensureActive()
-                processedCount += 1
-                val operations = ArrayList<android.content.ContentProviderOperation>()
+                processedCount += batchIds.size
+
+                val placeholders = batchIds.joinToString(",") { "?" }
+                val selection = "${ContactsContract.Data.CONTACT_ID} IN ($placeholders) AND ${ContactsContract.Data.MIMETYPE} = ?"
+                val selectionArgs = batchIds.map { it.toString() }.toTypedArray() + ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+                val rows = ArrayList<PhoneNumberUpdatePlanner.PhoneRow>(batchIds.size)
 
                 contentResolver.query(
                     ContactsContract.Data.CONTENT_URI,
                     arrayOf(
                         ContactsContract.Data._ID,
                         ContactsContract.Data.CONTACT_ID,
-                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                        ContactsContract.CommonDataKinds.Phone.NUMBER,
+                        ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER
                     ),
-                    "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?",
-                    arrayOf(contactId.toString(), ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE),
+                    selection,
+                    selectionArgs,
                     null
                 )?.use { cursor ->
                     val dataIdIdx = cursor.getColumnIndex(ContactsContract.Data._ID)
                     val contactIdIdx = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
                     val numberIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                    val normalizedIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER)
 
-                    while (cursor.moveToNext()) {
-                        val rawNumber = cursor.getString(numberIdx).orEmpty()
-                        val normalized = normalizer(rawNumber)
-                        if (!normalized.isNullOrBlank() && normalized != rawNumber) {
-                            val dataId = cursor.getLong(dataIdIdx)
-                            val resolvedContactId = cursor.getLong(contactIdIdx)
-                            operations.add(
-                                android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
-                                    .withSelection("${ContactsContract.Data._ID} = ?", arrayOf(dataId.toString()))
-                                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, normalized)
-                                    .build()
-                            )
-                            updatedContactIds.add(resolvedContactId)
-                        }
-                    }
-                }
-
-                if (operations.isEmpty()) {
-                    updatedContactIds.remove(contactId)
-                    return@forEach
-                }
-
-                try {
-                    val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
-                    val updatedRows = results.sumOf { result -> result.count ?: 0 }
-                    if (updatedRows <= 0) {
+                    if (dataIdIdx < 0 || contactIdIdx < 0 || numberIdx < 0) {
                         Logger.e(
                             "ContactsProviderSource",
-                            "Normalization did not update any phone rows for contact $contactId"
+                            "normalizeContactNumbers missing required columns dataId=$dataIdIdx contactId=$contactIdIdx number=$numberIdx"
                         )
-                        updatedContactIds.remove(contactId)
-                    } else if (updatedRows != operations.size) {
-                        Logger.w(
-                            "ContactsProviderSource",
-                            "Normalization partially updated $updatedRows of ${operations.size} phone rows for contact $contactId"
+                        return@use
+                    }
+
+                    while (cursor.moveToNext()) {
+                        rows.add(
+                            PhoneNumberUpdatePlanner.PhoneRow(
+                                dataId = cursor.getLong(dataIdIdx),
+                                contactId = cursor.getLong(contactIdIdx),
+                                rawNumber = cursor.getString(numberIdx).orEmpty(),
+                                providerNormalizedNumber = if (normalizedIdx >= 0) cursor.getString(normalizedIdx) else null
+                            )
                         )
                     }
-                } catch (e: RemoteException) {
-                    Logger.e("ContactsProviderSource", "Remote error normalizing contact $contactId", e)
-                    updatedContactIds.remove(contactId)
-                } catch (e: OperationApplicationException) {
-                    Logger.e("ContactsProviderSource", "Operation error normalizing contact $contactId", e)
-                    updatedContactIds.remove(contactId)
+                }
+
+                rowsRead += rows.size
+                val updates = PhoneNumberUpdatePlanner.planUpdates(rows, normalizer)
+                plannedUpdates += updates.size
+
+                Logger.d(
+                    "ContactsProviderSource",
+                    "normalizeContactNumbers batch=${batchIndex + 1} requested=${batchIds.size} rows=${rows.size} planned=${updates.size}"
+                )
+
+                updates.chunked(400).forEach { updateChunk ->
+                    currentCoroutineContext().ensureActive()
+
+                    val operations = ArrayList<android.content.ContentProviderOperation>(updateChunk.size)
+                    updateChunk.forEach { update ->
+                        operations.add(
+                            android.content.ContentProviderOperation.newUpdate(ContactsContract.Data.CONTENT_URI)
+                                .withSelection("${ContactsContract.Data._ID} = ?", arrayOf(update.dataId.toString()))
+                                .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, update.targetNumber)
+                                .build()
+                        )
+                    }
+
+                    try {
+                        val results = contentResolver.applyBatch(ContactsContract.AUTHORITY, operations)
+                        var chunkAffectedRows = 0
+                        results.forEachIndexed { index, result ->
+                            val count = result.count ?: 0
+                            chunkAffectedRows += count
+                            if (count > 0) {
+                                updatedContactIds.add(updateChunk[index].contactId)
+                            }
+                        }
+                        affectedRows += chunkAffectedRows
+
+                        if (chunkAffectedRows != updateChunk.size) {
+                            Logger.w(
+                                "ContactsProviderSource",
+                                "Normalization partially updated $chunkAffectedRows of ${updateChunk.size} phone rows"
+                            )
+                        }
+                    } catch (e: RemoteException) {
+                        Logger.e("ContactsProviderSource", "Remote error normalizing ${updateChunk.size} phone rows", e)
+                    } catch (e: OperationApplicationException) {
+                        Logger.e("ContactsProviderSource", "Operation error normalizing ${updateChunk.size} phone rows", e)
+                    }
                 }
             }
         } catch (e: CancellationException) {
             Logger.w(
                 "ContactsProviderSource",
-                "normalizeContactNumbers cancelled processed=$processedCount/${contactIds.size} updated=${updatedContactIds.size} reason=${e.message ?: "none"}"
+                "normalizeContactNumbers cancelled processed=$processedCount/${distinctContactIds.size} rows=$rowsRead planned=$plannedUpdates updated=${updatedContactIds.size} reason=${e.message ?: "none"}"
             )
             throw e
         }
 
         Logger.i(
             "ContactsProviderSource",
-            "normalizeContactNumbers finished requested=${contactIds.size} processed=$processedCount updated=${updatedContactIds.size}"
+            "normalizeContactNumbers finished requested=${distinctContactIds.size} processed=$processedCount rows=$rowsRead planned=$plannedUpdates affectedRows=$affectedRows updated=${updatedContactIds.size}"
         )
 
         updatedContactIds

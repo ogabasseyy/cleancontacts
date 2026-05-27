@@ -48,6 +48,7 @@ import androidx.compose.ui.text.AnnotatedString
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.ExportFormat
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.formatIssueDisplay
 import com.ogabassey.contactscleaner.util.isIOS
 import com.ogabassey.contactscleaner.util.rememberShareLauncher
 import org.koin.compose.viewmodel.koinViewModel
@@ -1271,6 +1272,12 @@ private fun ContactListItem(
 ) {
     // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
     // Animation is handled by LazyColumn's item appearance
+    val formatDisplay = if (isFormatType) {
+        formatIssueDisplay(contact.numbers, contact.normalizedNumber)
+    } else {
+        null
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1283,7 +1290,10 @@ private fun ContactListItem(
                 .weight(1f)
                 .clickable(role = Role.Button) { onContactClick(contact) }
                 .semantics(mergeDescendants = true) {
-                    val phoneDesc = contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number"
+                    val phoneDesc = formatDisplay?.let { "${it.sourceNumber} to ${it.normalizedNumber}" }
+                        ?: contact.normalizedNumber
+                        ?: contact.numbers.firstOrNull()
+                        ?: "No Number"
                     contentDescription = "Contact ${contact.name ?: "Unknown"}, phone number $phoneDesc"
                 },
             verticalAlignment = Alignment.CenterVertically
@@ -1310,11 +1320,10 @@ private fun ContactListItem(
                     fontWeight = FontWeight.Medium
                 )
 
-                val normalized = contact.normalizedNumber
-                if (isFormatType && normalized != null) {
+                if (formatDisplay != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            contact.numbers.firstOrNull() ?: "",
+                            formatDisplay.sourceNumber,
                             style = MaterialTheme.typography.bodySmall,
                             color = TextMedium
                         )
@@ -1327,7 +1336,7 @@ private fun ContactListItem(
                             tint = SecondaryNeon
                         )
                         Text(
-                            normalized,
+                            formatDisplay.normalizedNumber,
                             style = MaterialTheme.typography.bodySmall,
                             color = SecondaryNeon,
                             fontWeight = FontWeight.Bold

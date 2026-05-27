@@ -62,7 +62,7 @@ fun BackgroundOperationOverlay(onRescan: () -> Unit = {}) {
             OperationProgressModal(
                 operation = operation!!,
                 onMinimize = { BackgroundOperationManager.minimize() },
-                onCancel = { BackgroundOperationManager.cancel() },
+                onCancel = { BackgroundOperationManager.cancel(reason = "user_tapped_cancel") },
                 onDismiss = { BackgroundOperationManager.dismiss() },
                 onRescan = onRescan
             )

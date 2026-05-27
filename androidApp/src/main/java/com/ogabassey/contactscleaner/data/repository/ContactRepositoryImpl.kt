@@ -279,7 +279,9 @@ class ContactRepositoryImpl constructor(
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
             val ids = contacts.map { it.id }
+            Logger.i("ContactRepository", "deleteContacts requested count=${ids.size} ids=${idsForLog(ids)}")
             if (deleteContactsFromProviderAndSync(ids)) {
+                Logger.i("ContactRepository", "deleteContacts succeeded count=${ids.size} ids=${idsForLog(ids)}")
                 recordBackupSafely(
                     contacts = contacts,
                     actionType = "DELETE",
@@ -287,11 +289,13 @@ class ContactRepositoryImpl constructor(
                 )
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete contacts"))
+                Logger.e("ContactRepository", "deleteContacts failed count=${ids.size} ids=${idsForLog(ids)}")
+                Result.failure(Exception("Failed to delete contacts from device"))
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            Logger.e("ContactRepository", "deleteContacts threw", e)
             Result.failure(e)
         }
     }
@@ -308,7 +312,7 @@ class ContactRepositoryImpl constructor(
         if (!providerSuccess) {
             Logger.e(
                 "ContactRepository",
-                "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete"
+                "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete ids=${idsForLog(contactIds)}"
             )
             // Provider delete can fail after deleting a subset (for example, mixed writable/read-only contacts).
             // Re-scan cache so UI reflects actual device state instead of stale local rows.
@@ -333,6 +337,11 @@ class ContactRepositoryImpl constructor(
             Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
             rebuildLocalCacheFromProvider()
         }
+    }
+
+    private fun idsForLog(ids: List<Long>, maxIds: Int = 10): String {
+        val suffix = if (ids.size > maxIds) ",..." else ""
+        return ids.take(maxIds).joinToString(prefix = "[", postfix = suffix + "]")
     }
 
     override suspend fun deleteContactsByType(type: ContactType): Flow<CleanupStatus> = flow {
@@ -495,6 +504,8 @@ class ContactRepositoryImpl constructor(
         val total = ids.size
         val updatedContactIds = linkedSetOf<Long>()
 
+        Logger.i("ContactRepository", "standardizeAllFormatIssues started total=$total")
+
         // Pre-fetch contact names for streaming display
         val contactEntities = contactDao.getFormatIssueContactsByIds(ids)
         val contactNames = contactEntities.associate { it.id to (it.displayName ?: "Unknown") }
@@ -504,36 +515,49 @@ class ContactRepositoryImpl constructor(
 
         // 2026 Optimization: Smaller batches (50) for 10x faster visual feedback
         // Previously used 500 which caused "stuck at 0%" perception
-        ids.chunked(50).forEach { batch ->
-            val batchResult = standardizeFormatBatch(batch)
-            if (batchResult.updatedIds.isNotEmpty()) {
-                successCount += batchResult.updatedIds.size
-                updatedContactIds.addAll(batchResult.updatedIds)
+        ids.chunked(50).forEachIndexed { batchIndex, batch ->
+            try {
+                val batchResult = standardizeFormatBatch(batch)
+                if (batchResult.updatedIds.isNotEmpty()) {
+                    successCount += batchResult.updatedIds.size
+                    updatedContactIds.addAll(batchResult.updatedIds)
 
-                // Add batch items to recent list for streaming display
-                batchResult.updatedIds.forEach { id ->
-                    val name = contactNames[id]
-                    if (name != null) {
-                        recentItems.add(0, "Updated: $name")
-                        if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
+                    // Add batch items to recent list for streaming display
+                    batchResult.updatedIds.forEach { id ->
+                        val name = contactNames[id]
+                        if (name != null) {
+                            recentItems.add(0, "Updated: $name")
+                            if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
+                        }
                     }
                 }
-            }
 
-            processedCount += batch.size
-            val progress = processedCount.toFloat() / total.toFloat()
-            val currentItem = batch.lastOrNull()?.let { contactNames[it] }
+                processedCount += batch.size
+                val progress = processedCount.toFloat() / total.toFloat()
+                val currentItem = batch.lastOrNull()?.let { contactNames[it] }
 
-            emit(CleanupStatus.Progress(
-                progress = progress.coerceAtMost(1f),
-                message = "Standardizing: ${currentItem ?: "..."} [$processedCount of $total]",
-                details = CleanupDetails(
-                    processed = processedCount,
-                    total = total,
-                    currentItem = currentItem,
-                    recentItems = recentItems.toList()
+                Logger.d(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues batch=${batchIndex + 1} processed=$processedCount/$total updated=${batchResult.updatedIds.size} successCount=$successCount attempted=${batchResult.attemptedCount}"
                 )
-            ))
+
+                emit(CleanupStatus.Progress(
+                    progress = progress.coerceAtMost(1f),
+                    message = "Standardizing: ${currentItem ?: "..."} [$processedCount of $total]",
+                    details = CleanupDetails(
+                        processed = processedCount,
+                        total = total,
+                        currentItem = currentItem,
+                        recentItems = recentItems.toList()
+                    )
+                ))
+            } catch (e: CancellationException) {
+                Logger.w(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues cancelled batch=${batchIndex + 1} processed=$processedCount/$total successCount=$successCount reason=${e.message ?: "none"}"
+                )
+                throw e
+            }
         }
 
         if (updatedContactIds.isNotEmpty()) {
@@ -554,6 +578,10 @@ class ContactRepositoryImpl constructor(
         if (successCount > 0) {
             val cacheRebuilt = rebuildLocalCacheFromProvider()
             if (!cacheRebuilt) {
+                Logger.e(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues cache rebuild failed successCount=$successCount total=$total"
+                )
                 emit(CleanupStatus.Error("Standardized $successCount contacts but failed to refresh local cache"))
                 return@flow
             }
@@ -562,9 +590,18 @@ class ContactRepositoryImpl constructor(
         }
 
         when {
-            successCount == total -> emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
-            successCount > 0 -> emit(CleanupStatus.Partial("Standardized $successCount of $total contacts"))
-            else -> emit(CleanupStatus.Error("Failed to standardize contacts"))
+            successCount == total -> {
+                Logger.i("ContactRepository", "standardizeAllFormatIssues success successCount=$successCount total=$total")
+                emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
+            }
+            successCount > 0 -> {
+                Logger.w("ContactRepository", "standardizeAllFormatIssues partial successCount=$successCount total=$total")
+                emit(CleanupStatus.Partial("Standardized $successCount of $total contacts"))
+            }
+            else -> {
+                Logger.e("ContactRepository", "standardizeAllFormatIssues failed successCount=0 total=$total")
+                emit(CleanupStatus.Error("Failed to standardize contacts"))
+            }
         }
     }
 

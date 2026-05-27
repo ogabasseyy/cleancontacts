@@ -73,6 +73,11 @@ class CategoryViewModel(
     private val actionMutex = Mutex()
     private var pendingAction: (suspend () -> Boolean)? = null
 
+    override fun onCleared() {
+        Logger.w(TAG, "onCleared currentOperation=${backgroundOperationForLogs()}")
+        super.onCleared()
+    }
+
     /**
      * Run an action with premium/trial check.
      */
@@ -216,8 +221,14 @@ class CategoryViewModel(
     }
 
     fun performAction(type: ContactType) {
+        Logger.i(
+            TAG,
+            "performAction requested type=$type contacts=${_contacts.value.size} duplicateGroups=${_duplicateGroups.value.size} currentOperation=${backgroundOperationForLogs()}"
+        )
+
         // 2026 Fix: Capture job reference to enable proper cancellation
         val job = viewModelScope.launch {
+            Logger.i(TAG, "performAction job started type=$type")
             runWithPremiumCheck {
                 pendingAction = null
 
@@ -235,6 +246,11 @@ class CategoryViewModel(
                     else -> _contacts.value.size
                 }
 
+                Logger.i(
+                    TAG,
+                    "starting background operation contactType=$type operationType=$operationType itemCount=$itemCount"
+                )
+
                 // Start background operation with streaming progress UI
                 BackgroundOperationManager.startOperation(
                     type = operationType,
@@ -248,6 +264,7 @@ class CategoryViewModel(
                 try {
                     var finalStatus: CleanupStatus? = null
 
+                    Logger.i(TAG, "collecting cleanup flow contactType=$type operationType=$operationType")
                     when (type) {
                         ContactType.JUNK -> {
                             contactRepository.deleteContactsByType(type).collect { status ->
@@ -280,6 +297,8 @@ class CategoryViewModel(
                         }
                     }
 
+                    Logger.i(TAG, "cleanup flow ended contactType=$type finalStatus=${finalStatusForLogs(finalStatus)}")
+
                     if (finalStatus !is CleanupStatus.Success) {
                         if (finalStatus == null) {
                             BackgroundOperationManager.complete(false, "Operation did not complete")
@@ -295,21 +314,30 @@ class CategoryViewModel(
                     loadCategory(type, "Pull down on Results to refresh counts")
                     true
                 } catch (e: CancellationException) {
-                    BackgroundOperationManager.cancel()
+                    Logger.w(
+                        TAG,
+                        "cleanup job cancelled contactType=$type operation=${backgroundOperationForLogs()} reason=${e.message ?: "none"}"
+                    )
+                    BackgroundOperationManager.cancel(reason = "viewmodel_job_cancelled contactType=$type")
                     throw e
                 } catch (e: Exception) {
+                    Logger.e(TAG, "cleanup job failed contactType=$type operation=${backgroundOperationForLogs()}", e)
                     BackgroundOperationManager.complete(false, e.message ?: "Unknown error")
                     _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
                     false
                 }
             }
         }
+        job.invokeOnCompletion { cause ->
+            val outcome = if (cause == null) "completed" else "ended_with_cause=${cause.message ?: cause.toString()}"
+            Logger.i(TAG, "performAction job completion type=$type outcome=$outcome currentOperation=${backgroundOperationForLogs()}")
+        }
         // 2026 Fix: Register job for proper cancellation support
         BackgroundOperationManager.registerJob(job)
     }
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {
-        Logger.d(TAG, "deleteSingleContact called: id=${contact.id}")
+        Logger.i(TAG, "deleteSingleContact requested id=${contact.id} type=$type")
         viewModelScope.launch {
             // 2026 Best Practice: Track which contact is being deleted for proper dialog state
             _deletingContactId.value = contact.id
@@ -322,7 +350,8 @@ class CategoryViewModel(
                 // The dialog already shows "Deleting..." state via deletingContactId tracking
                 try {
                     Logger.d(TAG, "Calling contactRepository.deleteContacts...")
-                    val success = contactRepository.deleteContacts(listOf(contact)).isSuccess
+                    val result = contactRepository.deleteContacts(listOf(contact))
+                    val success = result.isSuccess
                     Logger.d(TAG, "deleteContacts result: $success")
                     if (success) {
                         // 2026 Fix: Use optimistic update - remove from local list directly
@@ -357,6 +386,10 @@ class CategoryViewModel(
                         // Stay in Success state - no Loading transition
                         _uiState.value = CategoryUiState.Success()
                     } else {
+                        Logger.e(
+                            TAG,
+                            "deleteSingleContact failed id=${contact.id} type=$type reason=${result.exceptionOrNull()?.message ?: "unknown"}"
+                        )
                         _uiState.value = CategoryUiState.Error("Failed to delete contact")
                     }
                     success
@@ -404,17 +437,36 @@ class CategoryViewModel(
                 _uiState.value = CategoryUiState.Processing(status.progress, status.message)
             }
             is CleanupStatus.Success -> {
+                Logger.i(TAG, "cleanup status success message=${status.message}")
                 // Note: This gets overwritten by loadCategory, which provides the hint
                 _uiState.value = CategoryUiState.Success()
             }
             is CleanupStatus.Partial -> {
+                Logger.w(TAG, "cleanup status partial message=${status.message} operation=${backgroundOperationForLogs()}")
                 BackgroundOperationManager.complete(false, status.message)
                 _uiState.value = CategoryUiState.Error(status.message)
             }
             is CleanupStatus.Error -> {
+                Logger.e(TAG, "cleanup status error message=${status.message} operation=${backgroundOperationForLogs()}")
                 BackgroundOperationManager.complete(false, status.message)
                 _uiState.value = CategoryUiState.Error(status.message)
             }
+        }
+    }
+
+    private fun backgroundOperationForLogs(): String {
+        val operation = BackgroundOperationManager.currentOperation.value ?: return "none"
+        val percent = (operation.progress * 100).toInt()
+        return "id=${operation.id} type=${operation.type} status=${operation.status} processed=${operation.processedItems}/${operation.totalItems} percent=$percent minimized=${BackgroundOperationManager.isMinimized.value}"
+    }
+
+    private fun finalStatusForLogs(status: CleanupStatus?): String {
+        return when (status) {
+            null -> "none"
+            is CleanupStatus.Progress -> "progress:${status.message}"
+            is CleanupStatus.Success -> "success:${status.message}"
+            is CleanupStatus.Partial -> "partial:${status.message}"
+            is CleanupStatus.Error -> "error:${status.message}"
         }
     }
 

@@ -1,5 +1,6 @@
 package com.ogabassey.contactscleaner.util
 
+import com.ogabassey.contactscleaner.platform.Logger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.update
  * Supports minimize-to-bubble, real-time progress streaming, and proper job cancellation.
  */
 object BackgroundOperationManager {
+    private const val TAG = "BackgroundOperation"
 
     private val _currentOperation = MutableStateFlow<BackgroundOperation?>(null)
     val currentOperation: StateFlow<BackgroundOperation?> = _currentOperation.asStateFlow()
@@ -64,6 +66,15 @@ object BackgroundOperationManager {
             currentJob = job
             _logEntries.value = emptyList()
             _isMinimized.value = false
+            Logger.i(
+                TAG,
+                "started id=${newOperation.id} type=${newOperation.type} totalItems=${newOperation.totalItems} hasJob=${job != null}"
+            )
+        } else {
+            Logger.w(
+                TAG,
+                "start ignored because operation already running current=${_currentOperation.value?.summary()}"
+            )
         }
     }
 
@@ -72,19 +83,29 @@ object BackgroundOperationManager {
      */
     fun registerJob(job: Job) {
         currentJob = job
+        Logger.d(TAG, "registered job for current=${_currentOperation.value?.summary()}")
     }
 
     /**
      * Update progress with current item being processed.
      */
     fun updateProgress(processed: Int, currentItem: String? = null) {
+        var updated: BackgroundOperation? = null
         _currentOperation.update { current ->
-            current?.copy(
+            val next = current?.copy(
                 processedItems = processed,
                 currentItem = currentItem,
                 progress = if (current.totalItems > 0) {
                     (processed.toFloat() / current.totalItems.toFloat()).coerceIn(0f, 1f)
                 } else 0f
+            )
+            updated = next
+            next
+        }
+        updated?.let { operation ->
+            Logger.d(
+                TAG,
+                "progress id=${operation.id} type=${operation.type} processed=${operation.processedItems}/${operation.totalItems} percent=${(operation.progress * 100).toInt()}"
             )
         }
     }
@@ -107,6 +128,7 @@ object BackgroundOperationManager {
      * Mark operation as complete.
      */
     fun complete(success: Boolean, message: String? = null) {
+        val before = _currentOperation.value
         currentJob = null // Clear job reference on completion
         _currentOperation.update { current ->
             current?.copy(
@@ -115,13 +137,17 @@ object BackgroundOperationManager {
                 progress = if (success) 1f else current.progress
             )
         }
+        Logger.i(TAG, "completed success=$success before=${before?.summary()} message=${message ?: "none"}")
     }
 
     /**
      * Cancel the current operation.
      * 2026 Fix: Actually cancels the coroutine job, not just UI state.
      */
-    fun cancel() {
+    fun cancel(reason: String = "unspecified") {
+        val before = _currentOperation.value
+        Logger.w(TAG, "cancel requested reason=$reason before=${before?.summary()} hasJob=${currentJob != null}")
+
         // Cancel the actual coroutine job first
         currentJob?.cancel()
         currentJob = null
@@ -133,6 +159,7 @@ object BackgroundOperationManager {
                 completionMessage = "Operation cancelled"
             )
         }
+        Logger.w(TAG, "cancelled reason=$reason after=${_currentOperation.value?.summary()}")
     }
 
     /**
@@ -140,6 +167,7 @@ object BackgroundOperationManager {
      */
     fun minimize() {
         _isMinimized.value = true
+        Logger.d(TAG, "minimized current=${_currentOperation.value?.summary()}")
     }
 
     /**
@@ -147,12 +175,14 @@ object BackgroundOperationManager {
      */
     fun maximize() {
         _isMinimized.value = false
+        Logger.d(TAG, "maximized current=${_currentOperation.value?.summary()}")
     }
 
     /**
      * Dismiss/clear the operation (after completion or user dismissal).
      */
     fun dismiss() {
+        Logger.d(TAG, "dismiss current=${_currentOperation.value?.summary()}")
         currentJob = null
         _currentOperation.value = null
         _logEntries.value = emptyList()
@@ -183,6 +213,11 @@ object BackgroundOperationManager {
 
         return if (rate > 0) (remaining / rate).toLong() else null
     }
+}
+
+private fun BackgroundOperation.summary(): String {
+    val percent = (progress * 100).toInt()
+    return "id=$id type=$type status=$status processed=$processedItems/$totalItems percent=$percent"
 }
 
 /**

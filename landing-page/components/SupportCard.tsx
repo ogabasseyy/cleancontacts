@@ -17,22 +17,22 @@ export const SupportCard: React.FC = () => {
           <p className="text-xl text-gray-400">Search our knowledge base or get in touch.</p>
        </div>
 
-       <div className="grid gap-6 mb-12">
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 transition-colors">
+       <ul className="grid gap-6 mb-12 list-none p-0 m-0">
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-bold text-white mb-2">How does the duplicate detection work?</h3>
              <p className="text-gray-400 leading-relaxed">Our AI uses a fuzzy matching algorithm that looks at names, phone numbers, and emails. It assigns a similarity score to potential matches. Pairs with a score above 82% are flagged as duplicates for your review.</p>
-          </div>
+          </li>
           
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 transition-colors">
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-bold text-white mb-2">Is my data safe?</h3>
              <p className="text-gray-400 leading-relaxed">Absolutely. Contacts Cleaner processes your contacts locally on your device. We do not upload your address book to any external servers for processing.</p>
-          </div>
+          </li>
 
-          <div className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 transition-colors">
+          <li className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-brand/30 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
              <h3 className="text-lg font-bold text-white mb-2">Can I undo changes?</h3>
              <p className="text-gray-400 leading-relaxed">Yes! Every merge or delete action creates a snapshot. You can go to the "History" tab in the app to roll back any changes made in the last 30 days.</p>
-          </div>
-       </div>
+          </li>
+       </ul>
 
        <div className="p-8 rounded-2xl bg-brand/5 border border-brand/10 text-center">
           <h3 className="text-2xl font-bold text-white mb-4">Still need help?</h3>

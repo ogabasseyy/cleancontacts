@@ -12,6 +12,7 @@ import com.ogabassey.contactscleaner.domain.repository.UsageRepository
 import com.ogabassey.contactscleaner.platform.Logger
 import com.ogabassey.contactscleaner.util.BackgroundOperationManager
 import com.ogabassey.contactscleaner.util.ExportUtils
+import com.ogabassey.contactscleaner.util.OperationStatus
 import com.ogabassey.contactscleaner.util.OperationType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -226,9 +227,8 @@ class CategoryViewModel(
             "performAction requested type=$type contacts=${_contacts.value.size} duplicateGroups=${_duplicateGroups.value.size} currentOperation=${backgroundOperationForLogs()}"
         )
 
-        // 2026 Fix: Capture job reference to enable proper cancellation
-        val job = viewModelScope.launch {
-            Logger.i(TAG, "performAction job started type=$type")
+        viewModelScope.launch {
+            Logger.i(TAG, "performAction request gate started type=$type")
             runWithPremiumCheck {
                 pendingAction = null
 
@@ -251,89 +251,89 @@ class CategoryViewModel(
                     "starting background operation contactType=$type operationType=$operationType itemCount=$itemCount"
                 )
 
-                // Start background operation with streaming progress UI
-                BackgroundOperationManager.startOperation(
+                val operationJob = BackgroundOperationManager.launchOperation(
                     type = operationType,
                     totalItems = itemCount,
                     title = operationType.displayName
-                )
+                ) {
+                    runCleanupOperation(type, operationType)
+                }
+
+                if (operationJob == null) {
+                    Logger.w(TAG, "operation launch skipped because another operation is active type=$type")
+                    _uiState.value = CategoryUiState.Error("Another operation is already running")
+                    return@runWithPremiumCheck false
+                }
 
                 // Hide the old processing overlay - BackgroundOperationManager handles UI now
                 _uiState.value = CategoryUiState.Success()
-
-                try {
-                    var finalStatus: CleanupStatus? = null
-
-                    Logger.i(TAG, "collecting cleanup flow contactType=$type operationType=$operationType")
-                    when (type) {
-                        ContactType.JUNK -> {
-                            contactRepository.deleteContactsByType(type).collect { status ->
-                                finalStatus = status
-                                updateStatus(status)
-                            }
-                        }
-                        ContactType.DUPLICATE,
-                        ContactType.DUP_NUMBER,
-                        ContactType.DUP_EMAIL,
-                        ContactType.DUP_NAME,
-                        ContactType.DUP_SIMILAR_NAME -> {
-                            contactRepository.mergeDuplicateGroups(type).collect { status ->
-                                finalStatus = status
-                                updateStatus(status)
-                            }
-                        }
-                        ContactType.FORMAT_ISSUE -> {
-                            contactRepository.standardizeAllFormatIssues().collect { status ->
-                                finalStatus = status
-                                updateStatus(status)
-                            }
-                        }
-                        else -> {
-                            // For other types, maybe deletion?
-                            contactRepository.deleteContactsByType(type).collect { status ->
-                                finalStatus = status
-                                updateStatus(status)
-                            }
-                        }
-                    }
-
-                    Logger.i(TAG, "cleanup flow ended contactType=$type finalStatus=${finalStatusForLogs(finalStatus)}")
-
-                    if (finalStatus !is CleanupStatus.Success) {
-                        if (finalStatus == null) {
-                            BackgroundOperationManager.complete(false, "Operation did not complete")
-                            _uiState.value = CategoryUiState.Error("Operation did not complete")
-                        }
-                        return@runWithPremiumCheck false
-                    }
-
-                    // Mark operation as complete
-                    BackgroundOperationManager.complete(true, "Operation completed successfully")
-
-                    // 2026 Best Practice: Refresh list with hint to pull-to-refresh on Results page
-                    loadCategory(type, "Pull down on Results to refresh counts")
-                    true
-                } catch (e: CancellationException) {
-                    Logger.w(
-                        TAG,
-                        "cleanup job cancelled contactType=$type operation=${backgroundOperationForLogs()} reason=${e.message ?: "none"}"
-                    )
-                    BackgroundOperationManager.cancel(reason = "viewmodel_job_cancelled contactType=$type")
-                    throw e
-                } catch (e: Exception) {
-                    Logger.e(TAG, "cleanup job failed contactType=$type operation=${backgroundOperationForLogs()}", e)
-                    BackgroundOperationManager.complete(false, e.message ?: "Unknown error")
-                    _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
-                    false
-                }
+                true
             }
         }
-        job.invokeOnCompletion { cause ->
-            val outcome = if (cause == null) "completed" else "ended_with_cause=${cause.message ?: cause.toString()}"
-            Logger.i(TAG, "performAction job completion type=$type outcome=$outcome currentOperation=${backgroundOperationForLogs()}")
+    }
+
+    private suspend fun runCleanupOperation(type: ContactType, operationType: OperationType) {
+        try {
+            var finalStatus: CleanupStatus? = null
+
+            Logger.i(TAG, "collecting cleanup flow contactType=$type operationType=$operationType")
+            when (type) {
+                ContactType.JUNK -> {
+                    contactRepository.deleteContactsByType(type).collect { status ->
+                        finalStatus = status
+                        updateStatus(status)
+                    }
+                }
+                ContactType.DUPLICATE,
+                ContactType.DUP_NUMBER,
+                ContactType.DUP_EMAIL,
+                ContactType.DUP_NAME,
+                ContactType.DUP_SIMILAR_NAME -> {
+                    contactRepository.mergeDuplicateGroups(type).collect { status ->
+                        finalStatus = status
+                        updateStatus(status)
+                    }
+                }
+                ContactType.FORMAT_ISSUE -> {
+                    contactRepository.standardizeAllFormatIssues().collect { status ->
+                        finalStatus = status
+                        updateStatus(status)
+                    }
+                }
+                else -> {
+                    contactRepository.deleteContactsByType(type).collect { status ->
+                        finalStatus = status
+                        updateStatus(status)
+                    }
+                }
+            }
+
+            Logger.i(TAG, "cleanup flow ended contactType=$type finalStatus=${finalStatusForLogs(finalStatus)}")
+
+            if (finalStatus !is CleanupStatus.Success) {
+                if (finalStatus == null) {
+                    BackgroundOperationManager.complete(false, "Operation did not complete")
+                    _uiState.value = CategoryUiState.Error("Operation did not complete")
+                }
+                return
+            }
+
+            BackgroundOperationManager.complete(true, "Operation completed successfully")
+            loadCategory(type, "Pull down on Results to refresh counts")
+        } catch (e: CancellationException) {
+            Logger.w(
+                TAG,
+                "cleanup job cancelled contactType=$type operation=${backgroundOperationForLogs()} reason=${e.message ?: "none"}"
+            )
+            if (BackgroundOperationManager.currentOperation.value?.status == OperationStatus.Running) {
+                BackgroundOperationManager.cancel(reason = "operation_job_cancelled contactType=$type")
+            }
+            throw e
+        } catch (e: Exception) {
+            Logger.e(TAG, "cleanup job failed contactType=$type operation=${backgroundOperationForLogs()}", e)
+            BackgroundOperationManager.complete(false, e.message ?: "Unknown error")
+            _uiState.value = CategoryUiState.Error(e.message ?: "Unknown error")
         }
-        // 2026 Fix: Register job for proper cancellation support
-        BackgroundOperationManager.registerJob(job)
     }
 
     fun deleteSingleContact(contact: Contact, type: ContactType) {

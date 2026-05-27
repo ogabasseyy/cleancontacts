@@ -1,11 +1,17 @@
 package com.ogabassey.contactscleaner.util
 
 import com.ogabassey.contactscleaner.platform.Logger
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 /**
  * 2026 Best Practice: Singleton manager for background operations with streaming progress.
@@ -14,6 +20,8 @@ import kotlinx.coroutines.flow.update
  */
 object BackgroundOperationManager {
     private const val TAG = "BackgroundOperation"
+
+    private val operationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _currentOperation = MutableStateFlow<BackgroundOperation?>(null)
     val currentOperation: StateFlow<BackgroundOperation?> = _currentOperation.asStateFlow()
@@ -31,6 +39,55 @@ object BackgroundOperationManager {
     private const val MAX_LOG_ENTRIES = 100
 
     /**
+     * Launch a cleanup operation from the operation manager's own scope.
+     *
+     * The caller may be a screen ViewModel, but the work itself must not be a child of
+     * that ViewModel; otherwise minimizing or navigating away can cancel a long-running
+     * contact write while the global operation UI still shows it as background work.
+     */
+    fun launchOperation(
+        type: OperationType,
+        totalItems: Int,
+        title: String? = null,
+        recommendRescan: Boolean = true,
+        block: suspend () -> Unit
+    ): Job? {
+        val job = operationScope.launch(start = CoroutineStart.LAZY) {
+            try {
+                block()
+            } catch (e: CancellationException) {
+                Logger.w(TAG, "operation coroutine cancelled current=${_currentOperation.value?.summary()} reason=${e.message ?: "none"}")
+                throw e
+            } catch (e: Exception) {
+                Logger.e(TAG, "operation coroutine failed current=${_currentOperation.value?.summary()}", e)
+                complete(false, e.message ?: "Unknown error")
+            }
+        }
+
+        val started = startOperation(
+            type = type,
+            totalItems = totalItems,
+            title = title,
+            job = job,
+            recommendRescan = recommendRescan
+        )
+        if (!started) {
+            job.cancel()
+            return null
+        }
+
+        job.invokeOnCompletion { cause ->
+            when (cause) {
+                null -> Logger.d(TAG, "operation coroutine completed current=${_currentOperation.value?.summary()}")
+                is CancellationException -> Logger.w(TAG, "operation coroutine ended cancelled current=${_currentOperation.value?.summary()} reason=${cause.message ?: "none"}")
+                else -> Logger.e(TAG, "operation coroutine ended failed current=${_currentOperation.value?.summary()}", cause)
+            }
+        }
+        job.start()
+        return job
+    }
+
+    /**
      * Start a new background operation.
      * Only one operation can run at a time.
      * 2026 Fix: Use atomic update to prevent race conditions.
@@ -40,7 +97,7 @@ object BackgroundOperationManager {
      * @param title Optional custom title
      * @param job The coroutine Job to enable proper cancellation
      */
-    fun startOperation(type: OperationType, totalItems: Int, title: String? = null, job: Job? = null, recommendRescan: Boolean = true) {
+    fun startOperation(type: OperationType, totalItems: Int, title: String? = null, job: Job? = null, recommendRescan: Boolean = true): Boolean {
         // Create the new operation before the atomic update
         val newOperation = BackgroundOperation(
             type = type,
@@ -76,6 +133,7 @@ object BackgroundOperationManager {
                 "start ignored because operation already running current=${_currentOperation.value?.summary()}"
             )
         }
+        return wasStarted
     }
 
     /**

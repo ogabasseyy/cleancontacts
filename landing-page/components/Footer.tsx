@@ -44,6 +44,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <div className="flex gap-8 text-gray-400">
             <button
               type="button"
+              aria-label="Navigate to Blog"
               onClick={() => onNavigate('blog')}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
@@ -51,6 +52,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </button>
             <button
               type="button"
+              aria-label="Navigate to Privacy Policy"
               onClick={() => onNavigate('privacy')}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
@@ -58,6 +60,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </button>
             <button
               type="button"
+              aria-label="Navigate to Terms of Service"
               onClick={() => onNavigate('terms')}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
@@ -65,6 +68,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </button>
             <button
               type="button"
+              aria-label="Navigate to Support"
               onClick={() => onNavigate('support')}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >

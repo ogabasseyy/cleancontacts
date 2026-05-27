@@ -13,6 +13,7 @@ kotlin {
         namespace = "com.ogabassey.contactscleaner.composeapp"
         compileSdk = 36
         minSdk = 26
+        withHostTest {}
         // Required for CMP resources with AGP 9 KMP library plugin (CMP-9547)
         androidResources { enable = true }
     }
@@ -87,6 +88,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
         }
 
         androidMain.dependencies {

@@ -15,6 +15,7 @@ import kotlin.test.assertNotNull
 class BackgroundOperationManagerTest {
     @AfterTest
     fun tearDown() {
+        BackgroundOperationManager.cancel(reason = "test_teardown")
         BackgroundOperationManager.dismiss()
     }
 
@@ -55,6 +56,7 @@ class BackgroundOperationManagerTest {
 
     @Test
     fun explicitCancelStopsLaunchedOperation() = runBlocking {
+        val operationStarted = CompletableDeferred<Unit>()
         val operationCancelled = CompletableDeferred<Unit>()
 
         BackgroundOperationManager.launchOperation(
@@ -63,17 +65,39 @@ class BackgroundOperationManagerTest {
             title = "Test cancel"
         ) {
             try {
+                operationStarted.complete(Unit)
                 awaitCancellation()
             } finally {
                 operationCancelled.complete(Unit)
             }
         }
 
+        withTimeout(1_000) {
+            operationStarted.await()
+        }
         BackgroundOperationManager.cancel(reason = "test_cancel")
 
         withTimeout(1_000) {
             operationCancelled.await()
         }
         assertEquals(OperationStatus.Cancelled, BackgroundOperationManager.currentOperation.value?.status)
+    }
+
+    @Test
+    fun launchedOperationCompletesWhenBlockReturnsNormally() = runBlocking {
+        BackgroundOperationManager.launchOperation(
+            type = OperationType.STANDARDIZE_FORMAT,
+            totalItems = 1,
+            title = "Test normal return"
+        ) {
+            BackgroundOperationManager.updateProgress(processed = 1)
+        }
+
+        withTimeout(1_000) {
+            while (BackgroundOperationManager.currentOperation.value?.status == OperationStatus.Running) {
+                delay(10)
+            }
+        }
+        assertEquals(OperationStatus.Completed, BackgroundOperationManager.currentOperation.value?.status)
     }
 }

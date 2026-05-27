@@ -78,7 +78,13 @@ object BackgroundOperationManager {
 
         job.invokeOnCompletion { cause ->
             when (cause) {
-                null -> Logger.d(TAG, "operation coroutine completed current=${_currentOperation.value?.summary()}")
+                null -> {
+                    Logger.d(TAG, "operation coroutine completed current=${_currentOperation.value?.summary()}")
+                    if (_currentOperation.value?.status == OperationStatus.Running) {
+                        Logger.w(TAG, "operation coroutine returned without explicit completion current=${_currentOperation.value?.summary()}")
+                        complete(true, "Completed")
+                    }
+                }
                 is CancellationException -> Logger.w(TAG, "operation coroutine ended cancelled current=${_currentOperation.value?.summary()} reason=${cause.message ?: "none"}")
                 else -> Logger.e(TAG, "operation coroutine ended failed current=${_currentOperation.value?.summary()}", cause)
             }

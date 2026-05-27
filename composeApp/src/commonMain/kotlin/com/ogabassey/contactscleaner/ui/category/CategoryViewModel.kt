@@ -229,50 +229,80 @@ class CategoryViewModel(
 
         viewModelScope.launch {
             Logger.i(TAG, "performAction request gate started type=$type")
-            runWithPremiumCheck {
-                pendingAction = null
+            val isPremium = billingRepository.isPremium.first()
+            val canPerform = usageRepository.canPerformFreeAction()
+            Logger.d(TAG, "background premium gate: isPremium=$isPremium, canPerform=$canPerform")
 
-                // Determine operation type and get item count for BackgroundOperationManager
-                val operationType = when (type) {
-                    ContactType.FORMAT_ISSUE -> OperationType.STANDARDIZE_FORMAT
-                    ContactType.DUPLICATE, ContactType.DUP_NUMBER, ContactType.DUP_EMAIL,
-                    ContactType.DUP_NAME, ContactType.DUP_SIMILAR_NAME -> OperationType.MERGE_DUPLICATES
-                    else -> OperationType.DELETE_CONTACTS
+            if (!isPremium && !canPerform) {
+                Logger.d(TAG, "background premium gate failed - showing paywall")
+                actionMutex.withLock {
+                    pendingAction = {
+                        val retryIsPremium = billingRepository.isPremium.first()
+                        launchBackgroundCleanup(
+                            type = type,
+                            chargeFreeActionOnSuccess = !retryIsPremium
+                        )
+                        false
+                    }
                 }
-
-                // Get count for progress tracking
-                val itemCount = when {
-                    type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> _duplicateGroups.value.size
-                    else -> _contacts.value.size
-                }
-
-                Logger.i(
-                    TAG,
-                    "starting background operation contactType=$type operationType=$operationType itemCount=$itemCount"
-                )
-
-                val operationJob = BackgroundOperationManager.launchOperation(
-                    type = operationType,
-                    totalItems = itemCount,
-                    title = operationType.displayName
-                ) {
-                    runCleanupOperation(type, operationType)
-                }
-
-                if (operationJob == null) {
-                    Logger.w(TAG, "operation launch skipped because another operation is active type=$type")
-                    _uiState.value = CategoryUiState.Error("Another operation is already running")
-                    return@runWithPremiumCheck false
-                }
-
-                // Hide the old processing overlay - BackgroundOperationManager handles UI now
-                _uiState.value = CategoryUiState.Success()
-                true
+                _uiState.value = CategoryUiState.ShowPaywall
+                return@launch
             }
+
+            actionMutex.withLock {
+                pendingAction = null
+            }
+            launchBackgroundCleanup(
+                type = type,
+                chargeFreeActionOnSuccess = !isPremium
+            )
         }
     }
 
-    private suspend fun runCleanupOperation(type: ContactType, operationType: OperationType) {
+    private fun launchBackgroundCleanup(type: ContactType, chargeFreeActionOnSuccess: Boolean): Boolean {
+        // Determine operation type and get item count for BackgroundOperationManager
+        val operationType = when (type) {
+            ContactType.FORMAT_ISSUE -> OperationType.STANDARDIZE_FORMAT
+            ContactType.DUPLICATE, ContactType.DUP_NUMBER, ContactType.DUP_EMAIL,
+            ContactType.DUP_NAME, ContactType.DUP_SIMILAR_NAME -> OperationType.MERGE_DUPLICATES
+            else -> OperationType.DELETE_CONTACTS
+        }
+
+        // Get count for progress tracking
+        val itemCount = when {
+            type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> _duplicateGroups.value.size
+            else -> _contacts.value.size
+        }
+
+        Logger.i(
+            TAG,
+            "starting background operation contactType=$type operationType=$operationType itemCount=$itemCount chargeFreeActionOnSuccess=$chargeFreeActionOnSuccess"
+        )
+
+        val operationJob = BackgroundOperationManager.launchOperation(
+            type = operationType,
+            totalItems = itemCount,
+            title = operationType.displayName
+        ) {
+            runCleanupOperation(type, operationType, chargeFreeActionOnSuccess)
+        }
+
+        if (operationJob == null) {
+            Logger.w(TAG, "operation launch skipped because another operation is active type=$type")
+            _uiState.value = CategoryUiState.Error("Another operation is already running")
+            return false
+        }
+
+        // Hide the old processing overlay - BackgroundOperationManager handles UI now
+        _uiState.value = CategoryUiState.Success()
+        return true
+    }
+
+    private suspend fun runCleanupOperation(
+        type: ContactType,
+        operationType: OperationType,
+        chargeFreeActionOnSuccess: Boolean
+    ) {
         try {
             var finalStatus: CleanupStatus? = null
 
@@ -316,6 +346,17 @@ class CategoryViewModel(
                     _uiState.value = CategoryUiState.Error("Operation did not complete")
                 }
                 return
+            }
+
+            if (chargeFreeActionOnSuccess) {
+                try {
+                    usageRepository.incrementFreeActions()
+                    Logger.d(TAG, "free action charged after successful background cleanup contactType=$type")
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Logger.e(TAG, "Failed to charge free action after successful cleanup contactType=$type", e)
+                }
             }
 
             BackgroundOperationManager.complete(true, "Operation completed successfully")

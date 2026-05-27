@@ -49,6 +49,19 @@ class ContactsProviderSource(
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    private fun hasReadWritePermissions(operation: String): Boolean {
+        val canRead = hasReadPermission()
+        val canWrite = hasWritePermission()
+        if (!canRead || !canWrite) {
+            Logger.w(
+                "ContactsProviderSource",
+                "READ/WRITE_CONTACTS permission not granted for $operation canRead=$canRead canWrite=$canWrite"
+            )
+            return false
+        }
+        return true
+    }
+
     suspend fun getAllContacts(): List<Contact> = withContext(Dispatchers.IO) {
         // 2026 Best Practice: Defensive permission check
         if (!hasReadPermission()) {
@@ -592,9 +605,8 @@ class ContactsProviderSource(
     suspend fun deleteContacts(contactIds: List<Long>): Boolean = withContext(Dispatchers.IO) {
         if (contactIds.isEmpty()) return@withContext true
 
-        // 2026 Best Practice: Defensive permission check for write operation
-        if (!hasWritePermission()) {
-            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for delete")
+        // 2026 Best Practice: This write path also queries the provider for raw IDs.
+        if (!hasReadWritePermissions("delete")) {
             return@withContext false
         }
 
@@ -618,10 +630,10 @@ class ContactsProviderSource(
                     )
                 }
 
-                if (rawContactIds.isNotEmpty()) {
-                    val placeholders = rawContactIds.joinToString(",") { "?" }
+                rawContactIds.chunked(MAX_PROVIDER_BATCH).forEachIndexed { rawBatchIndex, rawBatch ->
+                    val placeholders = rawBatch.joinToString(",") { "?" }
                     val selection = "${ContactsContract.RawContacts._ID} IN ($placeholders)"
-                    val selectionArgs = rawContactIds.map { it.toString() }.toTypedArray()
+                    val selectionArgs = rawBatch.map { it.toString() }.toTypedArray()
                     val deletedRows = contentResolver.delete(
                         ContactsContract.RawContacts.CONTENT_URI,
                         selection,
@@ -629,7 +641,7 @@ class ContactsProviderSource(
                     )
                     Logger.i(
                         "ContactsProviderSource",
-                        "deleteContacts batch=${batchIndex + 1} rawRows=${rawContactIds.size} affectedRows=$deletedRows contacts=${batch.size}"
+                        "deleteContacts batch=${batchIndex + 1} rawBatch=${rawBatchIndex + 1} rawRows=${rawBatch.size}/${rawContactIds.size} affectedRows=$deletedRows contacts=${batch.size}"
                     )
                 }
 
@@ -774,9 +786,8 @@ class ContactsProviderSource(
     suspend fun updateMultipleContactNumbers(updates: Map<Long, String>): Boolean = withContext(Dispatchers.IO) {
         if (updates.isEmpty()) return@withContext true
 
-        // 2026 Best Practice: Defensive permission check for write operation
-        if (!hasWritePermission()) {
-            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for update")
+        // 2026 Best Practice: This write path also queries Data rows before updating.
+        if (!hasReadWritePermissions("update")) {
             return@withContext false
         }
 
@@ -856,8 +867,7 @@ class ContactsProviderSource(
     ): Set<Long> = withContext(Dispatchers.IO) {
         if (contactIds.isEmpty()) return@withContext emptySet()
 
-        if (!hasWritePermission()) {
-            Logger.w("ContactsProviderSource", "WRITE_CONTACTS permission not granted for normalization")
+        if (!hasReadWritePermissions("normalization")) {
             return@withContext emptySet()
         }
 
@@ -919,11 +929,10 @@ class ContactsProviderSource(
                         )
                         updatedContactIds.remove(contactId)
                     } else if (updatedRows != operations.size) {
-                        Logger.e(
+                        Logger.w(
                             "ContactsProviderSource",
-                            "Normalization affected $updatedRows of ${operations.size} phone rows for contact $contactId"
+                            "Normalization partially updated $updatedRows of ${operations.size} phone rows for contact $contactId"
                         )
-                        updatedContactIds.remove(contactId)
                     }
                 } catch (e: RemoteException) {
                     Logger.e("ContactsProviderSource", "Remote error normalizing contact $contactId", e)

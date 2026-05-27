@@ -513,17 +513,32 @@ class ContactRepositoryImpl constructor(
         }
 
         var successCount = 0
+        var skippedSyncedCount = 0
+        var failedMergeableCount = 0
         groups.forEachIndexed { index, group ->
             val contacts = getContactsInGroup(group.groupKey, type)
-            if (contacts.size > 1) {
-                val ids = contacts.map { it.id }
+            val mergeableContacts = DuplicateMergeCandidateFilter.mergeableContacts(contacts)
+            if (contacts.size > 1 && mergeableContacts.size < 2) {
+                skippedSyncedCount++
+                Logger.i(
+                    "ContactRepository",
+                    "Skipping synced duplicate group during merge type=$type index=${index + 1}/${groups.size} contacts=${contacts.size} mergeable=${mergeableContacts.size}"
+                )
+            } else if (mergeableContacts.size > 1) {
+                val ids = mergeableContacts.map { it.id }
                 if (performProviderMerge(ids)) {
                     recordBackupSafely(
-                        contacts = contacts,
+                        contacts = mergeableContacts,
                         actionType = "MERGE",
-                        description = "Merged ${contacts.size} duplicates (${group.groupKey})"
+                        description = "Merged ${mergeableContacts.size} duplicates (${group.groupKey})"
                     )
                     successCount++
+                } else {
+                    failedMergeableCount++
+                    Logger.w(
+                        "ContactRepository",
+                        "Provider-backed duplicate merge failed type=$type index=${index + 1}/${groups.size} mergeable=${mergeableContacts.size}"
+                    )
                 }
             }
             val progress = (index + 1).toFloat() / groups.size.toFloat()
@@ -540,11 +555,14 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
         }
 
-        when {
-            successCount == groups.size -> emit(CleanupStatus.Success("Merged $successCount groups successfully"))
-            successCount > 0 -> emit(CleanupStatus.Partial("Merged $successCount of ${groups.size} groups"))
-            else -> emit(CleanupStatus.Error("Failed to merge duplicate groups"))
-        }
+        emit(
+            DuplicateMergeCompletion.status(
+                totalGroups = groups.size,
+                mergedGroups = successCount,
+                skippedSyncedGroups = skippedSyncedCount,
+                failedMergeableGroups = failedMergeableCount
+            )
+        )
     }
 
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {

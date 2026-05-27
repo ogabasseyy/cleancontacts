@@ -76,6 +76,25 @@ class CategoryViewModelPremiumTest {
         assertEquals(1, usage.incrementCount)
     }
 
+    @Test
+    fun performActionDoesNotChargeWhenDuplicateGroupsAreEmpty() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val contacts = FakeContactRepository()
+        contacts.mergeDuplicateResult = CleanupStatus.Success("No duplicates found")
+        val usage = FakeUsageRepository()
+        val viewModel = CategoryViewModel(
+            contactRepository = contacts,
+            billingRepository = FakeBillingRepository(isPremium = false),
+            usageRepository = usage
+        )
+
+        viewModel.performAction(ContactType.DUP_NUMBER)
+        advanceUntilIdle()
+
+        assertEquals(0, usage.incrementCount)
+        assertEquals(false, contacts.mergeDuplicateStarted.isCompleted)
+    }
+
     private class FakeBillingRepository(isPremium: Boolean) : BillingRepository {
         override val isPremium = MutableStateFlow(isPremium)
         override val packages = MutableStateFlow<Resource<List<PaywallPackage>>>(Resource.Success(emptyList()))
@@ -106,6 +125,8 @@ class CategoryViewModelPremiumTest {
     private class FakeContactRepository : ContactRepository {
         val cleanupStarted = CompletableDeferred<Unit>()
         val cleanupResult = CompletableDeferred<CleanupStatus>()
+        val mergeDuplicateStarted = CompletableDeferred<Unit>()
+        var mergeDuplicateResult: CleanupStatus? = null
 
         override suspend fun standardizeAllFormatIssues(): Flow<CleanupStatus> = flow {
             cleanupStarted.complete(Unit)
@@ -122,7 +143,10 @@ class CategoryViewModelPremiumTest {
         override suspend fun getDuplicateGroups(type: ContactType): List<DuplicateGroupSummary> = emptyList()
         override suspend fun getAccountGroups(): List<AccountGroupSummary> = emptyList()
         override suspend fun getContactsInGroup(key: String, type: ContactType): List<Contact> = emptyList()
-        override suspend fun mergeDuplicateGroups(type: ContactType): Flow<CleanupStatus> = emptyFlow()
+        override suspend fun mergeDuplicateGroups(type: ContactType): Flow<CleanupStatus> = flow {
+            mergeDuplicateStarted.complete(Unit)
+            mergeDuplicateResult?.let { emit(it) }
+        }
         override suspend fun standardizeFormat(ids: List<Long>): Boolean = true
         override suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact> = emptyList()
         override suspend fun getContactsAllSnapshot(): List<Contact> = emptyList()

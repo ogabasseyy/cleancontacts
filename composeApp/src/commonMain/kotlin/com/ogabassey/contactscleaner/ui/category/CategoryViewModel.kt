@@ -229,6 +229,16 @@ class CategoryViewModel(
 
         viewModelScope.launch {
             Logger.i(TAG, "performAction request gate started type=$type")
+            val itemCount = actionItemCount(type)
+            if (itemCount <= 0) {
+                Logger.i(TAG, "performAction skipped empty category type=$type")
+                actionMutex.withLock {
+                    pendingAction = null
+                }
+                _uiState.value = CategoryUiState.Success(emptyActionMessage(type))
+                return@launch
+            }
+
             val isPremium = billingRepository.isPremium.first()
             val canPerform = usageRepository.canPerformFreeAction()
             Logger.d(TAG, "background premium gate: isPremium=$isPremium, canPerform=$canPerform")
@@ -269,10 +279,7 @@ class CategoryViewModel(
         }
 
         // Get count for progress tracking
-        val itemCount = when {
-            type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> _duplicateGroups.value.size
-            else -> _contacts.value.size
-        }
+        val itemCount = actionItemCount(type)
 
         Logger.i(
             TAG,
@@ -296,6 +303,21 @@ class CategoryViewModel(
         // Hide the old processing overlay - BackgroundOperationManager handles UI now
         _uiState.value = CategoryUiState.Success()
         return true
+    }
+
+    private fun actionItemCount(type: ContactType): Int {
+        return when {
+            type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> _duplicateGroups.value.size
+            else -> _contacts.value.size
+        }
+    }
+
+    private fun emptyActionMessage(type: ContactType): String {
+        return when {
+            type.name.startsWith("DUP") || type == ContactType.DUPLICATE -> "No duplicate groups found"
+            type == ContactType.FORMAT_ISSUE -> "No format issues found"
+            else -> "No contacts found"
+        }
     }
 
     private suspend fun runCleanupOperation(

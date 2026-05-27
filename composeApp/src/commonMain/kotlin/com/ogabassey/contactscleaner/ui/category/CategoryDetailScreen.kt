@@ -276,6 +276,7 @@ fun CategoryDetailScreen(
                 // ACTIONS Utility Bar at TOP (not in a separate tab)
                 ResultsUtilityBar(
                     contactType = type,
+                    hasActionItems = if (isDuplicateType) duplicateGroups.isNotEmpty() else contacts.isNotEmpty(),
                     onDeleteAll = { showConfirmationDialog = true },
                     onMergeAll = { showConfirmationDialog = true },
                     onExportAll = {
@@ -957,6 +958,7 @@ fun CategoryDetailScreen(
 @Composable
 private fun ResultsUtilityBar(
     contactType: ContactType,
+    hasActionItems: Boolean,
     onDeleteAll: () -> Unit = {},
     onMergeAll: () -> Unit = {},
     onExportAll: () -> Unit = {}
@@ -994,7 +996,11 @@ private fun ResultsUtilityBar(
             // Export Action
             TextButton(
                 onClick = onExportAll,
-                colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon),
+                enabled = hasActionItems,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = PrimaryNeon,
+                    disabledContentColor = TextLow
+                ),
                 modifier = Modifier.height(32.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
             ) {
@@ -1008,9 +1014,12 @@ private fun ResultsUtilityBar(
                 isDuplicateFilter || contactType == ContactType.DUPLICATE -> {
                     Button(
                         onClick = onMergeAll,
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PrimaryNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -1022,9 +1031,12 @@ private fun ResultsUtilityBar(
                 canDelete -> {
                     Button(
                         onClick = onDeleteAll,
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ErrorNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -1036,9 +1048,12 @@ private fun ResultsUtilityBar(
                 isFormat -> {
                     Button(
                         onClick = onDeleteAll, // Uses performAction which handles FORMAT_ISSUE
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = SecondaryNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),

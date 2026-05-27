@@ -304,8 +304,26 @@ class ContactRepositoryImpl constructor(
         return deleteContactsFromProviderAndSync(contactIds)
     }
 
+    private data class DeleteSyncResult(
+        val success: Boolean,
+        val deletedIds: List<Long>,
+        val requiresDuplicateRebuild: Boolean
+    )
+
     private suspend fun deleteContactsFromProviderAndSync(contactIds: List<Long>): Boolean {
-        if (contactIds.isEmpty()) return true
+        return deleteContactsFromProviderAndLocalCache(
+            contactIds = contactIds,
+            refreshAfterDelete = true
+        ).success
+    }
+
+    private suspend fun deleteContactsFromProviderAndLocalCache(
+        contactIds: List<Long>,
+        refreshAfterDelete: Boolean
+    ): DeleteSyncResult {
+        if (contactIds.isEmpty()) {
+            return DeleteSyncResult(success = true, deletedIds = emptyList(), requiresDuplicateRebuild = false)
+        }
 
         val requiresDuplicateRebuild = contactDao.getContactsByIds(contactIds).any { it.duplicateType != null }
         val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
@@ -320,22 +338,33 @@ class ContactRepositoryImpl constructor(
             if (!rebuilt) {
                 Logger.e("ContactRepository", "Local cache rebuild failed after provider delete failure")
             }
-            return false
+            return DeleteSyncResult(success = false, deletedIds = emptyList(), requiresDuplicateRebuild = false)
         }
 
         return try {
             contactDao.deleteContacts(contactIds)
-            if (requiresDuplicateRebuild) {
-                rebuildDuplicateMetadataFromLocalCache()
+            val refreshSucceeded = if (refreshAfterDelete) {
+                if (requiresDuplicateRebuild) {
+                    rebuildDuplicateMetadataFromLocalCache()
+                } else {
+                    updateScanResultSummary()
+                    true
+                }
             } else {
-                updateScanResultSummary()
                 true
             }
+
+            DeleteSyncResult(
+                success = refreshSucceeded,
+                deletedIds = if (refreshSucceeded) contactIds else emptyList(),
+                requiresDuplicateRebuild = requiresDuplicateRebuild
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
             rebuildLocalCacheFromProvider()
+            DeleteSyncResult(success = false, deletedIds = emptyList(), requiresDuplicateRebuild = false)
         }
     }
 
@@ -355,15 +384,50 @@ class ContactRepositoryImpl constructor(
         var successCount = 0
         var processedCount = 0
         val deletedContacts = mutableListOf<Contact>()
-        contacts.chunked(50).forEach { batch ->
+        var requiresDuplicateRebuild = false
+        val batchSize = DeleteBatchPlanner.batchSize(contacts.size)
+
+        Logger.i(
+            "ContactRepository",
+            "deleteContactsByType started type=$type total=${contacts.size} batchSize=$batchSize"
+        )
+
+        contacts.chunked(batchSize).forEachIndexed { batchIndex, batch ->
             val ids = batch.map { it.id }
-            if (deleteContactsByIds(ids)) {
-                successCount += batch.size
+            val batchResult = deleteContactsFromProviderAndLocalCache(
+                contactIds = ids,
+                refreshAfterDelete = false
+            )
+            if (batchResult.success) {
+                successCount += batchResult.deletedIds.size
                 deletedContacts.addAll(batch)
+                requiresDuplicateRebuild = requiresDuplicateRebuild || batchResult.requiresDuplicateRebuild
             }
             processedCount += batch.size
+            Logger.d(
+                "ContactRepository",
+                "deleteContactsByType batch=${batchIndex + 1} processed=$processedCount/${contacts.size} successCount=$successCount"
+            )
             val progress = processedCount.toFloat() / contacts.size.toFloat()
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Deleted $successCount of ${contacts.size}"))
+        }
+
+        val refreshed = if (successCount > 0) {
+            if (requiresDuplicateRebuild) {
+                rebuildDuplicateMetadataFromLocalCache()
+            } else {
+                updateScanResultSummary()
+                true
+            }
+        } else {
+            updateScanResultSummary()
+            true
+        }
+
+        if (!refreshed) {
+            Logger.e("ContactRepository", "deleteContactsByType refresh failed type=$type successCount=$successCount total=${contacts.size}")
+            emit(CleanupStatus.Error("Deleted $successCount contacts but failed to refresh local cache"))
+            return@flow
         }
 
         if (deletedContacts.isNotEmpty()) {

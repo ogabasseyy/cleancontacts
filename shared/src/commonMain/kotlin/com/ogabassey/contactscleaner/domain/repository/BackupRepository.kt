@@ -49,4 +49,9 @@ data class Snapshot(
     val actionType: String,
     val description: String,
     val timestamp: Long
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "Snapshot(id=$id, actionType=$actionType, description=$description, timestamp=$timestamp, contacts=[***REDACTED (size=${contacts.size})***])"
+    }
+}

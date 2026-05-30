@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-24 - Transitive PII Leak via Default toString() in Snapshot
+**Vulnerability:** The `Snapshot` data class in `BackupRepository.kt` lacked a custom `toString()` override, which could lead to accidental logging of the entire list of user contacts (PII) if the object were ever logged or stringified (CWE-532).
+**Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs. Even data classes that are primarily used internally for persistence logic must be secured.
+**Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `contacts`) in any data class that contains Personally Identifiable Information, regardless of where it is used in the architecture.

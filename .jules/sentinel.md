@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-24 - Missing Input Format Validation and Security Headers in Serverless API
+**Vulnerability:** The public `feedback.ts` serverless function validated input length but lacked format validation for the `email` field and did not serve standard security headers (like `X-Content-Type-Options`, `X-Frame-Options`, and `Strict-Transport-Security`). This exposed external APIs to malformed payloads and missed an opportunity for defense-in-depth security.
+**Learning:** Checking payload boundaries (like length) is insufficient if the data relies on structural expectations (like an email address) when interacting with third-party providers (e.g., Resend). Further, API endpoints should always enforce standard security headers to protect clients.
+**Prevention:** Always implement regex format validation for structurally expected inputs (like emails) and add security headers to serverless response handlers by default.

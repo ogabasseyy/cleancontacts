@@ -71,6 +71,11 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
+  // 2026 Security Fix: Add security headers
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -117,6 +122,12 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   }
   if (email && typeof email === "string" && email.length > 254) {
     return res.status(400).json({ success: false, error: "Email too long" });
+  }
+
+  // 2026 Security Fix: Validate email format to prevent injection/abuse of 3rd party services
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (email && typeof email === "string" && email.trim() !== "" && !emailRegex.test(email.trim())) {
+    return res.status(400).json({ success: false, error: "Invalid email format" });
   }
   if (deviceInfo && typeof deviceInfo === "string" && deviceInfo.length > 500) {
     return res.status(400).json({ success: false, error: "Device info too long" });

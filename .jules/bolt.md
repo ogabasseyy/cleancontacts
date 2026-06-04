@@ -336,3 +336,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+
+## 2026-05-27 - Collection Allocations in Batch Iterators
+**Learning:** Using idiomatic Kotlin extensions like `mapNotNull` and `any` inside batch processing loops (e.g., looping over 50k items in chunks of 500) silently generates thousands of short-lived `Iterator` and intermediate collection objects.
+**Action:** When optimizing batch processing operations, replace inline collection extensions with pre-sized collections (e.g., `ArrayList<T>(size)`) and explicit index-based loops (`for (i in list.indices)`) to eliminate allocation overhead and GC pressure.

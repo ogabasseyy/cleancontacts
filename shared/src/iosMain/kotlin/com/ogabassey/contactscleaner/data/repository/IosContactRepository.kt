@@ -889,18 +889,26 @@ class IosContactRepository(
                 if (batch.isEmpty()) break
 
                 // Process batch
-                val updatedContacts = batch.mapNotNull { contact ->
+                // ⚡ Bolt Optimization: Replace mapNotNull and any closures with pre-sized ArrayList
+                // and manual iteration to eliminate intermediate collection allocations per contact.
+                val updatedContacts = ArrayList<LocalContact>(batch.size)
+                for (i in batch.indices) {
+                    val contact = batch[i]
                     val numbers = contact.rawNumbers.splitAndFilterNotBlank(',')
-                    val isOnWhatsApp = numbers.any { num ->
+
+                    var isOnWhatsApp = false
+                    for (j in numbers.indices) {
+                        val num = numbers[j]
                         val normalized = num.extractDigits()
-                        cachedNumbers.contains(normalized)
+                        if (cachedNumbers.contains(normalized)) {
+                            isOnWhatsApp = true
+                            break
+                        }
                     }
 
                     // Only update if flag changed
                     if (contact.isWhatsApp != isOnWhatsApp) {
-                        contact.copy(isWhatsApp = isOnWhatsApp)
-                    } else {
-                        null
+                        updatedContacts.add(contact.copy(isWhatsApp = isOnWhatsApp))
                     }
                 }
 

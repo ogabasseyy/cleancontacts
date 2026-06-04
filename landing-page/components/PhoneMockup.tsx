@@ -3,7 +3,7 @@ import React from 'react';
 
 export const PhoneMockup: React.FC = () => {
     return (
-        <div className="flex-1 relative z-10 w-full max-w-sm lg:max-w-md mx-auto animate-float" aria-hidden="true" focusable="false">
+        <div className="flex-1 relative z-10 w-full max-w-sm lg:max-w-md mx-auto animate-float" aria-hidden="true" tabIndex={-1}>
             {/* Abstract Phone Body */}
             <div className="relative rounded-[2.5rem] bg-gray-900 border-4 border-gray-800 shadow-2xl overflow-hidden aspect-[9/19]">
                 {/* Screen Content */}

@@ -221,18 +221,24 @@ class CrossAccountViewModel(
      * Get all unique accounts across all contacts (for bulk consolidation dialog).
      */
     fun getAllUniqueAccounts(): List<AccountInstance> {
-        val seen = mutableSetOf<String>()
-        return _crossAccountContacts.value
-            .flatMap { it.accounts }
-            .filter { account ->
+        // ⚡ Bolt: Use explicit looping and HashSet.add() return value to
+        // eliminate intermediate collection allocations (flatMap/filter)
+        // and reduce O(1) lookups by half.
+        val seen = HashSet<String>()
+        val uniqueAccounts = ArrayList<AccountInstance>()
+
+        val contacts = _crossAccountContacts.value
+        for (i in contacts.indices) {
+            val accounts = contacts[i].accounts
+            for (j in accounts.indices) {
+                val account = accounts[j]
                 val key = "${account.accountType}:${account.accountName}"
-                if (seen.contains(key)) {
-                    false
-                } else {
-                    seen.add(key)
-                    true
+                if (seen.add(key)) {
+                    uniqueAccounts.add(account)
                 }
             }
+        }
+        return uniqueAccounts
     }
 
     /**

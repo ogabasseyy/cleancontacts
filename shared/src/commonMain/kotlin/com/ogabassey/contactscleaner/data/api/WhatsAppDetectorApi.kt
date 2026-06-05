@@ -467,7 +467,12 @@ data class PairingResponse(
     val code: String? = null,
     val message: String? = null,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "PairingResponse(success=$success, code=***REDACTED***, message=$message, error=$error)"
+    }
+}
 
 @Serializable
 data class DisconnectResponse(

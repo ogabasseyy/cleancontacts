@@ -336,3 +336,23 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+## 2026-10-18 - Avoid Hidden Set Allocation in `contains` plus `add`
+
+**Learning:** When performing distinct checks in a loop via `val seen = mutableSetOf()`, executing `if (seen.contains(key)) ... else { seen.add(key); ... }` performs two internal hash lookups for new items. Moreover, creating the initial collection with no capacity argument causes resizing overhead.
+
+**Action:** Consolidate the lookup and insertion into a single operation using the boolean return value of `HashSet.add(key)`. Always initialize `HashSet(size)` with an expected capacity.
+
+```kotlin
+// ❌ Avoid: Two hash lookups and no initial capacity
+val seen = mutableSetOf<String>()
+if (!seen.contains(key)) {
+    seen.add(key)
+    // ...
+}
+
+// ✅ Prefer: Single operation and pre-sized
+val seen = java.util.HashSet<String>(contacts.size)
+if (seen.add(key)) {
+    // ...
+}
+```

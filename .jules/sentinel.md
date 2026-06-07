@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-24 - [HIGH] React Router Vulnerabilities (Unauth RCE, DoS, Open Redirect)
+**Vulnerability:** The `react-router-dom` dependency in `landing-page` was flagged by `pnpm audit` for high severity vulnerabilities (GHSA-49rj-9fvp-4h2h, GHSA-8x6r-g9mw-2r78, GHSA-rxv8-25v2-qmq8).
+**Learning:** Outdated dependencies in frontend applications can introduce severe risks like Remote Code Execution (RCE), Denial of Service (DoS), and Open Redirects.
+**Prevention:** Regularly audit and update dependencies using `pnpm audit` and `pnpm add <package>@<fixed-version>`. Ensure both `pnpm-lock.yaml` and `package-lock.json` are synchronized after updates.

@@ -94,3 +94,13 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-24 - Missing Input Validation on Contact Forms
+**Vulnerability:** The API endpoint `feedback.ts` lacked strict regex validation for the `email` field.
+**Learning:** Checking the length of an email input is not sufficient to ensure it is correctly formatted or to prevent malformed injections into backend services.
+**Prevention:** Always implement strict regex format validation for contact fields (e.g. `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$` for emails) before processing.
+
+## 2026-10-24 - Missing Security Headers on API Endpoints
+**Vulnerability:** The API endpoint `feedback.ts` did not send standard security headers like `X-Content-Type-Options`, `X-Frame-Options`, or `Strict-Transport-Security`.
+**Learning:** Even serverless API endpoints that only return JSON should include security headers to provide defense-in-depth against client-side attacks, particularly if they are accessed via direct navigation or framing.
+**Prevention:** Explicitly set security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security: max-age=31536000; includeSubDomains`) on all serverless API responses.

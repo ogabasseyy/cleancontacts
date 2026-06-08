@@ -36,7 +36,7 @@ export const Hero: React.FC = () => {
                   </div>
 
                   <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500">
-                     <div className="flex -space-x-2" aria-hidden="true" focusable="false">
+                     <div className="flex -space-x-2" aria-hidden="true">
                         {[1, 2, 3, 4].map(i => (
                            <div key={i} className="w-8 h-8 rounded-full border border-dark bg-gray-800"></div>
                         ))}

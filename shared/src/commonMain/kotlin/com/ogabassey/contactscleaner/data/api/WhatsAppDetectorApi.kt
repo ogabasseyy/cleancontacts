@@ -467,14 +467,24 @@ data class PairingResponse(
     val code: String? = null,
     val message: String? = null,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "PairingResponse(success=$success, code=***REDACTED***, message=***REDACTED***, error=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class DisconnectResponse(
     val success: Boolean,
     val message: String? = null,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "DisconnectResponse(success=$success, message=***REDACTED***, error=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class CheckNumbersRequest(
@@ -491,7 +501,12 @@ data class CheckNumbersResponse(
     val success: Boolean,
     val results: List<NumberCheckResult>,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "CheckNumbersResponse(success=$success, results=[***REDACTED (size=${results.size})***], error=***REDACTED***)"
+    }
+}
 
 @Serializable
 data class NumberCheckResult(
@@ -525,7 +540,12 @@ data class BatchCheckResponse(
     val whatsappCount: Int,
     val results: List<NumberCheckResult>,
     val error: String? = null
-)
+) {
+    // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
+    override fun toString(): String {
+        return "BatchCheckResponse(success=$success, total=$total, checked=$checked, whatsappCount=$whatsappCount, results=[***REDACTED (size=${results.size})***], error=***REDACTED***)"
+    }
+}
 
 // WhatsApp Contacts DTOs
 

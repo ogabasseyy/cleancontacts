@@ -84,11 +84,11 @@ class IosContactRepository(
      */
     private fun processContactToEntity(
         contact: Contact,
-        ignoredIds: Set<String>,
+        ignoredIds: Set<Long>,
         whatsAppPhoneNumbers: Set<String> = emptySet()
     ): LocalContact {
         val primaryNumber = contact.numbers.firstOrNull() ?: ""
-        val isIgnored = ignoredIds.contains(contact.id.toString())
+        val isIgnored = ignoredIds.contains(contact.id)
 
         // Sensitive detection
         var isSensitive = false
@@ -224,7 +224,11 @@ class IosContactRepository(
         emit(ScanStatus.Progress(0.20f, "Processing contacts..."))
 
         // 4. Get ignored contacts
-        val ignoredIds = ignoredContactDao.getAllIds().toSet()
+        val ignoredIdsString = ignoredContactDao.getAllIds()
+        val ignoredIds = HashSet<Long>(ignoredIdsString.size)
+        for (i in ignoredIdsString.indices) {
+            ignoredIdsString[i].toLongOrNull()?.let { ignoredIds.add(it) }
+        }
 
         // 5. Process each contact - 2026 Best Practice: Use extracted helper for consistency
         val validatedContacts = withContext(Dispatchers.Default) {
@@ -679,7 +683,11 @@ class IosContactRepository(
             }
 
             // 4. Process contacts using extracted helper
-            val ignoredIds = ignoredContactDao.getAllIds().toSet()
+            val ignoredIdsString = ignoredContactDao.getAllIds()
+            val ignoredIds = HashSet<Long>(ignoredIdsString.size)
+            for (i in ignoredIdsString.indices) {
+                ignoredIdsString[i].toLongOrNull()?.let { ignoredIds.add(it) }
+            }
             val refreshedIds = HashSet<Long>(freshContacts.size)
             val validatedContacts = withContext(Dispatchers.Default) {
                 val resultList = ArrayList<LocalContact>(freshContacts.size)

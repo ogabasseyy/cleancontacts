@@ -336,3 +336,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+
+## 2026-10-18 - Eliminate Implicit String Allocations in Hot Loops
+**Learning:** Using `ignoredIds.contains(contact.id.toString())` inside a tight loop processing thousands of contacts creates a massive amount of temporary `String` objects. This rapidly fills the heap and causes frequent garbage collection pauses, directly hurting application performance.
+**Action:** When performing existence checks against IDs in a loop, pre-parse the reference `Set<String>` into a `Set<Long>` *before* the loop. Then perform primitive `contains(contact.id)` lookups to completely eliminate string allocation overhead within the iteration.

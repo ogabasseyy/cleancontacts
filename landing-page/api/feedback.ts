@@ -70,6 +70,9 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   res.setHeader("Access-Control-Allow-Origin", safeOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
@@ -115,8 +118,14 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   if (message && typeof message === "string" && message.length > 5000) {
     return res.status(400).json({ success: false, error: "Message too long" });
   }
-  if (email && typeof email === "string" && email.length > 254) {
-    return res.status(400).json({ success: false, error: "Email too long" });
+  if (email && typeof email === "string") {
+    if (email.length > 254) {
+      return res.status(400).json({ success: false, error: "Email too long" });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, error: "Invalid email format" });
+    }
   }
   if (deviceInfo && typeof deviceInfo === "string" && deviceInfo.length > 500) {
     return res.status(400).json({ success: false, error: "Device info too long" });

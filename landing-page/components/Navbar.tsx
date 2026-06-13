@@ -100,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
                 Back to Home
              </button>
           )}
-          <a href={APP_STORE_LINK} target="_blank" rel="noopener noreferrer" className="hidden md:flex px-5 py-2 rounded-full bg-white/10 hover:bg-brand hover:text-black border border-white/10 transition-all duration-300 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark">
+          <a href={APP_STORE_LINK} target="_blank" rel="noopener noreferrer" className="hidden md:flex px-5 py-2 rounded-full bg-white/10 hover:bg-brand hover:text-black border border-white/10 transition-all duration-200 active:scale-95 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark">
             Get App
             <span className="sr-only"> (opens in a new tab)</span>
           </a>

@@ -142,7 +142,3 @@
 ## 2026-05-24 - [Hide Collapsed FAQ Answers from Screen Readers]
 **Learning:** CSS-hidden accordions (using max-height and opacity) remain accessible in the accessibility tree, causing screen readers to read collapsed answers. This creates a confusing experience.
 **Action:** Always use `aria-hidden={true/false}` on the content region of CSS-hidden accordions to properly sync the accessibility tree with the visual state.
-## 2024-05-18 - Interactive Call-to-Action Tactile Feedback
-
-**Learning:** While CSS hover states (`hover:bg-brand/20`) indicate interactivity, they don't provide confirmation that a user's click actually registered. This lack of tactile feedback makes primary Call-to-Action buttons (like "Get App" or "Contact Support") feel disconnected and less satisfying.
-**Action:** Always pair `hover` states with `active` states on primary interactive elements. Specifically, apply `transition-all duration-200 active:scale-95` to button-like links to create a subtle "press down" visual affordance, giving users immediate confirmation of their interaction.

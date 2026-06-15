@@ -63,7 +63,7 @@ export const PrivacyCard: React.FC = () => {
               "Improving our AI algorithms for better contact recognition."
             ].map((item, idx) => (
               <li key={idx} className="flex items-start gap-3 text-gray-400">
-                <svg className="h-5 w-5 text-brand mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+                <svg className="h-5 w-5 text-brand mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>{item}</span>
@@ -122,7 +122,7 @@ export const PrivacyCard: React.FC = () => {
             href="mailto:privacy@contactscleaner.tech" 
             className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-brand/10 border border-brand/30 text-brand hover:bg-brand/20 transition-all duration-200 active:scale-95 font-semibold no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" focusable="false">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true" >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             privacy@contactscleaner.tech

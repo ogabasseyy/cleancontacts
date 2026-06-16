@@ -142,3 +142,7 @@
 ## 2026-05-24 - [Hide Collapsed FAQ Answers from Screen Readers]
 **Learning:** CSS-hidden accordions (using max-height and opacity) remain accessible in the accessibility tree, causing screen readers to read collapsed answers. This creates a confusing experience.
 **Action:** Always use `aria-hidden={true/false}` on the content region of CSS-hidden accordions to properly sync the accessibility tree with the visual state.
+
+## 2026-06-16 - Tactile Feedback on Primary Call-to-Action Buttons
+**Learning:** Primary CTA buttons (like "Get App", "Contact Support", "App Store", "Google Play") that lack active states feel unresponsive during click interactions, degrading the perceived performance and micro-UX of the landing page.
+**Action:** Always apply `active:scale-95` and `transition-all duration-200` to primary Call-to-Action buttons to provide consistent, satisfying tactile feedback during click interactions. Ensure `transition-colors` is upgraded to `transition-all` so the scaling animates smoothly.

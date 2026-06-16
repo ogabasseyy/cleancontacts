@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
+import yaml from 'js-yaml';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -162,13 +162,24 @@ function createMarkdownProcessor() {
     .use(rehypeStringify);
 }
 
+function parseFrontmatter(fileContent) {
+  const match = fileContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (match) {
+    return {
+      data: yaml.load(match[1]),
+      content: match[2]
+    };
+  }
+  return { data: {}, content: fileContent };
+}
+
 const processor = createMarkdownProcessor();
 
 // Process all posts
 const allPosts = [];
 for (const file of files) {
   const raw = readFileSync(resolve(blogDir, file), 'utf-8');
-  const { data, content } = matter(raw);
+  const { data, content } = parseFrontmatter(raw);
 
   // Validate required frontmatter
   if (!data.title || !data.slug || !data.date) {

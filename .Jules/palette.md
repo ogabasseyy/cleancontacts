@@ -1,0 +1,3 @@
+## 2024-05-24 - Interactive Hover Elements Accessibility
+**Learning:** Elements that are visually hidden until hover/focus (like "Read article" overlays on blog cards) should NOT have `aria-hidden="true"`. Screen readers rely on the DOM state, not visual hover states. If the element is meant to be read by screen readers when it comes into focus or when the parent card is focused, `aria-hidden="true"` completely removes it from the accessibility tree, breaking the expected interaction cue for screen reader users.
+**Action:** When creating or modifying hover-reveal elements, ensure they remain in the accessibility tree (no `aria-hidden="true"`) and rely on CSS (like `opacity-0`) to manage visual hiding.

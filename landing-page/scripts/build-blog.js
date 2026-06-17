@@ -78,7 +78,7 @@ function buildBlog() {
   const files = fs.readdirSync(blogContentDir).filter(file => file.endsWith('.md'));
 
   const posts = files.map(file => {
-    const slug = file.replace(/\.md$/, '');
+    const slug = file.replace(/\.md$/, '').replace(/[^a-zA-Z0-9-]/g, '');
     const filePath = path.join(blogContentDir, file);
 
     // Instead of gray-matter we use our naive parser to avoid js-yaml vulnerability while keeping the build script working
@@ -176,6 +176,17 @@ function generateRss(posts) {
   console.log('  RSS feed: rss.xml');
 }
 
+function escapeXml(unsafe) {
+    return unsafe.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+        }
+    });
+}
 function generateSitemap(posts) {
   const siteUrl = 'https://contactscleaner.tech';
   const sitemapPath = path.join(publicDir, 'sitemap.xml');
@@ -209,8 +220,8 @@ function generateSitemap(posts) {
     posts.forEach(post => {
       blogUrls += `
   <url>
-    <loc>${siteUrl}/blog/${post.slug}</loc>
-    <lastmod>${post.date}</lastmod>
+    <loc>${siteUrl}/blog/${escapeXml(post.slug)}</loc>
+    <lastmod>${escapeXml(post.date)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`;
@@ -260,8 +271,8 @@ function buildFullSitemap(posts, siteUrl, sitemapPath) {
   posts.forEach(post => {
     sitemap += `
   <url>
-    <loc>${siteUrl}/blog/${post.slug}</loc>
-    <lastmod>${post.date}</lastmod>
+    <loc>${siteUrl}/blog/${escapeXml(post.slug)}</loc>
+    <lastmod>${escapeXml(post.date)}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`;

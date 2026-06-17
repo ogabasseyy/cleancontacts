@@ -344,3 +344,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
 **Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
 **Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.
+
+## 2026-10-18 - Fix CodeQL Code Scanning Warnings
+**Learning:** Naive XML generation using unescaped string variables causes CodeQL scanning to fail due to potential cross-site scripting (XSS) and injection vulnerabilities.
+**Action:** When manually building files like `sitemap.xml`, ensure all interpolated variables (like `slug`, `date`) pass through an explicit `escapeXml` function.

@@ -340,3 +340,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing multi-pass flatMap and filter with single-pass HashSet loops
 **Learning:** Using functional chains like `.flatMap { ... }.filter { ... }` on collections with inner lists creates significant garbage collection overhead due to the intermediate `ArrayList` created by `flatMap`. Additionally, using `HashSet.contains()` followed by `HashSet.add()` creates redundant lookups.
 **Action:** Replace `flatMap`/`filter` chains with a manual, single-pass nested `for` loop using an explicit `ArrayList` and `HashSet`. Use the boolean return value of `HashSet.add()` within the loop to combine existence checking and insertion into a single O(1) operation, avoiding double lookups and intermediate collection allocations.
+
+## 2026-10-18 - Avoid O(N*M) Lookup in Collection Filtering
+**Learning:** Using `.filterNot { item -> collection.any { it.id == item.id } }` creates an O(N*M) bottleneck because the inner collection is scanned for every outer item.
+**Action:** Build an O(1) lookup structure such as a `HashSet` before filtering, and combine that with a pre-sized `ArrayList` loop to cut both CPU cost and intermediate allocations.

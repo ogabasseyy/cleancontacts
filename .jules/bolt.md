@@ -348,3 +348,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Fix CodeQL Code Scanning Warnings
 **Learning:** Naive XML generation using unescaped string variables causes CodeQL scanning to fail due to potential cross-site scripting (XSS) and injection vulnerabilities.
 **Action:** When manually building files like `sitemap.xml`, ensure all interpolated variables (like `slug`, `date`) pass through an explicit `escapeXml` function.
+
+## 2026-10-18 - Fix CodeQL TOCTOU File Warnings
+**Learning:** Using `fs.existsSync(path)` followed by `fs.readFileSync(path)` creates a Time-Of-Check to Time-Of-Use (TOCTOU) vulnerability where the file can change between operations, which triggers CodeQL alerts.
+**Action:** Replace `fs.existsSync` patterns with a `try/catch` block that directly attempts the operation (like `fs.readFileSync`) and handles the `ENOENT` error if the file doesn't exist.

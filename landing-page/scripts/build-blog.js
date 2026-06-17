@@ -191,24 +191,19 @@ function generateSitemap(posts) {
   const siteUrl = 'https://contactscleaner.tech';
   const sitemapPath = path.join(publicDir, 'sitemap.xml');
 
-  // Read existing sitemap if it exists, otherwise create a new one
   let sitemapContent = '';
 
-  if (fs.existsSync(sitemapPath)) {
+  try {
     sitemapContent = fs.readFileSync(sitemapPath, 'utf8');
 
     // Check if blog URLs are already in the sitemap
     if (sitemapContent.includes('/blog/')) {
-      // Very naive approach: rebuild the whole sitemap if we need to update it
-      // For a real app, you'd want a more robust XML parser/builder
       buildFullSitemap(posts, siteUrl, sitemapPath);
       return;
     }
 
-    // If not, insert them before the closing urlset tag
     let blogUrls = '';
 
-    // Add blog index
     blogUrls += `
   <url>
     <loc>${siteUrl}/blog</loc>
@@ -216,7 +211,6 @@ function generateSitemap(posts) {
     <priority>0.8</priority>
   </url>`;
 
-    // Add individual posts
     posts.forEach(post => {
       blogUrls += `
   <url>
@@ -229,8 +223,12 @@ function generateSitemap(posts) {
 
     sitemapContent = sitemapContent.replace('</urlset>', `${blogUrls}\n</urlset>`);
     fs.writeFileSync(sitemapPath, sitemapContent);
-  } else {
-    buildFullSitemap(posts, siteUrl, sitemapPath);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      buildFullSitemap(posts, siteUrl, sitemapPath);
+    } else {
+      throw err;
+    }
   }
 
   console.log('  Sitemap updated with blog URLs');

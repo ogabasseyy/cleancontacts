@@ -336,3 +336,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+
+## 2026-06-18 - Replacing functional chains with single-pass iterator loops
+**Learning:** In `CrossAccountViewModel.kt`, processing nested structures using chained functional operations like `_crossAccountContacts.value.flatMap { it.accounts }.filter { ... }` creates unnecessary intermediate lists and traverses the collection multiple times, forcing the garbage collector to work harder.
+**Action:** Replace multi-pass functional chains (.flatMap.filter) with a single-pass nested loop utilizing standard iterators (`for (contact in crossAccounts)`) combined with `ArrayList` and `HashSet`. Always use `HashSet.add(key)` to combine existence check and insertion into a single O(1) operation.

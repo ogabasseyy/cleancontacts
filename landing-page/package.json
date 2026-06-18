@@ -10,11 +10,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dompurify": "^3.4.1",
+    "@babel/core": "7.29.6",
+    "dompurify": "^3.4.9",
+    "js-yaml": "4.2.0",
     "picomatch": "^4.0.4",
     "postcss": "8.5.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "react-router": "7.15.1",
     "react-router-dom": "^7.1.0"
   },
   "devDependencies": {
@@ -37,6 +40,6 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "unified": "^11.0.5",
-    "vite": "^6.4.2"
+    "vite": "^6.4.3"
   }
 }

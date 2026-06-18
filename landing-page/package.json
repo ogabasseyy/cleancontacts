@@ -44,6 +44,11 @@
     "unified": "^11.0.5",
     "vite": "^6.4.3"
   },
+  "overrides": {
+    "gray-matter": {
+      "js-yaml": "^4.2.0"
+    }
+  },
   "pnpm": {
     "overrides": {
       "js-yaml": "^4.2.0"

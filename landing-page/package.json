@@ -9,9 +9,6 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
-  "overrides": {
-    "js-yaml": "^4.2.0"
-  },
   "dependencies": {
     "dompurify": "^3.4.11",
     "picomatch": "^4.0.4",
@@ -28,7 +25,7 @@
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^4.2.0",
+    "js-yaml": "^3.14.2",
     "picomatch": "^4.0.4",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",
@@ -44,5 +41,8 @@
     "typescript": "~5.8.2",
     "unified": "^11.0.5",
     "vite": "^8.0.16"
+  },
+  "overrides": {
+    "js-yaml": "^3.14.2"
   }
 }

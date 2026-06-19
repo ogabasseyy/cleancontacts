@@ -142,3 +142,6 @@
 ## 2026-05-24 - [Hide Collapsed FAQ Answers from Screen Readers]
 **Learning:** CSS-hidden accordions (using max-height and opacity) remain accessible in the accessibility tree, causing screen readers to read collapsed answers. This creates a confusing experience.
 **Action:** Always use `aria-hidden={true/false}` on the content region of CSS-hidden accordions to properly sync the accessibility tree with the visual state.
+## 2025-03-05 - Consistent Tactile Feedback on CTAs
+**Learning:** Adding a subtle scale-down effect (`active:scale-95`) along with `transition-all duration-200` to primary Call-to-Action buttons provides a much more satisfying and responsive tactile feel during click interactions, significantly enhancing the perceived quality of the UI compared to simple color transitions. When implementing this, existing `transition-colors` classes must be replaced with `transition-all` so the transform animates smoothly.
+**Action:** When adding or auditing primary CTA buttons in the React/Tailwind design system, ensure they include `transition-all duration-200 active:scale-95` to maintain consistent tactile interaction feedback across the application.

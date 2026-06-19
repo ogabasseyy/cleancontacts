@@ -9,6 +9,12 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
+  "overrides": {
+    "gray-matter": {
+      "js-yaml": "^3.14.2"
+    },
+    "js-yaml": "^4.2.0"
+  },
   "dependencies": {
     "dompurify": "^3.4.11",
     "picomatch": "^4.0.4",

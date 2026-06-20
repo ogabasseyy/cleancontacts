@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-18 - Replacing gray-matter with vfile-matter for js-yaml v4
+
+**Learning:** `gray-matter` depends on `js-yaml` v3 and explicitly calls `yaml.safeLoad()`. Upgrading `js-yaml` to v4 (which removes `safeLoad`) breaks `gray-matter`.
+**Action:** When a vulnerability scanner flags `js-yaml` due to `gray-matter`, replace `gray-matter` entirely with `vfile` and `vfile-matter` to safely parse Markdown frontmatter while allowing a secure `js-yaml` v4 installation.

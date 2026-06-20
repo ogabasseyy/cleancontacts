@@ -10,7 +10,8 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
+import { VFile } from "vfile";
+import { matter } from "vfile-matter";
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -168,7 +169,10 @@ const processor = createMarkdownProcessor();
 const allPosts = [];
 for (const file of files) {
   const raw = readFileSync(resolve(blogDir, file), 'utf-8');
-  const { data, content } = matter(raw);
+  const vfile = new VFile(raw);
+  matter(vfile, { strip: true });
+  const data = vfile.data.matter || {};
+  const content = String(vfile);
 
   // Validate required frontmatter
   if (!data.title || !data.slug || !data.date) {

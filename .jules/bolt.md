@@ -336,3 +336,26 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+
+## 2026-10-18 - Replacing Object Type Lookups in Hot Loops
+
+**Learning:** During large-scale database processing, lookups into a `Set<String>` where the lookup key must be converted via `.toString()` inside the loop (e.g., `ignoredIds.contains(contact.id.toString())`) creates significant intermediate memory allocations and invokes garbage collection overhead.
+**Action:** When performing `contains()` checks against primitive variables using reference type collections (e.g., `Set<String>`), always pre-parse the collection to match the primitive type (e.g., `Set<Long>`) *outside* the loop. Use explicit parsing and mapping into a `HashSet<Long>` before iterating over the data to prevent `.toString()` allocations within the hot loop.
+
+```kotlin
+// ❌ Avoid: .toString() object allocation inside loop
+val ignoredIds: Set<String> = dao.getAllIds().toSet()
+for (contact in batch) {
+    if (ignoredIds.contains(contact.id.toString())) { ... }
+}
+
+// ✅ Prefer: Pre-parsing outside the loop into a primitive Set
+val ignoredStrings = dao.getAllIds()
+val ignoredIds = HashSet<Long>(ignoredStrings.size)
+for (i in ignoredStrings.indices) {
+    ignoredStrings[i].toLongOrNull()?.let { ignoredIds.add(it) }
+}
+for (contact in batch) {
+    if (ignoredIds.contains(contact.id)) { ... }
+}
+```

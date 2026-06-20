@@ -70,11 +70,11 @@ class ContactRepositoryImpl constructor(
      */
     private fun processContactToEntity(
         contact: Contact,
-        ignoredIds: Set<String>
+        ignoredIds: Set<Long>
     ): LocalContact {
         val numbers = contact.numbers
         val primaryNumber = numbers.firstOrNull() ?: ""
-        val isIgnored = ignoredIds.contains(contact.id.toString())
+        val isIgnored = ignoredIds.contains(contact.id)
 
         // Run Sensitive Data Detection (Safety Net)
         var isSensitive = false
@@ -225,7 +225,12 @@ class ContactRepositoryImpl constructor(
         }
 
         // 3. Stream Process
-        val ignoredIds = ignoredContactDao.getAllIds().toSet()
+        val ignoredIdsStrings = ignoredContactDao.getAllIds()
+        val ignoredIds = HashSet<Long>(ignoredIdsStrings.size)
+        for (i in ignoredIdsStrings.indices) {
+            val parsed = ignoredIdsStrings[i].toLongOrNull()
+            if (parsed != null) ignoredIds.add(parsed)
+        }
         var processedCount = 0
 
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
@@ -905,7 +910,12 @@ class ContactRepositoryImpl constructor(
             val freshContacts = contactsProviderSource.getContactsSnapshot(ids, whatsAppIds, telegramIds)
 
             // 2. Process contacts using extracted helper (2026 Best Practice: DRY)
-            val ignoredIds = ignoredContactDao.getAllIds().toSet()
+            val ignoredIdsStrings = ignoredContactDao.getAllIds()
+            val ignoredIds = HashSet<Long>(ignoredIdsStrings.size)
+            for (i in ignoredIdsStrings.indices) {
+                val parsed = ignoredIdsStrings[i].toLongOrNull()
+                if (parsed != null) ignoredIds.add(parsed)
+            }
             val refreshedEntities = freshContacts.map { contact ->
                 processContactToEntity(contact, ignoredIds)
             }

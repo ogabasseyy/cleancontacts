@@ -1,0 +1,3 @@
+## 2025-06-20 - Tactile Feedback for Primary CTAs
+**Learning:** Call-to-action buttons lacking physical click feedback (`active:scale-95`) feel unresponsive, especially when compared to the tactile nature of mobile apps. Replacing `transition-colors` with `transition-all duration-200 active:scale-95` on primary buttons bridges this gap and provides a much more engaging and cohesive web experience that mirrors native app interactions.
+**Action:** When auditing or implementing primary buttons and links styled as buttons, always ensure they use `transition-all duration-200 active:scale-95` instead of just `transition-colors` to guarantee consistent tactile feedback upon interaction.

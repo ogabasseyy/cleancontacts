@@ -7,15 +7,16 @@
     "dev": "vite",
     "build": "node scripts/build-blog.js && vite build && node scripts/prerender.js",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "node postinstall.cjs"
   },
   "dependencies": {
-    "dompurify": "^3.4.1",
+    "dompurify": "^3.4.11",
     "picomatch": "^4.0.4",
     "postcss": "8.5.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.1.0"
+    "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -37,6 +38,12 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "unified": "^11.0.5",
-    "vite": "^6.4.2"
+    "vite": "^6.4.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml": "4.2.0",
+      "@babel/core": "7.29.6"
+    }
   }
 }

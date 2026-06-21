@@ -1,23 +1,18 @@
 const fs = require('fs');
-const path = require('path');
 
-const allowedDirs = [
-  path.join(__dirname, 'node_modules', '.pnpm', 'gray-matter@4.0.3', 'node_modules', 'gray-matter', 'lib'),
-  path.join(__dirname, 'node_modules', 'gray-matter', 'lib')
-];
+const path1 = __dirname + '/node_modules/.pnpm/gray-matter@4.0.3/node_modules/gray-matter/lib/engines.js';
+const path2 = __dirname + '/node_modules/gray-matter/lib/engines.js';
 
-const files = [
-  path.join(allowedDirs[0], 'engines.js'),
-  path.join(allowedDirs[1], 'engines.js')
-];
-
-files.forEach(file => {
-  // Check if file is within expected directory to prevent path traversal
-  const isAllowed = allowedDirs.some(dir => file.startsWith(dir));
-  if (isAllowed && fs.existsSync(file)) {
-    let content = fs.readFileSync(file, 'utf8');
+if (fs.existsSync(path1)) {
+    let content = fs.readFileSync(path1, 'utf8');
     content = content.replace('yaml.safeLoad.bind(yaml)', '(yaml.load || yaml.safeLoad).bind(yaml)');
     content = content.replace('yaml.safeDump.bind(yaml)', '(yaml.dump || yaml.safeDump).bind(yaml)');
-    fs.writeFileSync(file, content);
-  }
-});
+    fs.writeFileSync(path1, content);
+}
+
+if (fs.existsSync(path2)) {
+    let content = fs.readFileSync(path2, 'utf8');
+    content = content.replace('yaml.safeLoad.bind(yaml)', '(yaml.load || yaml.safeLoad).bind(yaml)');
+    content = content.replace('yaml.safeDump.bind(yaml)', '(yaml.dump || yaml.safeDump).bind(yaml)');
+    fs.writeFileSync(path2, content);
+}

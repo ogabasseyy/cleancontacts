@@ -6,7 +6,6 @@ settings:
 
 overrides:
   js-yaml: 4.2.0
-  '@babel/core': 7.29.6
 
 importers:
 
@@ -31,6 +30,9 @@ importers:
         specifier: ^7.18.0
         version: 7.18.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     devDependencies:
+      '@babel/core':
+        specifier: 7.29.6
+        version: 7.29.6
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.2.2)
@@ -123,7 +125,7 @@ packages:
     resolution: {integrity: sha512-67oXFAYr2cDLDVGLXTEABjdBJZ6drElUSI7WKp70NrpyISso3plG9SAGEF6y7zbha/wOzUByWWTJvEDVNIUGcA==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
-      '@babel/core': 7.29.6
+      '@babel/core': ^7.0.0
 
   '@babel/helper-plugin-utils@7.28.6':
     resolution: {integrity: sha512-S9gzZ/bz83GRysI7gAD4wPT/AI3uCnY+9xn+Mx/KPs2JwHJIz1W8PZkg2cqyt3RNOBM8ejcXhV6y8Og7ly/Dug==}
@@ -167,13 +169,13 @@ packages:
     resolution: {integrity: sha512-6UzkCs+ejGdZ5mFFC/OCUrv028ab2fp1znZmCZjAOBKiBK2jXD1O+BPSfX8X2qjJ75fZBMSnQn3Rq2mrBJK2mw==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
-      '@babel/core': 7.29.6
+      '@babel/core': ^7.0.0-0
 
   '@babel/plugin-transform-react-jsx-source@7.27.1':
     resolution: {integrity: sha512-zbwoTsBruTeKB9hSq73ha66iFeJHuaFkUbwvqElnygoNbj/jHRsSeokowZFN3CZ64IvEqcmmkVe89OPXc7ldAw==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
-      '@babel/core': 7.29.6
+      '@babel/core': ^7.0.0-0
 
   '@babel/template@7.28.6':
     resolution: {integrity: sha512-YA6Ma2KsCdGb+WC6UpBVFJGXL58MDA6oyONbjyF/+5sBgxY/dwkhLogbMT2GXXyU84/IhRw/2D1Os1B/giz+BQ==}

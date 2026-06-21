@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "node scripts/build-blog.js && vite build && node scripts/prerender.js",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
-    "postinstall": "node postinstall.cjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "dompurify": "^3.4.11",
@@ -19,6 +18,7 @@
     "react-router-dom": "^7.18.0"
   },
   "devDependencies": {
+    "@babel/core": "7.29.6",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^22.14.0",
@@ -42,8 +42,7 @@
   },
   "pnpm": {
     "overrides": {
-      "js-yaml": "4.2.0",
-      "@babel/core": "7.29.6"
+      "js-yaml": "4.2.0"
     }
   }
 }

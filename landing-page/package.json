@@ -23,7 +23,6 @@
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "gray-matter": "^4.0.3",
     "picomatch": "^4.0.4",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",
@@ -38,7 +37,8 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "unified": "^11.0.5",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "yaml-front-matter": "^4.1.1"
   },
   "pnpm": {
     "overrides": {

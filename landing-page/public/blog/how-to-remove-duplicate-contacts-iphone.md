@@ -1,4 +1,5 @@
 
+
 # How to Remove Duplicate Contacts on iPhone & Android (2026 Guide)
 
 If you've been using your phone for a while, chances are your contact list is full of duplicates. Maybe you synced Google and iCloud, imported contacts from a SIM card, or merged accounts from different devices. The result? Multiple entries for the same person, outdated numbers, and a bloated address book.

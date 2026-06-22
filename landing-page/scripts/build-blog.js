@@ -10,7 +10,8 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
+import pkg from 'yaml-front-matter';
+const { loadFront } = pkg;
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -168,7 +169,7 @@ const processor = createMarkdownProcessor();
 const allPosts = [];
 for (const file of files) {
   const raw = readFileSync(resolve(blogDir, file), 'utf-8');
-  const { data, content } = matter(raw);
+  const { __content: content, ...data } = loadFront(raw);
 
   // Validate required frontmatter
   if (!data.title || !data.slug || !data.date) {

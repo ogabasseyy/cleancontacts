@@ -1,4 +1,5 @@
 
+
 # How to Clean Up Google Contacts: The Complete Guide
 
 Google Contacts is the default address book for over 2 billion Android users and anyone with a Gmail account. Over time, it collects contacts from emails, calendar invitations, Google Meet calls, and manual entries — creating a cluttered mess of duplicates, outdated entries, and contacts you don't recognize.

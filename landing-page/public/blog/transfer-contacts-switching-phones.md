@@ -1,4 +1,5 @@
 
+
 # How to Transfer Contacts When Switching Phones (Without Losing Any)
 
 Switching to a new phone should be exciting — not stressful. But for most people, the #1 anxiety about switching phones is losing contacts. Whether you're going from Android to iPhone, iPhone to Android, or upgrading within the same platform, this guide covers every method and the critical step most guides skip.

@@ -24,7 +24,6 @@
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^5.0.0",
     "picomatch": "^4.0.4",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",

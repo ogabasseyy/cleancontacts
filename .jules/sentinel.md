@@ -99,3 +99,8 @@
 **Vulnerability:** Several high/moderate vulnerabilities in `landing-page` packages (`react-router`, `vite`, `dompurify`, `js-yaml`, `@babel/core`).
 **Learning:** Upgrading `react` and `react-dom` introduced a typecheck failure on `focusable="false"` attributes applied to standard `<div>` and `<svg>` elements because `react@19` strictly rejects it on certain non-SVG intrinsic types.
 **Prevention:** Avoid non-standard DOM properties on HTML tags unless required. Always run `pnpm run typecheck` after dependency bumps to catch typing strictness changes.
+
+## 2025-06-23 - Handle Nested js-yaml Vulnerability
+**Vulnerability:** `js-yaml` (v3.14.2) used internally by `gray-matter` has a moderate severity DoS vulnerability (GHSA-h67p-54hq-rp68).
+**Learning:** Forcing a dependency override (`pkg.overrides`) of `js-yaml` to v4 in this project breaks the `gray-matter` build step because it relies on the deprecated `yaml.safeLoad` method which was removed in `js-yaml@4`. Attempting to add `js-yaml@4` as a devDependency without overrides does not fix the nested vulnerability.
+**Prevention:** Rather than causing the build to fail or creating an unstable build environment, use `.osv-scanner.toml` to explicitly ignore vulnerabilities that have unfixable breaking downstream effects.

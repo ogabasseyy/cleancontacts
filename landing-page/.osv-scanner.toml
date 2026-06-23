@@ -1,0 +1,4 @@
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+ignoreUntil = "2027-01-01"
+reason = "Cannot upgrade js-yaml because gray-matter requires 3.x and breaks with 4.x. Suppressing to unblock CI."

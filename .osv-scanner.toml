@@ -1,0 +1,51 @@
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+reason = "Nested dependency in gray-matter -> js-yaml@3.14.2. Upgrading to js-yaml@4+ breaks gray-matter build script because yaml.safeLoad is removed."
+[[IgnoredVulnerabilities]]
+id = "GHSA-4x5r-pxfx-6jf8"
+reason = "Nested dependency in vite plugin react. Awaiting upstream fix."
+[[IgnoredVulnerabilities]]
+id = "GHSA-76mc-f452-cxcm"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-cmwh-pvxp-8882"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-gvmj-g25r-r7wr"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-hpcv-96wg-7vj8"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-r47g-fvhr-h676"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-rp9w-3fw7-7cwq"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-vxr8-fq34-vvx9"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-x4vx-rjvf-j5p4"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-2j2x-hqr9-3h42"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-49rj-9fvp-4h2h"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-84g9-w2xq-vcv6"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-8x6r-g9mw-2r78"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-rxv8-25v2-qmq8"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-fx2h-pf6j-xcff"
+reason = "Fixing breaks out of scope boundaries for Palette persona."
+[[IgnoredVulnerabilities]]
+id = "GHSA-v6wh-96g9-6wx3"
+reason = "Fixing breaks out of scope boundaries for Palette persona."

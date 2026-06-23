@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2025-06-23 - Update Dependencies and Fix React Focusable Errors
+**Vulnerability:** Several high/moderate vulnerabilities in `landing-page` packages (`react-router`, `vite`, `dompurify`, `js-yaml`, `@babel/core`).
+**Learning:** Upgrading `react` and `react-dom` introduced a typecheck failure on `focusable="false"` attributes applied to standard `<div>` and `<svg>` elements because `react@19` strictly rejects it on certain non-SVG intrinsic types.
+**Prevention:** Avoid non-standard DOM properties on HTML tags unless required. Always run `pnpm run typecheck` after dependency bumps to catch typing strictness changes.

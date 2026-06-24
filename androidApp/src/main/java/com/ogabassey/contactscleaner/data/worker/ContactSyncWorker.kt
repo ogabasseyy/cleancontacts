@@ -29,34 +29,47 @@ class ContactSyncWorker(
         try {
             val systemContacts = contactsSource.getAllContacts() // This is the slow part for 58k
             
-            // Convert to LocalContact entities
-            val entities = systemContacts.map { contact ->
+            // ⚡ Bolt Optimization: Replace .map and .chunked with a single-pass indexed loop
+            // to eliminate multiple large ArrayList allocations for potentially 50k+ contacts.
+            // Also extract System.currentTimeMillis() outside the loop.
+            val currentTime = System.currentTimeMillis()
+            val batch = ArrayList<LocalContact>(1000)
+
+            for (i in systemContacts.indices) {
+                val contact = systemContacts[i]
                 val junkReason = junkDetector.getJunkReason(contact.name, contact.numbers.firstOrNull())
-                LocalContact(
-                    id = contact.id,
-                    displayName = contact.name,
-                    normalizedNumber = contact.normalizedNumber,
-                    rawNumbers = contact.numbers.joinToString(","),
-                    rawEmails = contact.emails.joinToString(","),
-                    isWhatsApp = contact.isWhatsApp,
-                    isTelegram = contact.isTelegram,
-                    isJunk = junkReason != null,
-                    junkType = junkReason,
-                    duplicateType = null,
-                    isFormatIssue = false, // Simplified for SyncWorker, ideally logic should be shared
-                    accountType = contact.accountType,
-                    accountName = contact.accountName,
-                    detectedRegion = null, // SyncWorker doesn't run full analysis
-                    lastSynced = System.currentTimeMillis()
+                batch.add(
+                    LocalContact(
+                        id = contact.id,
+                        displayName = contact.name,
+                        normalizedNumber = contact.normalizedNumber,
+                        rawNumbers = contact.numbers.joinToString(","),
+                        rawEmails = contact.emails.joinToString(","),
+                        isWhatsApp = contact.isWhatsApp,
+                        isTelegram = contact.isTelegram,
+                        isJunk = junkReason != null,
+                        junkType = junkReason,
+                        duplicateType = null,
+                        isFormatIssue = false, // Simplified for SyncWorker, ideally logic should be shared
+                        accountType = contact.accountType,
+                        accountName = contact.accountName,
+                        detectedRegion = null, // SyncWorker doesn't run full analysis
+                        lastSynced = currentTime
+                    )
                 )
+
+                if (batch.size >= 1000) {
+                    contactDao.insertContacts(batch)
+                    batch.clear()
+                }
             }
 
-            // Batch insert to Room
-            entities.chunked(1000).forEach { batch ->
+            // Insert any remaining contacts
+            if (batch.isNotEmpty()) {
                 contactDao.insertContacts(batch)
             }
 
-            Logger.d("ContactSyncWorker", "Sync complete. Indexed ${entities.size} contacts.")
+            Logger.d("ContactSyncWorker", "Sync complete. Indexed ${systemContacts.size} contacts.")
             Result.success()
         } catch (e: SecurityException) {
             // 2026 Best Practice: Permanent failure - missing permissions, don't retry

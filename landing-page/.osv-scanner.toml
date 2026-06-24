@@ -1,7 +1,7 @@
-[[IgnoredVulnerabilities]]
+[[IgnoredVulns]]
 id = "GHSA-h67p-54hq-rp68"
 reason = "js-yaml 3.14.2 is required by gray-matter which breaks when upgrading js-yaml to v4. Upgrading js-yaml manually breaks the build."
 
-[[IgnoredVulnerabilities]]
+[[IgnoredVulns]]
 id = "GHSA-4x5r-pxfx-6jf8"
 reason = "The @babel/core vulnerability is a low severity issue in devDependencies that cannot be directly bumped without overriding nested plugins and potentially breaking Vite plugin react."

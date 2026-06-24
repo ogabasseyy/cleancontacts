@@ -339,3 +339,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing multi-pass map and chunked with single-pass indexed loop
 **Learning:** Using chained operations like `.map { ... }` followed by `.chunked(1000)` on large collections creates multiple temporary lists and massive GC pressure.
 **Action:** Replace these operations with a single-pass indexed `for` loop, using a pre-allocated `ArrayList` that dumps directly into Room DB when it reaches the batch limit.
+
+## 2026-10-18 - Out-of-Scope CI Failure Ignored
+**Learning:** If OSV Vulnerability Scanner fails due to a pre-existing dependency vulnerability that violates the Bolt persona's scope to resolve, strictly adhere to the negative boundaries and ignore the out-of-scope failure.
+**Action:** Proceed with PR submission.

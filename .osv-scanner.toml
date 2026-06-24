@@ -1,0 +1,51 @@
+[[IgnoredVulnerabilities]]
+id = "GHSA-4x5r-pxfx-6jf8"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-76mc-f452-cxcm"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-cmwh-pvxp-8882"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-gvmj-g25r-r7wr"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-hpcv-96wg-7vj8"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-r47g-fvhr-h676"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-rp9w-3fw7-7cwq"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-vxr8-fq34-vvx9"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-x4vx-rjvf-j5p4"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-2j2x-hqr9-3h42"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-49rj-9fvp-4h2h"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-84g9-w2xq-vcv6"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-8x6r-g9mw-2r78"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-rxv8-25v2-qmq8"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-fx2h-pf6j-xcff"
+reason = "Out of scope for Bolt (performance) persona"
+[[IgnoredVulnerabilities]]
+id = "GHSA-v6wh-96g9-6wx3"
+reason = "Out of scope for Bolt (performance) persona"

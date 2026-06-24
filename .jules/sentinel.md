@@ -94,3 +94,7 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+## 2026-06-24 - Vulnerable Dependencies
+**Vulnerability:** Several dependencies (`react-router`, `vite`, `dompurify`) were flagged by `pnpm audit` for high and critical severity vulnerabilities, including potential XSS, CSRF, DoS, and Unauth RCE risks.
+**Learning:** Outdated dependencies in the web frontend can introduce severe risks into the application.
+**Prevention:** Regularly audit and update dependencies, particularly web frameworks and sanitization libraries. Keep node modules up to date using `pnpm audit`.

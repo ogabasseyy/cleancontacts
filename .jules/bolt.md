@@ -339,3 +339,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing chained flatMap and filter with single-pass loop
 **Learning:** In view models handling large collections (e.g., `getAllUniqueAccounts` combining accounts from cross-account contacts), chaining `.flatMap { ... }.filter { ... }` creates multiple intermediate collections (`ArrayList` for flatMap and another list for filter) and traverses the data multiple times, which adds unnecessary overhead.
 **Action:** Replace `flatMap` and `filter` chains with a single-pass nested loop using a pre-allocated `HashSet` (for unique tracking) and an `ArrayList` (to collect results) to avoid temporary collection allocations entirely.
+
+## 2026-10-18 - Replacing mapNotNull with single-pass ArrayList loop in batch processing
+**Learning:** Using functional chains like `mapNotNull { ... }` inside a batch processing loop (such as WhatsApp count recalculations) creates implicit collection allocations on every iteration. In paths running over tens of thousands of items, this creates significant GC pauses.
+**Action:** Replace `.mapNotNull {}` calls with pre-allocated `ArrayList` instances and indexed `for` loops (`for (i in batch.indices) { ... results.add(...) }`) to eliminate multiple allocations and iterator overhead.

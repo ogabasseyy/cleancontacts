@@ -889,7 +889,12 @@ class IosContactRepository(
                 if (batch.isEmpty()) break
 
                 // Process batch
-                val updatedContacts = batch.mapNotNull { contact ->
+                // ⚡ Bolt Optimization: Replaced chained .mapNotNull with a single-pass indexed loop
+                // and a pre-allocated ArrayList to prevent dynamic resizing and eliminate iterator allocation
+                // during high-frequency batch processing operations.
+                val updatedContacts = ArrayList<com.ogabassey.contactscleaner.data.db.entity.LocalContact>(batch.size)
+                for (i in batch.indices) {
+                    val contact = batch[i]
                     val numbers = contact.rawNumbers.splitAndFilterNotBlank(',')
                     val isOnWhatsApp = numbers.any { num ->
                         val normalized = num.extractDigits()
@@ -898,9 +903,7 @@ class IosContactRepository(
 
                     // Only update if flag changed
                     if (contact.isWhatsApp != isOnWhatsApp) {
-                        contact.copy(isWhatsApp = isOnWhatsApp)
-                    } else {
-                        null
+                        updatedContacts.add(contact.copy(isWhatsApp = isOnWhatsApp))
                     }
                 }
 

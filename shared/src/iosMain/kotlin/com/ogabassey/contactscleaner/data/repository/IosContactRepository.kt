@@ -84,11 +84,11 @@ class IosContactRepository(
      */
     private fun processContactToEntity(
         contact: Contact,
-        ignoredIds: Set<String>,
+        ignoredIds: Set<Long>,
         whatsAppPhoneNumbers: Set<String> = emptySet()
     ): LocalContact {
         val primaryNumber = contact.numbers.firstOrNull() ?: ""
-        val isIgnored = ignoredIds.contains(contact.id.toString())
+        val isIgnored = ignoredIds.contains(contact.id)
 
         // Sensitive detection
         var isSensitive = false
@@ -224,7 +224,12 @@ class IosContactRepository(
         emit(ScanStatus.Progress(0.20f, "Processing contacts..."))
 
         // 4. Get ignored contacts
-        val ignoredIds = ignoredContactDao.getAllIds().toSet()
+        val ignoredIdsStrings = ignoredContactDao.getAllIds()
+        val ignoredIds = HashSet<Long>(ignoredIdsStrings.size)
+        for (i in ignoredIdsStrings.indices) {
+            val parsed = ignoredIdsStrings[i].toLongOrNull()
+            if (parsed != null) ignoredIds.add(parsed)
+        }
 
         // 5. Process each contact - 2026 Best Practice: Use extracted helper for consistency
         val validatedContacts = withContext(Dispatchers.Default) {
@@ -679,7 +684,12 @@ class IosContactRepository(
             }
 
             // 4. Process contacts using extracted helper
-            val ignoredIds = ignoredContactDao.getAllIds().toSet()
+            val ignoredIdsStrings = ignoredContactDao.getAllIds()
+            val ignoredIds = HashSet<Long>(ignoredIdsStrings.size)
+            for (i in ignoredIdsStrings.indices) {
+                val parsed = ignoredIdsStrings[i].toLongOrNull()
+                if (parsed != null) ignoredIds.add(parsed)
+            }
             val refreshedIds = HashSet<Long>(freshContacts.size)
             val validatedContacts = withContext(Dispatchers.Default) {
                 val resultList = ArrayList<LocalContact>(freshContacts.size)
@@ -889,18 +899,24 @@ class IosContactRepository(
                 if (batch.isEmpty()) break
 
                 // Process batch
-                val updatedContacts = batch.mapNotNull { contact ->
+                val updatedContacts = ArrayList<LocalContact>(batch.size)
+                for (i in batch.indices) {
+                    val contact = batch[i]
                     val numbers = contact.rawNumbers.splitAndFilterNotBlank(',')
-                    val isOnWhatsApp = numbers.any { num ->
+                    var isOnWhatsApp = false
+
+                    for (j in numbers.indices) {
+                        val num = numbers[j]
                         val normalized = num.extractDigits()
-                        cachedNumbers.contains(normalized)
+                        if (cachedNumbers.contains(normalized)) {
+                            isOnWhatsApp = true
+                            break
+                        }
                     }
 
                     // Only update if flag changed
                     if (contact.isWhatsApp != isOnWhatsApp) {
-                        contact.copy(isWhatsApp = isOnWhatsApp)
-                    } else {
-                        null
+                        updatedContacts.add(contact.copy(isWhatsApp = isOnWhatsApp))
                     }
                 }
 

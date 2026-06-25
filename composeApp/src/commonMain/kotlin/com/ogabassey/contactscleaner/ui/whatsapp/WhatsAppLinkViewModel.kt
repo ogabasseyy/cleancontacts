@@ -7,6 +7,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ogabassey.contactscleaner.data.api.PairingEvent
+import com.ogabassey.contactscleaner.domain.repository.ContactRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
 import com.russhwolf.settings.Settings
@@ -60,7 +61,8 @@ sealed interface SyncState {
  */
 class WhatsAppLinkViewModel(
     private val whatsAppRepository: WhatsAppDetectorRepository,
-    private val settings: Settings
+    private val settings: Settings,
+    private val contactRepository: ContactRepository
 ) : ViewModel() {
 
     // 2026 Best Practice: Start with NotLinked to avoid spinner flash on screen open
@@ -110,12 +112,27 @@ class WhatsAppLinkViewModel(
                 val status = whatsAppRepository.getSessionStatus(deviceId)
                 if (status.connected) {
                     _state.update { WhatsAppLinkState.Connected }
+                    restoreCacheStateOrSync()
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 // Silently fail - stay on current state
             }
+        }
+    }
+
+    private suspend fun restoreCacheStateOrSync() {
+        val meta = whatsAppRepository.getCacheMeta()
+        if (meta != null && whatsAppRepository.isCacheValid()) {
+            contactRepository.recalculateWhatsAppCounts()
+            _syncState.value = SyncState.Complete(
+                totalCount = meta.totalCount,
+                businessCount = meta.businessCount,
+                personalCount = meta.personalCount
+            )
+        } else {
+            startWhatsAppSync()
         }
     }
 
@@ -302,6 +319,7 @@ class WhatsAppLinkViewModel(
                             )
                         }
                         is WhatsAppSyncProgress.Complete -> {
+                            contactRepository.recalculateWhatsAppCounts()
                             _syncState.value = SyncState.Complete(
                                 totalCount = progress.totalCount,
                                 businessCount = progress.businessCount,

@@ -52,8 +52,6 @@ import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkState
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkViewModel
 import com.ogabassey.contactscleaner.ui.whatsapp.SyncState
 import com.ogabassey.contactscleaner.util.formatWithCommas
-import com.ogabassey.contactscleaner.util.isAndroid
-import com.ogabassey.contactscleaner.util.isIOS
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
@@ -92,21 +90,16 @@ fun ResultsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshProgress by viewModel.refreshProgress.collectAsState()
 
-    // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
-    val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
-    val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
-    val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
+    val whatsAppViewModel: WhatsAppLinkViewModel = koinViewModel()
+    val whatsAppState = whatsAppViewModel.state.collectAsState().value
+    val syncState = whatsAppViewModel.syncState.collectAsState().value
 
     // 2026 Best Practice: Track retry state for immediate UI feedback
     var isRetryingSync by remember { mutableStateOf(false) }
 
-    // Recalculate WhatsApp counts when sync completes, and clear retry state on any state change
+    // Clear retry state when sync changes; recalculation is handled by WhatsAppLinkViewModel.
     LaunchedEffect(syncState) {
-        // Clear retry flag when state changes (sync started, completed, or new error)
         isRetryingSync = false
-        if (syncState is SyncState.Complete) {
-            viewModel.recalculateWhatsAppCounts()
-        }
     }
 
     var showAccountDialog by remember { mutableStateOf(false) }
@@ -403,125 +396,87 @@ fun ResultsScreen(
                             )
                         }
 
-                        // Platform-specific WhatsApp display
-                        if (isAndroid) {
-                            // Android: Show native WhatsApp counts (detected via account_type)
-                            if (scanResult.whatsAppCount > 0) {
+                        when (whatsAppState) {
+                            is WhatsAppLinkState.Connected -> {
                                 item {
-                                    StatCard(
-                                        title = "WhatsApp",
-                                        count = scanResult.whatsAppCount,
-                                        icon = Icons.Default.Email,
-                                        color = PrimaryNeon,
-                                        onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                    WhatsAppContactsCard(
+                                        onViewContacts = onNavigateToWhatsAppContacts
                                     )
                                 }
-                            }
 
-                            // Non-WhatsApp Contacts (Android only - native detection)
-                            if (scanResult.nonWhatsAppCount > 0) {
-                                item {
-                                    StatCard(
-                                        title = "Non-WhatsApp Contacts",
-                                        count = scanResult.nonWhatsAppCount,
-                                        icon = Icons.Default.Phone,
-                                        color = TextMedium,
-                                        onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
-                                    )
-                                }
-                            }
-                        } else {
-                            // iOS: Show link CTA or counts based on WhatsApp connection status
-                            when (whatsAppState) {
-                                is WhatsAppLinkState.Connected -> {
-                                    // Connected: Show WhatsApp contacts card with business detection
-                                    item {
-                                        WhatsAppContactsCard(
-                                            onViewContacts = onNavigateToWhatsAppContacts
-                                        )
+                                when (val currentSyncState = syncState) {
+                                    is SyncState.Syncing -> {
+                                        item {
+                                            WhatsAppSyncProgressCard(
+                                                synced = currentSyncState.synced,
+                                                total = currentSyncState.total,
+                                                percent = currentSyncState.percent
+                                            )
+                                        }
                                     }
-
-                                    // Show sync progress or WhatsApp breakdown based on sync state
-                                    when (val currentSyncState = syncState) {
-                                        is SyncState.Syncing -> {
-                                            // Syncing: Show progress card
+                                    is SyncState.Complete -> {
+                                        item {
+                                            StatCard(
+                                                title = "Personal WhatsApp",
+                                                count = currentSyncState.personalCount,
+                                                icon = Icons.Default.Person,
+                                                color = PrimaryNeon,
+                                                onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
+                                            )
+                                        }
+                                        item {
+                                            StatCard(
+                                                title = "Business WhatsApp",
+                                                count = currentSyncState.businessCount,
+                                                icon = Icons.Default.Business,
+                                                color = SecondaryNeon,
+                                                onClick = { onNavigateToWhatsAppContacts() }
+                                            )
+                                        }
+                                        if (scanResult.nonWhatsAppCount > 0) {
                                             item {
-                                                WhatsAppSyncProgressCard(
-                                                    synced = currentSyncState.synced,
-                                                    total = currentSyncState.total,
-                                                    percent = currentSyncState.percent
+                                                StatCard(
+                                                    title = "Non-WhatsApp Contacts",
+                                                    count = scanResult.nonWhatsAppCount,
+                                                    icon = Icons.Default.PhoneDisabled,
+                                                    color = TextMedium,
+                                                    onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
                                                 )
                                             }
                                         }
-                                        is SyncState.Complete -> {
-                                            // Sync complete: Show Personal/Business/Non-WhatsApp breakdown
+                                    }
+                                    is SyncState.Error -> {
+                                        item {
+                                            WhatsAppSyncErrorCard(
+                                                message = currentSyncState.message,
+                                                isRetrying = isRetryingSync,
+                                                onRetry = {
+                                                    isRetryingSync = true
+                                                    whatsAppViewModel.startWhatsAppSync()
+                                                }
+                                            )
+                                        }
+                                    }
+                                    is SyncState.Idle -> {
+                                        if (scanResult.whatsAppCount > 0) {
                                             item {
                                                 StatCard(
-                                                    title = "Personal WhatsApp",
-                                                    count = currentSyncState.personalCount,
-                                                    icon = Icons.Default.Person,
+                                                    title = "WhatsApp",
+                                                    count = scanResult.whatsAppCount,
+                                                    icon = Icons.Default.Email,
                                                     color = PrimaryNeon,
                                                     onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
                                                 )
                                             }
-                                            item {
-                                                StatCard(
-                                                    title = "Business WhatsApp",
-                                                    count = currentSyncState.businessCount,
-                                                    icon = Icons.Default.Business,
-                                                    color = SecondaryNeon,
-                                                    onClick = { onNavigateToWhatsAppContacts() }
-                                                )
-                                            }
-                                            // Non-WhatsApp: Only show after sync completes
-                                            if (scanResult.nonWhatsAppCount > 0) {
-                                                item {
-                                                    StatCard(
-                                                        title = "Non-WhatsApp Contacts",
-                                                        count = scanResult.nonWhatsAppCount,
-                                                        icon = Icons.Default.PhoneDisabled,
-                                                        color = TextMedium,
-                                                        onClick = { onNavigateToDetail(ContactType.NON_WHATSAPP) }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        is SyncState.Error -> {
-                                            // Sync error: Show retry option
-                                            item {
-                                                WhatsAppSyncErrorCard(
-                                                    message = currentSyncState.message,
-                                                    isRetrying = isRetryingSync,
-                                                    onRetry = {
-                                                        isRetryingSync = true
-                                                        whatsAppViewModel?.startWhatsAppSync()
-                                                    }
-                                                )
-                                            }
-                                        }
-                                        is SyncState.Idle -> {
-                                            // Idle (not synced yet): Show basic WhatsApp count
-                                            if (scanResult.whatsAppCount > 0) {
-                                                item {
-                                                    StatCard(
-                                                        title = "WhatsApp",
-                                                        count = scanResult.whatsAppCount,
-                                                        icon = Icons.Default.Email,
-                                                        color = PrimaryNeon,
-                                                        onClick = { onNavigateToDetail(ContactType.WHATSAPP) }
-                                                    )
-                                                }
-                                            }
                                         }
                                     }
                                 }
-                                else -> {
-                                    // Not connected: Show CTA to link WhatsApp
-                                    item {
-                                        WhatsAppLinkCard(
-                                            onLinkClick = onNavigateToWhatsAppLink
-                                        )
-                                    }
+                            }
+                            else -> {
+                                item {
+                                    WhatsAppLinkCard(
+                                        onLinkClick = onNavigateToWhatsAppLink
+                                    )
                                 }
                             }
                         }

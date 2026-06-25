@@ -54,12 +54,10 @@ fun WhatsAppLinkScreen(
     onConnected: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val syncState by viewModel.syncState.collectAsState()
 
-    val isConnected = state is WhatsAppLinkState.Connected
-    
-    // Navigate back when connected
-    LaunchedEffect(isConnected) {
-        if (isConnected) {
+    LaunchedEffect(syncState) {
+        if (syncState is SyncState.Complete) {
             onConnected()
         }
     }
@@ -123,7 +121,10 @@ fun WhatsAppLinkScreen(
                         phoneNumber = currentState.phoneNumber,
                         onCancel = { viewModel.cancelLinking() }
                     )
-                    is WhatsAppLinkState.Connected -> SuccessContent()
+                    is WhatsAppLinkState.Connected -> SuccessContent(
+                        syncState = syncState,
+                        onRetrySync = { viewModel.startWhatsAppSync() }
+                    )
                     is WhatsAppLinkState.Error -> ErrorContent(
                         message = currentState.message,
                         onRetry = { viewModel.clearError() }
@@ -465,7 +466,10 @@ private fun InstructionStep(number: Int, text: String) {
 }
 
 @Composable
-private fun SuccessContent() {
+private fun SuccessContent(
+    syncState: SyncState,
+    onRetrySync: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -498,12 +502,56 @@ private fun SuccessContent() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            "Your contact scans will now show WhatsApp status",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextMedium,
-            textAlign = TextAlign.Center
-        )
+        when (syncState) {
+            is SyncState.Syncing -> {
+                LinearProgressIndicator(
+                    progress = { (syncState.percent / 100f).coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    color = PrimaryNeon,
+                    trackColor = Color.White.copy(alpha = 0.1f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Syncing WhatsApp contacts (${syncState.percent}%)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+            is SyncState.Complete -> {
+                Text(
+                    "Your contact scans now show WhatsApp status",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+            is SyncState.Error -> {
+                Text(
+                    syncState.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ErrorNeon,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onRetrySync,
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryNeon)
+                ) {
+                    Text("Retry Sync", color = SpaceBlack, fontWeight = FontWeight.Bold)
+                }
+            }
+            SyncState.Idle -> {
+                Text(
+                    "Preparing WhatsApp contact sync...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 

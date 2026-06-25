@@ -845,11 +845,10 @@ class IosContactRepository(
 
                 // Process batch
                 val updatedContacts = batch.mapNotNull { contact ->
-                    val numbers = contact.rawNumbers.split(",").filter { it.isNotBlank() }
-                    val isOnWhatsApp = numbers.any { num ->
-                        val normalized = num.extractDigits()
-                        cachedNumbers.contains(normalized)
-                    }
+                    val isOnWhatsApp = WhatsAppCacheMatcher.hasCachedWhatsAppNumber(
+                        rawNumbers = contact.rawNumbers,
+                        cachedNumbers = cachedNumbers
+                    )
 
                     // Only update if flag changed
                     if (contact.isWhatsApp != isOnWhatsApp) {

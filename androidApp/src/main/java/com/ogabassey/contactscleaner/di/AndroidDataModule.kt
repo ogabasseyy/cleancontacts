@@ -28,7 +28,8 @@ val androidDataModule = module {
             ignoredContactDao = get(),
             scanResultProvider = get(),
             usageRepository = get(),
-            backupRepository = get()
+            backupRepository = get(),
+            whatsAppRepository = get()
         )
     }
 

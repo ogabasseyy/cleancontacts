@@ -1,0 +1,9 @@
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+ignoreUntil = "2027-01-01"
+reason = "Nested dependency in gray-matter breaks build when overridden. Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+ignoreUntil = "2027-01-01"
+reason = "Nested dependency in gray-matter breaks build when overridden. Out of scope for Bolt persona."

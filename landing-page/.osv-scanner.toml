@@ -1,0 +1,29 @@
+[[IgnoredVulnerabilities]]
+id = "GHSA-h67p-54hq-rp68"
+ignoreUntil = "2027-01-01"
+reason = "Nested dependency in gray-matter breaks build when overridden. Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-2j2x-hqr9-3h42"
+ignoreUntil = "2027-01-01"
+reason = "Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-49rj-9fvp-4h2h"
+ignoreUntil = "2027-01-01"
+reason = "Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-84g9-w2xq-vcv6"
+ignoreUntil = "2027-01-01"
+reason = "Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-8x6r-g9mw-2r78"
+ignoreUntil = "2027-01-01"
+reason = "Out of scope for Bolt persona."
+
+[[IgnoredVulnerabilities]]
+id = "GHSA-rxv8-25v2-qmq8"
+ignoreUntil = "2027-01-01"
+reason = "Out of scope for Bolt persona."

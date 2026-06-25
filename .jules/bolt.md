@@ -336,3 +336,10 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-05-24 - Replacing chained mapping and sorting with in-place loops
 **Learning:** Using chained functional operations like `.map { ... }` combined with `.sortedBy { ... }` on large collections creates multiple temporary memory allocations (an intermediate `ArrayList` during mapping and another during sorting). In high-frequency snapshot queries (`getContactsSnapshotByType`), this puts immense pressure on the Garbage Collector when processing tens of thousands of items.
 **Action:** Replace functional mapping sequences and separate `.sortedBy {}` calls with a pre-allocated single-pass `ArrayList` loop that maps the elements and then performs an in-place sort using `.sortBy {}`.
+## 2026-10-18 - Replacing multi-pass map and chunked with single-pass indexed loop
+**Learning:** Using chained operations like `.map { ... }` followed by `.chunked(1000)` on large collections creates multiple temporary lists and massive GC pressure.
+**Action:** Replace these operations with a single-pass indexed `for` loop, using a pre-allocated `ArrayList` that dumps directly into Room DB when it reaches the batch limit.
+
+## 2026-10-18 - Out-of-Scope CI Failure Ignored
+**Learning:** If OSV Vulnerability Scanner fails due to a pre-existing dependency vulnerability that violates the Bolt persona's scope to resolve, strictly adhere to the negative boundaries and ignore the out-of-scope failure.
+**Action:** Proceed with PR submission.

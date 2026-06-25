@@ -19,7 +19,6 @@ coroutines = "1.11.0"
 coroutinesPlayServices = "1.11.0"
 mlkitGenAi = "1.0.0-beta2"
 accompanist = "0.37.3"
-billingKtx = "9.0.0"
 playServicesAuth = "21.6.0"
 googleApiClient = "2.9.0"
 googlePeople = "v1-rev20251117-2.0.0"
@@ -73,7 +72,6 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 mlkit-genai = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenAi" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
-billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billingKtx" }
 play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 google-api-client-android = { group = "com.google.api-client", name = "google-api-client-android", version.ref = "googleApiClient" }
 google-api-services-people = { group = "com.google.apis", name = "google-api-services-people", version.ref = "googlePeople" }

@@ -10,12 +10,21 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "dompurify": "^3.4.1",
+    "dompurify": "^3.4.11",
     "picomatch": "^4.0.4",
     "postcss": "8.5.10",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.1.0"
+    "react-router": "^7.17.0",
+    "react-router-dom": "^7.17.0"
+  },
+  "overrides": {
+    "esbuild": "0.25.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.25.1"
+    }
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
@@ -37,6 +46,6 @@
     "tailwindcss": "^4.1.18",
     "typescript": "~5.8.2",
     "unified": "^11.0.5",
-    "vite": "^6.4.2"
+    "vite": "^8.1.0"
   }
 }

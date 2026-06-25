@@ -150,8 +150,8 @@ dependencies {
     // Accompanist Permissions
     implementation(libs.accompanist.permissions)
 
-    // Google Play Billing
-    implementation(libs.billing.ktx)
+    // RevenueCat owns the Google Play Billing dependency; keeping a separate
+    // direct Billing KTX version can force an SDK-incompatible Billing line.
     implementation(libs.revenuecat.purchases)
 
     // Google People API & Auth
@@ -217,4 +217,3 @@ dependencies {
         }
     }
 }
-

@@ -142,3 +142,6 @@
 ## 2026-05-24 - [Hide Collapsed FAQ Answers from Screen Readers]
 **Learning:** CSS-hidden accordions (using max-height and opacity) remain accessible in the accessibility tree, causing screen readers to read collapsed answers. This creates a confusing experience.
 **Action:** Always use `aria-hidden={true/false}` on the content region of CSS-hidden accordions to properly sync the accessibility tree with the visual state.
+## 2026-06-10 - Verify Element Existence Before Planning
+**Learning:** Assuming specific textual labels (like "Contact Support" or exact email addresses) exist within components without executing explicit `grep` checks leads to plan rejections under the Groundedness Rule. Even if the layout visually implies a button, the underlying code implementation may use an `<a>` tag spanning lines, or the text might differ.
+**Action:** Before proposing any execution plan that modifies an element based on its text, always execute `grep -n "Expected Text"` or `sed` to definitively confirm its exact structure, spelling, and line number in the source file.

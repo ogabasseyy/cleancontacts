@@ -76,7 +76,8 @@ class ApiResponseRedactionTest {
                     id = 123,
                     name = "Jane Contact",
                     numbers = listOf("+2348012345678"),
-                    emails = listOf("jane@example.com")
+                    emails = listOf("jane@example.com"),
+                    normalizedNumber = "+2348012345678"
                 )
             ),
             actionType = "delete",

@@ -902,17 +902,10 @@ class IosContactRepository(
                 val updatedContacts = ArrayList<LocalContact>(batch.size)
                 for (i in batch.indices) {
                     val contact = batch[i]
-                    val numbers = contact.rawNumbers.splitAndFilterNotBlank(',')
-                    var isOnWhatsApp = false
-
-                    for (j in numbers.indices) {
-                        val num = numbers[j]
-                        val normalized = num.extractDigits()
-                        if (cachedNumbers.contains(normalized)) {
-                            isOnWhatsApp = true
-                            break
-                        }
-                    }
+                    val isOnWhatsApp = WhatsAppCacheMatcher.hasCachedWhatsAppNumber(
+                        rawNumbers = contact.rawNumbers,
+                        cachedNumbers = cachedNumbers
+                    )
 
                     // Only update if flag changed
                     if (contact.isWhatsApp != isOnWhatsApp) {

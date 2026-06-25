@@ -67,7 +67,8 @@ val viewModelModule = module {
     viewModel<WhatsAppLinkViewModel> {
         WhatsAppLinkViewModel(
             whatsAppRepository = get(),
-            settings = get()
+            settings = get(),
+            contactRepository = get()
         )
     }
 

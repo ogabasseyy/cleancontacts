@@ -1,16 +1,7 @@
-/**
- * Build-time blog processor (2026 Best Practice: build-time HTML rendering).
- * Reads markdown posts from blog/, generates:
- * - public/blog-manifest.json (post metadata + TOC for client)
- * - public/blog/*.html (pre-rendered HTML — no client-side markdown parsing)
- * - public/blog/*.md (LLM-friendly markdown mirrors without frontmatter)
- * - public/rss.xml (RSS 2.0 feed)
- * - Updates public/sitemap.xml with blog URLs
- */
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
+import * as yaml from 'js-yaml';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -19,6 +10,14 @@ import rehypeStringify from 'rehype-stringify';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrettyCode from 'rehype-pretty-code';
+
+function matter(raw) {
+  const match = /^(?:---)\r?\n([\s\S]*?)\r?\n(?:---)\r?\n([\s\S]*)$/.exec(raw);
+  if (match) {
+    return { data: yaml.load(match[1]), content: match[2] };
+  }
+  return { data: {}, content: raw };
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const blogDir = resolve(__dirname, '../blog');

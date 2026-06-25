@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-06-16 - [Update landing page dependencies]
+**Vulnerability:** Vulnerable packages in frontend.
+**Learning:** Routine dependency checks are necessary to catch high-severity CVEs in indirect dependencies like `react-router` and `js-yaml`.
+**Prevention:** Ensure automated tools and tests are utilized to monitor dependencies and upgrade versions regularly.

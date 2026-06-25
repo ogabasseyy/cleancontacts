@@ -93,4 +93,8 @@ data class FeedbackRequest(
 data class FeedbackResponse(
     val success: Boolean,
     val error: String? = null
-)
+) {
+    override fun toString(): String {
+        return "FeedbackResponse(success=$success, error=***REDACTED***)"
+    }
+}

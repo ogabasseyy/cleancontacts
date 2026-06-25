@@ -10,7 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import matter from 'gray-matter';
+import yaml from 'js-yaml';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -19,6 +19,14 @@ import rehypeStringify from 'rehype-stringify';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypePrettyCode from 'rehype-pretty-code';
+
+function matter(raw) {
+  const match = /^(?:---)\r?\n([\s\S]*?)\r?\n(?:---)\r?\n([\s\S]*)$/.exec(raw);
+  if (match) {
+    return { data: yaml.load(match[1]), content: match[2] };
+  }
+  return { data: {}, content: raw };
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const blogDir = resolve(__dirname, '../blog');

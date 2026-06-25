@@ -473,8 +473,25 @@ class IosContactsSource {
             // Create merged contact
             // 2026 Best Practice: Use firstOrNull() for defensive coding even after size check
             val primaryContact = contactsToMerge.firstOrNull() ?: return@withContext false
-            val allNumbers = contactsToMerge.flatMap { it.numbers }.distinct()
-            val allEmails = contactsToMerge.flatMap { it.emails }.distinct()
+
+            // ⚡ Bolt: Replaced distinct/flatMap with a single-pass loop utilizing HashSets to eliminate allocations
+            val numbersSet = HashSet<String>()
+            val allNumbers = ArrayList<String>()
+            val emailsSet = HashSet<String>()
+            val allEmails = ArrayList<String>()
+
+            for (contact in contactsToMerge) {
+                for (number in contact.numbers) {
+                    if (numbersSet.add(number)) {
+                        allNumbers.add(number)
+                    }
+                }
+                for (email in contact.emails) {
+                    if (emailsSet.add(email)) {
+                        allEmails.add(email)
+                    }
+                }
+            }
 
             val mergedContact = Contact(
                 id = 0L,

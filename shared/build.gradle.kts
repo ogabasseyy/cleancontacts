@@ -54,6 +54,7 @@ kotlin {
         namespace = "com.ogabassey.contactscleaner.shared"
         compileSdk = 36
         minSdk = 26
+        withHostTest {}
     }
 
     sourceSets {

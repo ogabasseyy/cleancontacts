@@ -34,7 +34,14 @@ interface ContactDao {
             SUM(CASE WHEN is_whatsapp = 1 THEN 1 ELSE 0 END) as whatsAppCount,
             SUM(CASE WHEN is_telegram = 1 THEN 1 ELSE 0 END) as telegramCount,
             SUM(CASE WHEN is_junk = 1 THEN 1 ELSE 0 END) as junkCount,
-            SUM(CASE WHEN duplicate_type IS NOT NULL THEN 1 ELSE 0 END) as duplicateCount,
+            (SELECT COUNT(*) FROM (
+                SELECT duplicate_type, matching_key FROM contacts
+                WHERE duplicate_type IS NOT NULL
+                AND matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+                GROUP BY duplicate_type, matching_key
+                HAVING COUNT(*) > 1
+            )) as duplicateCount,
             SUM(CASE WHEN junk_type = 'NO_NAME' THEN 1 ELSE 0 END) as noNameCount,
             SUM(CASE WHEN junk_type = 'NO_NUMBER' THEN 1 ELSE 0 END) as noNumberCount,
             SUM(CASE WHEN junk_type = 'INVALID_CHAR' THEN 1 ELSE 0 END) as invalidCharCount,
@@ -46,12 +53,40 @@ interface ContactDao {
             SUM(CASE WHEN junk_type = 'EMOJI_NAME' THEN 1 ELSE 0 END) as emojiNameCount,
             SUM(CASE WHEN junk_type = 'FANCY_FONT_NAME' THEN 1 ELSE 0 END) as fancyFontCount,
             (SELECT COUNT(DISTINCT account_type) FROM contacts WHERE account_type IS NOT NULL AND account_type != '') as accountCount,
-            SUM(CASE WHEN duplicate_type = 'NUMBER_MATCH' THEN 1 ELSE 0 END) as duplicateNumberCount,
-            SUM(CASE WHEN duplicate_type = 'EMAIL_MATCH' THEN 1 ELSE 0 END) as duplicateEmailCount,
-            SUM(CASE WHEN duplicate_type = 'NAME_MATCH' THEN 1 ELSE 0 END) as duplicateNameCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE duplicate_type = 'NUMBER_MATCH'
+                AND matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+                GROUP BY matching_key
+                HAVING COUNT(*) > 1
+            )) as duplicateNumberCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE duplicate_type = 'EMAIL_MATCH'
+                AND matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+                GROUP BY matching_key
+                HAVING COUNT(*) > 1
+            )) as duplicateEmailCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE duplicate_type = 'NAME_MATCH'
+                AND matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+                GROUP BY matching_key
+                HAVING COUNT(*) > 1
+            )) as duplicateNameCount,
             SUM(CASE WHEN is_format_issue = 1 THEN 1 ELSE 0 END) as formatIssueCount,
             SUM(CASE WHEN is_sensitive = 1 THEN 1 ELSE 0 END) as sensitiveCount,
-            SUM(CASE WHEN duplicate_type = 'SIMILAR_NAME_MATCH' THEN 1 ELSE 0 END) as similarNameCount,
+            (SELECT COUNT(*) FROM (
+                SELECT matching_key FROM contacts
+                WHERE duplicate_type = 'SIMILAR_NAME_MATCH'
+                AND matching_key IS NOT NULL AND matching_key != ''
+                AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+                GROUP BY matching_key
+                HAVING COUNT(*) > 1
+            )) as similarNameCount,
             (SELECT COUNT(*) FROM (
                 SELECT matching_key FROM contacts
                 WHERE matching_key IS NOT NULL AND matching_key != ''
@@ -78,7 +113,16 @@ interface ContactDao {
     @Query("SELECT COUNT(*) FROM contacts WHERE is_junk = 1")
     suspend fun countJunk(): Int
 
-    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type IS NOT NULL")
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT duplicate_type, matching_key FROM contacts
+            WHERE duplicate_type IS NOT NULL
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY duplicate_type, matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun countDuplicates(): Int
 
     @Query("SELECT COUNT(*) FROM contacts WHERE junk_type = 'NO_NAME'")
@@ -114,13 +158,40 @@ interface ContactDao {
     @Query("SELECT COUNT(DISTINCT account_type) FROM contacts WHERE account_type IS NOT NULL AND account_type != ''")
     suspend fun countAccounts(): Int
 
-    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NUMBER_MATCH'")
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'NUMBER_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun countDuplicateNumbers(): Int
 
-    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'EMAIL_MATCH'")
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'EMAIL_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun countDuplicateEmails(): Int
 
-    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'NAME_MATCH'")
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'NAME_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun countDuplicateNames(): Int
 
     @Query("SELECT COUNT(*) FROM contacts WHERE is_format_issue = 1")
@@ -129,7 +200,16 @@ interface ContactDao {
     @Query("SELECT COUNT(*) FROM contacts WHERE is_sensitive = 1")
     suspend fun countSensitive(): Int
 
-    @Query("SELECT COUNT(*) FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH'")
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'SIMILAR_NAME_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun countSimilarNames(): Int
 
     // --- Cross-Account Duplicates Queries ---
@@ -205,32 +285,32 @@ interface ContactDao {
     suspend fun markDuplicateNames()
 
     // --- Grouped Queries for Duplicate Groups ---
-    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' AND matching_key IS NOT NULL AND matching_key != '' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%')) GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
     suspend fun getDuplicateNumberGroups(): List<DuplicateGroupSummary>
 
-    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'EMAIL_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'EMAIL_MATCH' AND matching_key IS NOT NULL AND matching_key != '' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%')) GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
     suspend fun getDuplicateEmailGroups(): List<DuplicateGroupSummary>
 
-    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NAME_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'NAME_MATCH' AND matching_key IS NOT NULL AND matching_key != '' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%')) GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
     suspend fun getDuplicateNameGroups(): List<DuplicateGroupSummary>
 
-    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
+    @Query("SELECT matching_key as groupKey, COUNT(*) as count, GROUP_CONCAT(display_name) as previewNames FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' AND matching_key IS NOT NULL AND matching_key != '' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%')) GROUP BY matching_key HAVING COUNT(*) > 1 ORDER BY count DESC")
     suspend fun getSimilarNameGroups(): List<DuplicateGroupSummary>
 
     @Query("SELECT account_type as accountType, account_name as accountName, COUNT(*) as count FROM contacts WHERE account_type IS NOT NULL AND account_type != '' GROUP BY account_type, account_name ORDER BY count DESC")
     suspend fun getAccountGroups(): List<AccountGroupSummary>
 
     // --- Contacts by Key ---
-    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NUMBER_MATCH'")
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NUMBER_MATCH' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))")
     suspend fun getContactsByNumberKey(key: String): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'EMAIL_MATCH'")
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'EMAIL_MATCH' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))")
     suspend fun getContactsByEmailKey(key: String): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NAME_MATCH'")
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'NAME_MATCH' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))")
     suspend fun getContactsByNameKey(key: String): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'SIMILAR_NAME_MATCH'")
+    @Query("SELECT * FROM contacts WHERE matching_key = :key AND duplicate_type = 'SIMILAR_NAME_MATCH' AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))")
     suspend fun getContactsBySimilarNameKey(key: String): List<LocalContact>
 
     // --- ID Lists ---
@@ -294,7 +374,20 @@ interface ContactDao {
     @Query("SELECT * FROM contacts WHERE is_junk = 1")
     suspend fun getJunkContactsSnapshot(): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE duplicate_type IS NOT NULL")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE duplicate_type IS NOT NULL
+        AND matching_key IS NOT NULL AND matching_key != ''
+        AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+        AND duplicate_type || ':' || matching_key IN (
+            SELECT duplicate_type || ':' || matching_key FROM contacts
+            WHERE duplicate_type IS NOT NULL
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY duplicate_type, matching_key
+            HAVING COUNT(*) > 1
+        )
+    """)
     suspend fun getDuplicateContactsSnapshot(): List<LocalContact>
 
     @Query("SELECT * FROM contacts WHERE is_sensitive = 1")
@@ -329,16 +422,72 @@ interface ContactDao {
     @Query("SELECT * FROM contacts WHERE junk_type = 'FANCY_FONT_NAME' ORDER BY display_name ASC")
     suspend fun getFancyFontNameContactsSnapshot(): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE duplicate_type = 'NUMBER_MATCH' ORDER BY display_name ASC")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE duplicate_type = 'NUMBER_MATCH'
+        AND matching_key IS NOT NULL AND matching_key != ''
+        AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+        AND matching_key IN (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'NUMBER_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+        ORDER BY display_name ASC
+    """)
     suspend fun getDuplicateNumberContactsSnapshot(): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE duplicate_type = 'EMAIL_MATCH' ORDER BY display_name ASC")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE duplicate_type = 'EMAIL_MATCH'
+        AND matching_key IS NOT NULL AND matching_key != ''
+        AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+        AND matching_key IN (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'EMAIL_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+        ORDER BY display_name ASC
+    """)
     suspend fun getDuplicateEmailContactsSnapshot(): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE duplicate_type = 'NAME_MATCH' ORDER BY display_name ASC")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE duplicate_type = 'NAME_MATCH'
+        AND matching_key IS NOT NULL AND matching_key != ''
+        AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+        AND matching_key IN (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'NAME_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+        ORDER BY display_name ASC
+    """)
     suspend fun getDuplicateNameContactsSnapshot(): List<LocalContact>
 
-    @Query("SELECT * FROM contacts WHERE duplicate_type = 'SIMILAR_NAME_MATCH' ORDER BY display_name ASC")
+    @Query("""
+        SELECT * FROM contacts
+        WHERE duplicate_type = 'SIMILAR_NAME_MATCH'
+        AND matching_key IS NOT NULL AND matching_key != ''
+        AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+        AND matching_key IN (
+            SELECT matching_key FROM contacts
+            WHERE duplicate_type = 'SIMILAR_NAME_MATCH'
+            AND matching_key IS NOT NULL AND matching_key != ''
+            AND (account_type IS NULL OR account_type = '' OR (LOWER(account_type) NOT LIKE '%whatsapp%' AND LOWER(account_type) NOT LIKE '%telegram%'))
+            GROUP BY matching_key
+            HAVING COUNT(*) > 1
+        )
+        ORDER BY display_name ASC
+    """)
     suspend fun getSimilarNameContactsSnapshot(): List<LocalContact>
 
     @Query("SELECT * FROM contacts ORDER BY display_name ASC")

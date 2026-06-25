@@ -279,7 +279,9 @@ class ContactRepositoryImpl constructor(
     override suspend fun deleteContacts(contacts: List<Contact>): Result<Unit> {
         return try {
             val ids = contacts.map { it.id }
+            Logger.i("ContactRepository", "deleteContacts requested count=${ids.size} ids=${idsForLog(ids)}")
             if (deleteContactsFromProviderAndSync(ids)) {
+                Logger.i("ContactRepository", "deleteContacts succeeded count=${ids.size} ids=${idsForLog(ids)}")
                 recordBackupSafely(
                     contacts = contacts,
                     actionType = "DELETE",
@@ -287,11 +289,13 @@ class ContactRepositoryImpl constructor(
                 )
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("Failed to delete contacts"))
+                Logger.e("ContactRepository", "deleteContacts failed count=${ids.size} ids=${idsForLog(ids)}")
+                Result.failure(Exception("Failed to delete contacts from device"))
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
+            Logger.e("ContactRepository", "deleteContacts threw", e)
             Result.failure(e)
         }
     }
@@ -300,15 +304,33 @@ class ContactRepositoryImpl constructor(
         return deleteContactsFromProviderAndSync(contactIds)
     }
 
+    private data class DeleteSyncResult(
+        val success: Boolean,
+        val deletedIds: List<Long>,
+        val requiresDuplicateRebuild: Boolean
+    )
+
     private suspend fun deleteContactsFromProviderAndSync(contactIds: List<Long>): Boolean {
-        if (contactIds.isEmpty()) return true
+        return deleteContactsFromProviderAndLocalCache(
+            contactIds = contactIds,
+            refreshAfterDelete = true
+        ).success
+    }
+
+    private suspend fun deleteContactsFromProviderAndLocalCache(
+        contactIds: List<Long>,
+        refreshAfterDelete: Boolean
+    ): DeleteSyncResult {
+        if (contactIds.isEmpty()) {
+            return DeleteSyncResult(success = true, deletedIds = emptyList(), requiresDuplicateRebuild = false)
+        }
 
         val requiresDuplicateRebuild = contactDao.getContactsByIds(contactIds).any { it.duplicateType != null }
         val providerSuccess = contactsProviderSource.deleteContacts(contactIds)
         if (!providerSuccess) {
             Logger.e(
                 "ContactRepository",
-                "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete"
+                "Provider delete failed for ${contactIds.size} contacts; skipping local cache delete ids=${idsForLog(contactIds)}"
             )
             // Provider delete can fail after deleting a subset (for example, mixed writable/read-only contacts).
             // Re-scan cache so UI reflects actual device state instead of stale local rows.
@@ -316,23 +338,39 @@ class ContactRepositoryImpl constructor(
             if (!rebuilt) {
                 Logger.e("ContactRepository", "Local cache rebuild failed after provider delete failure")
             }
-            return false
+            return DeleteSyncResult(success = false, deletedIds = emptyList(), requiresDuplicateRebuild = false)
         }
 
         return try {
             contactDao.deleteContacts(contactIds)
-            if (requiresDuplicateRebuild) {
-                rebuildDuplicateMetadataFromLocalCache()
+            val refreshSucceeded = if (refreshAfterDelete) {
+                if (requiresDuplicateRebuild) {
+                    rebuildDuplicateMetadataFromLocalCache()
+                } else {
+                    updateScanResultSummary()
+                    true
+                }
             } else {
-                updateScanResultSummary()
                 true
             }
+
+            DeleteSyncResult(
+                success = refreshSucceeded,
+                deletedIds = if (refreshSucceeded) contactIds else emptyList(),
+                requiresDuplicateRebuild = requiresDuplicateRebuild
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e("ContactRepository", "Failed to cascade delete to local cache", e)
             rebuildLocalCacheFromProvider()
+            DeleteSyncResult(success = false, deletedIds = emptyList(), requiresDuplicateRebuild = false)
         }
+    }
+
+    private fun idsForLog(ids: List<Long>, maxIds: Int = 10): String {
+        val suffix = if (ids.size > maxIds) ",..." else ""
+        return ids.take(maxIds).joinToString(prefix = "[", postfix = suffix + "]")
     }
 
     override suspend fun deleteContactsByType(type: ContactType): Flow<CleanupStatus> = flow {
@@ -346,15 +384,50 @@ class ContactRepositoryImpl constructor(
         var successCount = 0
         var processedCount = 0
         val deletedContacts = mutableListOf<Contact>()
-        contacts.chunked(50).forEach { batch ->
+        var requiresDuplicateRebuild = false
+        val batchSize = DeleteBatchPlanner.batchSize(contacts.size)
+
+        Logger.i(
+            "ContactRepository",
+            "deleteContactsByType started type=$type total=${contacts.size} batchSize=$batchSize"
+        )
+
+        contacts.chunked(batchSize).forEachIndexed { batchIndex, batch ->
             val ids = batch.map { it.id }
-            if (deleteContactsByIds(ids)) {
-                successCount += batch.size
+            val batchResult = deleteContactsFromProviderAndLocalCache(
+                contactIds = ids,
+                refreshAfterDelete = false
+            )
+            if (batchResult.success) {
+                successCount += batchResult.deletedIds.size
                 deletedContacts.addAll(batch)
+                requiresDuplicateRebuild = requiresDuplicateRebuild || batchResult.requiresDuplicateRebuild
             }
             processedCount += batch.size
+            Logger.d(
+                "ContactRepository",
+                "deleteContactsByType batch=${batchIndex + 1} processed=$processedCount/${contacts.size} successCount=$successCount"
+            )
             val progress = processedCount.toFloat() / contacts.size.toFloat()
             emit(CleanupStatus.Progress(progress.coerceAtMost(1f), "Deleted $successCount of ${contacts.size}"))
+        }
+
+        val refreshed = if (successCount > 0) {
+            if (requiresDuplicateRebuild) {
+                rebuildDuplicateMetadataFromLocalCache()
+            } else {
+                updateScanResultSummary()
+                true
+            }
+        } else {
+            updateScanResultSummary()
+            true
+        }
+
+        if (!refreshed) {
+            Logger.e("ContactRepository", "deleteContactsByType refresh failed type=$type successCount=$successCount total=${contacts.size}")
+            emit(CleanupStatus.Error("Deleted $successCount contacts but failed to refresh local cache"))
+            return@flow
         }
 
         if (deletedContacts.isNotEmpty()) {
@@ -440,17 +513,32 @@ class ContactRepositoryImpl constructor(
         }
 
         var successCount = 0
+        var skippedSyncedCount = 0
+        var failedMergeableCount = 0
         groups.forEachIndexed { index, group ->
             val contacts = getContactsInGroup(group.groupKey, type)
-            if (contacts.size > 1) {
-                val ids = contacts.map { it.id }
+            val mergeableContacts = DuplicateMergeCandidateFilter.mergeableContacts(contacts)
+            if (contacts.size > 1 && mergeableContacts.size < 2) {
+                skippedSyncedCount++
+                Logger.i(
+                    "ContactRepository",
+                    "Skipping synced duplicate group during merge type=$type index=${index + 1}/${groups.size} contacts=${contacts.size} mergeable=${mergeableContacts.size}"
+                )
+            } else if (mergeableContacts.size > 1) {
+                val ids = mergeableContacts.map { it.id }
                 if (performProviderMerge(ids)) {
                     recordBackupSafely(
-                        contacts = contacts,
+                        contacts = mergeableContacts,
                         actionType = "MERGE",
-                        description = "Merged ${contacts.size} duplicates (${group.groupKey})"
+                        description = "Merged ${mergeableContacts.size} duplicates (${group.groupKey})"
                     )
                     successCount++
+                } else {
+                    failedMergeableCount++
+                    Logger.w(
+                        "ContactRepository",
+                        "Provider-backed duplicate merge failed type=$type index=${index + 1}/${groups.size} mergeable=${mergeableContacts.size}"
+                    )
                 }
             }
             val progress = (index + 1).toFloat() / groups.size.toFloat()
@@ -467,11 +555,14 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
         }
 
-        when {
-            successCount == groups.size -> emit(CleanupStatus.Success("Merged $successCount groups successfully"))
-            successCount > 0 -> emit(CleanupStatus.Partial("Merged $successCount of ${groups.size} groups"))
-            else -> emit(CleanupStatus.Error("Failed to merge duplicate groups"))
-        }
+        emit(
+            DuplicateMergeCompletion.status(
+                totalGroups = groups.size,
+                mergedGroups = successCount,
+                skippedSyncedGroups = skippedSyncedCount,
+                failedMergeableGroups = failedMergeableCount
+            )
+        )
     }
 
     override suspend fun standardizeFormat(ids: List<Long>): Boolean {
@@ -495,6 +586,8 @@ class ContactRepositoryImpl constructor(
         val total = ids.size
         val updatedContactIds = linkedSetOf<Long>()
 
+        Logger.i("ContactRepository", "standardizeAllFormatIssues started total=$total")
+
         // Pre-fetch contact names for streaming display
         val contactEntities = contactDao.getFormatIssueContactsByIds(ids)
         val contactNames = contactEntities.associate { it.id to (it.displayName ?: "Unknown") }
@@ -504,36 +597,49 @@ class ContactRepositoryImpl constructor(
 
         // 2026 Optimization: Smaller batches (50) for 10x faster visual feedback
         // Previously used 500 which caused "stuck at 0%" perception
-        ids.chunked(50).forEach { batch ->
-            val batchResult = standardizeFormatBatch(batch)
-            if (batchResult.updatedIds.isNotEmpty()) {
-                successCount += batchResult.updatedIds.size
-                updatedContactIds.addAll(batchResult.updatedIds)
+        ids.chunked(50).forEachIndexed { batchIndex, batch ->
+            try {
+                val batchResult = standardizeFormatBatch(batch)
+                if (batchResult.updatedIds.isNotEmpty()) {
+                    successCount += batchResult.updatedIds.size
+                    updatedContactIds.addAll(batchResult.updatedIds)
 
-                // Add batch items to recent list for streaming display
-                batchResult.updatedIds.forEach { id ->
-                    val name = contactNames[id]
-                    if (name != null) {
-                        recentItems.add(0, "Updated: $name")
-                        if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
+                    // Add batch items to recent list for streaming display
+                    batchResult.updatedIds.forEach { id ->
+                        val name = contactNames[id]
+                        if (name != null) {
+                            recentItems.add(0, "Updated: $name")
+                            if (recentItems.size > 10) recentItems.removeAt(recentItems.lastIndex)
+                        }
                     }
                 }
-            }
 
-            processedCount += batch.size
-            val progress = processedCount.toFloat() / total.toFloat()
-            val currentItem = batch.lastOrNull()?.let { contactNames[it] }
+                processedCount += batch.size
+                val progress = processedCount.toFloat() / total.toFloat()
+                val currentItem = batch.lastOrNull()?.let { contactNames[it] }
 
-            emit(CleanupStatus.Progress(
-                progress = progress.coerceAtMost(1f),
-                message = "Standardizing: ${currentItem ?: "..."} [$processedCount of $total]",
-                details = CleanupDetails(
-                    processed = processedCount,
-                    total = total,
-                    currentItem = currentItem,
-                    recentItems = recentItems.toList()
+                Logger.d(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues batch=${batchIndex + 1} processed=$processedCount/$total updated=${batchResult.updatedIds.size} successCount=$successCount attempted=${batchResult.attemptedCount}"
                 )
-            ))
+
+                emit(CleanupStatus.Progress(
+                    progress = progress.coerceAtMost(1f),
+                    message = "Standardizing: ${currentItem ?: "..."} [$processedCount of $total]",
+                    details = CleanupDetails(
+                        processed = processedCount,
+                        total = total,
+                        currentItem = currentItem,
+                        recentItems = recentItems.toList()
+                    )
+                ))
+            } catch (e: CancellationException) {
+                Logger.w(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues cancelled batch=${batchIndex + 1} processed=$processedCount/$total successCount=$successCount reason=${e.message ?: "none"}"
+                )
+                throw e
+            }
         }
 
         if (updatedContactIds.isNotEmpty()) {
@@ -554,6 +660,10 @@ class ContactRepositoryImpl constructor(
         if (successCount > 0) {
             val cacheRebuilt = rebuildLocalCacheFromProvider()
             if (!cacheRebuilt) {
+                Logger.e(
+                    "ContactRepository",
+                    "standardizeAllFormatIssues cache rebuild failed successCount=$successCount total=$total"
+                )
                 emit(CleanupStatus.Error("Standardized $successCount contacts but failed to refresh local cache"))
                 return@flow
             }
@@ -561,11 +671,29 @@ class ContactRepositoryImpl constructor(
             updateScanResultSummary()
         }
 
-        when {
-            successCount == total -> emit(CleanupStatus.Success("Standardized $successCount contacts successfully"))
-            successCount > 0 -> emit(CleanupStatus.Partial("Standardized $successCount of $total contacts"))
-            else -> emit(CleanupStatus.Error("Failed to standardize contacts"))
+        val remainingCount = contactDao.countFormatIssues()
+        val finalStatus = FormatStandardizationCompletion.status(
+            total = total,
+            remainingCount = remainingCount
+        )
+
+        when (finalStatus) {
+            is CleanupStatus.Success -> Logger.i(
+                "ContactRepository",
+                "standardizeAllFormatIssues completed successCount=$successCount total=$total remaining=$remainingCount message=${finalStatus.message}"
+            )
+            is CleanupStatus.Error -> Logger.e(
+                "ContactRepository",
+                "standardizeAllFormatIssues failed successCount=$successCount total=$total remaining=$remainingCount"
+            )
+            is CleanupStatus.Partial -> Logger.w(
+                "ContactRepository",
+                "standardizeAllFormatIssues partial successCount=$successCount total=$total remaining=$remainingCount message=${finalStatus.message}"
+            )
+            is CleanupStatus.Progress -> Unit
         }
+
+        emit(finalStatus)
     }
 
     override suspend fun getContactsAllSnapshot(): List<Contact> {
@@ -877,13 +1005,12 @@ class ContactRepositoryImpl constructor(
         val contacts = contactDao.getFormatIssueContactsByIds(ids)
         if (contacts.isEmpty()) return FormatStandardizationResult(updatedIds = emptyList(), attemptedCount = 0)
 
-        val updatedIds = contactsProviderSource.normalizeContactNumbers(contacts.map { it.id }) { rawNumber ->
-            val firstChar = rawNumber.firstOrNull()
-            val hasBlockedPrefix = firstChar == '+' || firstChar == '*' || firstChar == '#'
-            if (rawNumber.isBlank() || hasBlockedPrefix) {
-                null
-            } else {
-                formatDetector.analyze(rawNumber)?.normalizedNumber
+        val updatedIds = contactsProviderSource.normalizeContactNumbers(contacts.map { it.id }) { rawNumber, providerNormalizedNumber ->
+            FormatStandardizationTarget.resolve(
+                rawNumber = rawNumber,
+                providerNormalizedNumber = providerNormalizedNumber
+            ) { candidate ->
+                formatDetector.analyze(candidate)?.normalizedNumber
             }
         }
 

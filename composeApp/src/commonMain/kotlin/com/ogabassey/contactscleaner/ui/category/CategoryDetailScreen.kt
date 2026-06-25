@@ -48,6 +48,7 @@ import androidx.compose.ui.text.AnnotatedString
 import com.ogabassey.contactscleaner.ui.util.rememberContactLauncher
 import com.ogabassey.contactscleaner.util.ExportFormat
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.formatIssueDisplay
 import com.ogabassey.contactscleaner.util.isIOS
 import com.ogabassey.contactscleaner.util.rememberShareLauncher
 import org.koin.compose.viewmodel.koinViewModel
@@ -275,6 +276,7 @@ fun CategoryDetailScreen(
                 // ACTIONS Utility Bar at TOP (not in a separate tab)
                 ResultsUtilityBar(
                     contactType = type,
+                    hasActionItems = if (isDuplicateType) duplicateGroups.isNotEmpty() else contacts.isNotEmpty(),
                     onDeleteAll = { showConfirmationDialog = true },
                     onMergeAll = { showConfirmationDialog = true },
                     onExportAll = {
@@ -956,6 +958,7 @@ fun CategoryDetailScreen(
 @Composable
 private fun ResultsUtilityBar(
     contactType: ContactType,
+    hasActionItems: Boolean,
     onDeleteAll: () -> Unit = {},
     onMergeAll: () -> Unit = {},
     onExportAll: () -> Unit = {}
@@ -993,7 +996,11 @@ private fun ResultsUtilityBar(
             // Export Action
             TextButton(
                 onClick = onExportAll,
-                colors = ButtonDefaults.textButtonColors(contentColor = PrimaryNeon),
+                enabled = hasActionItems,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = PrimaryNeon,
+                    disabledContentColor = TextLow
+                ),
                 modifier = Modifier.height(32.dp),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
             ) {
@@ -1007,9 +1014,12 @@ private fun ResultsUtilityBar(
                 isDuplicateFilter || contactType == ContactType.DUPLICATE -> {
                     Button(
                         onClick = onMergeAll,
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PrimaryNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -1021,9 +1031,12 @@ private fun ResultsUtilityBar(
                 canDelete -> {
                     Button(
                         onClick = onDeleteAll,
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = ErrorNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -1035,9 +1048,12 @@ private fun ResultsUtilityBar(
                 isFormat -> {
                     Button(
                         onClick = onDeleteAll, // Uses performAction which handles FORMAT_ISSUE
+                        enabled = hasActionItems,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = SecondaryNeon,
-                            contentColor = SpaceBlack
+                            contentColor = SpaceBlack,
+                            disabledContainerColor = GlassBorder,
+                            disabledContentColor = TextLow
                         ),
                         modifier = Modifier.height(32.dp),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
@@ -1271,6 +1287,12 @@ private fun ContactListItem(
 ) {
     // 2026 Fix: Removed redundant AnimatedVisibility(visible = true)
     // Animation is handled by LazyColumn's item appearance
+    val formatDisplay = if (isFormatType) {
+        formatIssueDisplay(contact.numbers, contact.normalizedNumber)
+    } else {
+        null
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1283,7 +1305,10 @@ private fun ContactListItem(
                 .weight(1f)
                 .clickable(role = Role.Button) { onContactClick(contact) }
                 .semantics(mergeDescendants = true) {
-                    val phoneDesc = contact.normalizedNumber ?: contact.numbers.firstOrNull() ?: "No Number"
+                    val phoneDesc = formatDisplay?.let { "${it.sourceNumber} to ${it.normalizedNumber}" }
+                        ?: contact.normalizedNumber
+                        ?: contact.numbers.firstOrNull()
+                        ?: "No Number"
                     contentDescription = "Contact ${contact.name ?: "Unknown"}, phone number $phoneDesc"
                 },
             verticalAlignment = Alignment.CenterVertically
@@ -1310,11 +1335,10 @@ private fun ContactListItem(
                     fontWeight = FontWeight.Medium
                 )
 
-                val normalized = contact.normalizedNumber
-                if (isFormatType && normalized != null) {
+                if (formatDisplay != null) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            contact.numbers.firstOrNull() ?: "",
+                            formatDisplay.sourceNumber,
                             style = MaterialTheme.typography.bodySmall,
                             color = TextMedium
                         )
@@ -1327,7 +1351,7 @@ private fun ContactListItem(
                             tint = SecondaryNeon
                         )
                         Text(
-                            normalized,
+                            formatDisplay.normalizedNumber,
                             style = MaterialTheme.typography.bodySmall,
                             color = SecondaryNeon,
                             fontWeight = FontWeight.Bold

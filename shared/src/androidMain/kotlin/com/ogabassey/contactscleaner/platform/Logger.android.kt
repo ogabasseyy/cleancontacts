@@ -7,22 +7,35 @@ import android.util.Log
  */
 actual object Logger {
     actual fun d(tag: String, message: String) {
-        Log.d(tag, message)
+        logSafely { Log.d(tag, message) } ?: println("D/$tag: $message")
     }
 
     actual fun e(tag: String, message: String, throwable: Throwable?) {
-        if (throwable != null) {
-            Log.e(tag, message, throwable)
-        } else {
-            Log.e(tag, message)
+        logSafely {
+            if (throwable != null) {
+                Log.e(tag, message, throwable)
+            } else {
+                Log.e(tag, message)
+            }
+        } ?: run {
+            println("E/$tag: $message")
+            throwable?.printStackTrace()
         }
     }
 
     actual fun w(tag: String, message: String) {
-        Log.w(tag, message)
+        logSafely { Log.w(tag, message) } ?: println("W/$tag: $message")
     }
 
     actual fun i(tag: String, message: String) {
-        Log.i(tag, message)
+        logSafely { Log.i(tag, message) } ?: println("I/$tag: $message")
+    }
+
+    private fun logSafely(write: () -> Int): Int? {
+        return try {
+            write()
+        } catch (_: RuntimeException) {
+            null
+        }
     }
 }

@@ -24,12 +24,11 @@ class UndoLogRedactionTest {
         // Verify sensitive data is NOT present
         assertFalse("Should not contain originalDataJson content", stringRep.contains("John Doe"))
         assertFalse("Should not contain originalDataJson content", stringRep.contains("+1234567890"))
+        assertFalse("Should not contain description content", stringRep.contains("Deleted 1 contact"))
 
         // Verify redaction marker is present
-        // Since originalDataJson is a String, we might replace it with ***REDACTED***
-        // or ensure it's not printed entirely.
-        // We expect it to be redacted.
-        // If toString is default, it will contain the JSON.
-        // So this test should fail initially.
+        assertTrue("Should contain REDACTED marker", stringRep.contains("***REDACTED***"))
+        assertTrue("Should contain id", stringRep.contains("id=1"))
+        assertTrue("Should contain actionType", stringRep.contains("actionType=DELETE"))
     }
 }

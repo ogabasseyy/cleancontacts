@@ -18,6 +18,6 @@ data class UndoLog(
 ) {
     // 2026 Security Fix: Override toString to prevent accidental logging of PII (CWE-532)
     override fun toString(): String {
-        return "UndoLog(id=$id, timestamp=$timestamp, actionType=$actionType, description=$description, originalDataJson=***REDACTED***)"
+        return "UndoLog(id=$id, timestamp=$timestamp, actionType=$actionType, description=***REDACTED***, originalDataJson=***REDACTED***)"
     }
 }

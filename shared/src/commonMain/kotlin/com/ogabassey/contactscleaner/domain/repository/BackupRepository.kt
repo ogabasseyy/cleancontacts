@@ -49,4 +49,8 @@ data class Snapshot(
     val actionType: String,
     val description: String,
     val timestamp: Long
-)
+) {
+    override fun toString(): String {
+        return "Snapshot(id=$id, actionType=$actionType, description=***REDACTED***, timestamp=$timestamp, contacts=[***REDACTED (size=${contacts.size})***])"
+    }
+}

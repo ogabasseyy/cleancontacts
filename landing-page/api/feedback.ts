@@ -67,6 +67,9 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
 
   const safeOrigin = (originStr && allowedOrigins.includes(originStr)) ? originStr : "https://contactscleaner.tech";
 
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   res.setHeader("Access-Control-Allow-Origin", safeOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -132,8 +135,15 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
     return res.status(400).json({ success: false, error: "Invalid category" });
   }
 
-  const sanitizedEmail =
-    email && typeof email === "string" ? email.trim() : "Not provided";
+  const trimmedEmail = email && typeof email === "string" ? email.trim() : "";
+  if (trimmedEmail) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return res.status(400).json({ success: false, error: "Invalid email format" });
+    }
+  }
+
+  const sanitizedEmail = trimmedEmail || "Not provided";
   const sanitizedDevice =
     deviceInfo && typeof deviceInfo === "string" ? deviceInfo.trim() : "Not provided";
 

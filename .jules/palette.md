@@ -142,3 +142,7 @@
 ## 2026-05-24 - [Hide Collapsed FAQ Answers from Screen Readers]
 **Learning:** CSS-hidden accordions (using max-height and opacity) remain accessible in the accessibility tree, causing screen readers to read collapsed answers. This creates a confusing experience.
 **Action:** Always use `aria-hidden={true/false}` on the content region of CSS-hidden accordions to properly sync the accessibility tree with the visual state.
+
+## 2024-06-26 - Skip Link Keyboard Navigation Focus
+**Learning:** Skip-to-content links that target a container without `tabIndex={-1}` may visually scroll the page but fail to move actual keyboard focus in certain browsers, rendering the skip link ineffective for subsequent keyboard navigation.
+**Action:** Always add `tabIndex={-1}` and `focus:outline-none` to the target `<main>` or container element so focus properly shifts without introducing unwanted visual focus rings.

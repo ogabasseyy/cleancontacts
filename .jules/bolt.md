@@ -339,3 +339,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing chained flatMap and filter with single-pass loop
 **Learning:** In view models handling large collections (e.g., `getAllUniqueAccounts` combining accounts from cross-account contacts), chaining `.flatMap { ... }.filter { ... }` creates multiple intermediate collections (`ArrayList` for flatMap and another list for filter) and traverses the data multiple times, which adds unnecessary overhead.
 **Action:** Replace `flatMap` and `filter` chains with a single-pass nested loop using a pre-allocated `HashSet` (for unique tracking) and an `ArrayList` (to collect results) to avoid temporary collection allocations entirely.
+
+## 2024-07-26 - Eliminate implicit allocations in WhatsAppCacheMatcher
+**Learning:** During high-frequency batch processing operations (like bulk checking if thousands of contacts exist in WhatsApp cache), standard library functions like `.split(",")`, `.asSequence()`, and `.map { ... }` introduce severe overhead. Each step creates new objects (Arrays, Lists, Iterator wrappers), leading to massive unnecessary memory allocation and frequent Garbage Collection pauses.
+**Action:** Replaced functional chaining on hot paths with single-pass primitive iteration (`for` loops over `String.indices`) and reused `StringBuilder` to extract string segments without intermediate collection allocation.

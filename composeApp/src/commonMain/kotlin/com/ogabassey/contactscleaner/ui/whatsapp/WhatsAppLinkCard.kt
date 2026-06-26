@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -178,6 +179,37 @@ fun WhatsAppLinkCardCompact(
                 fontWeight = FontWeight.Medium
             )
         }
+    }
+}
+
+@Composable
+fun WhatsAppDisconnectButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    label: String = "Disconnect"
+) {
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(
+            contentColor = ErrorNeon
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, ErrorNeon.copy(alpha = 0.45f)),
+        shape = RoundedCornerShape(8.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        modifier = modifier.heightIn(min = 36.dp)
+    ) {
+        Icon(
+            Icons.Default.Close,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1
+        )
     }
 }
 

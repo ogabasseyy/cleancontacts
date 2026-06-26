@@ -13,6 +13,7 @@ import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
@@ -358,14 +359,23 @@ class WhatsAppLinkViewModel(
     fun disconnect() {
         viewModelScope.launch {
             try {
-                whatsAppRepository.disconnect(deviceId)
+                syncJob?.cancelAndJoin()
+                syncJob = null
+
+                val disconnected = whatsAppRepository.disconnect(deviceId)
+                if (!disconnected) {
+                    _syncState.value = SyncState.Error("Failed to disconnect")
+                    return@launch
+                }
+
+                whatsAppRepository.clearCache()
+                contactRepository.clearWhatsAppFlags()
                 _state.update { WhatsAppLinkState.NotLinked }
-                // 2026 Best Practice: Reset sync state to avoid stale UI
                 _syncState.value = SyncState.Idle
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _state.update { WhatsAppLinkState.Error("Failed to disconnect") }
+                _syncState.value = SyncState.Error("Failed to disconnect")
             }
         }
     }

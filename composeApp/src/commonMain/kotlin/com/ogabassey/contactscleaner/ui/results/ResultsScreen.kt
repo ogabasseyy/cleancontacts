@@ -47,6 +47,7 @@ import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsCard
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppDisconnectButton
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkCard
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkState
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkViewModel
@@ -394,13 +395,27 @@ fun ResultsScreen(
                         }
 
                         item {
-                            Text(
-                                "CONTACT BREAKDOWN",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = TextMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp, bottom = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    "Social Connections",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = TextMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                if (isIOS && whatsAppState == WhatsAppLinkState.Connected) {
+                                    WhatsAppDisconnectButton(
+                                        onClick = { whatsAppViewModel?.disconnect() }
+                                    )
+                                }
+                            }
                         }
 
                         // Platform-specific WhatsApp display
@@ -523,19 +538,6 @@ fun ResultsScreen(
                                         )
                                     }
                                 }
-                            }
-                        }
-
-                        // Telegram Contacts (shown on both platforms when detected)
-                        if (scanResult.telegramCount > 0) {
-                            item {
-                                StatCard(
-                                    title = "Telegram",
-                                    count = scanResult.telegramCount,
-                                    icon = Icons.AutoMirrored.Filled.Send,
-                                    color = SecondaryNeon,
-                                    onClick = { onNavigateToDetail(ContactType.TELEGRAM) }
-                                )
                             }
                         }
 

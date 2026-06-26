@@ -123,7 +123,8 @@ fun WhatsAppLinkScreen(
                     )
                     is WhatsAppLinkState.Connected -> SuccessContent(
                         syncState = syncState,
-                        onRetrySync = { viewModel.startWhatsAppSync() }
+                        onRetrySync = { viewModel.startWhatsAppSync() },
+                        onDisconnect = { viewModel.disconnect() }
                     )
                     is WhatsAppLinkState.Error -> ErrorContent(
                         message = currentState.message,
@@ -468,7 +469,8 @@ private fun InstructionStep(number: Int, text: String) {
 @Composable
 private fun SuccessContent(
     syncState: SyncState,
-    onRetrySync: () -> Unit
+    onRetrySync: () -> Unit,
+    onDisconnect: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -552,6 +554,14 @@ private fun SuccessContent(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        WhatsAppDisconnectButton(
+            onClick = onDisconnect,
+            label = "Disconnect WhatsApp",
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

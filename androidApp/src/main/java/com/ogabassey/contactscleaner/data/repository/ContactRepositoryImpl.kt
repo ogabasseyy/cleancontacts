@@ -844,6 +844,11 @@ class ContactRepositoryImpl constructor(
         updateScanResultSummary()
     }
 
+    override suspend fun clearWhatsAppFlags() {
+        // Android WhatsApp flags come from native account metadata, not the VPS cache.
+        updateScanResultSummary()
+    }
+
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {
         val success = contactsProviderSource.restoreContacts(contacts)
         if (success) {

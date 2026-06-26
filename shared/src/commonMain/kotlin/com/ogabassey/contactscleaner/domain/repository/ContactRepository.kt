@@ -132,6 +132,12 @@ interface ContactRepository {
      */
     suspend fun recalculateWhatsAppCounts()
 
+    /**
+     * Clear locally cached WhatsApp contact flags and refresh summary counts.
+     * Called after a linked WhatsApp session is disconnected.
+     */
+    suspend fun clearWhatsAppFlags()
+
     // --- Cross-Account Duplicates ---
 
     /**

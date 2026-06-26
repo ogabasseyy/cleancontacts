@@ -533,6 +533,9 @@ interface ContactDao {
     @Query("UPDATE contacts SET is_format_issue = 0 WHERE id IN (:ids)")
     suspend fun clearFormatIssueFlags(ids: List<Long>)
 
+    @Query("UPDATE contacts SET is_whatsapp = 0 WHERE is_whatsapp = 1")
+    suspend fun clearWhatsAppFlags(): Int
+
     @Query("SELECT COUNT(*) FROM contacts")
     suspend fun getCount(): Int
 

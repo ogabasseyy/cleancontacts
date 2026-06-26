@@ -934,6 +934,12 @@ class IosContactRepository(
         }
     }
 
+    override suspend fun clearWhatsAppFlags() {
+        val updatedCount = contactDao.clearWhatsAppFlags()
+        Logger.d("Logger", "📱 Cleared WhatsApp flag for $updatedCount contacts after disconnect")
+        updateScanResultSummary()
+    }
+
     // --- Cross-Account Duplicates ---
 
     override suspend fun getCrossAccountContacts(): List<CrossAccountContact> {

@@ -159,6 +159,7 @@ class CategoryViewModelPremiumTest {
         override fun getAccountCount(): Flow<Int> = MutableStateFlow(0)
         override suspend fun updateScanResultSummary() = Unit
         override suspend fun recalculateWhatsAppCounts() = Unit
+        override suspend fun clearWhatsAppFlags() = Unit
         override suspend fun getCrossAccountContacts(): List<CrossAccountContact> = emptyList()
         override suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact> = emptyList()
         override suspend fun consolidateContactToAccount(

@@ -192,6 +192,10 @@ class MockContactRepository : ContactRepository {
         // No-op for mock
     }
 
+    override suspend fun clearWhatsAppFlags() {
+        // No-op for mock
+    }
+
     override suspend fun refreshContacts(contacts: List<Contact>): Boolean {
         delay(300)
         return true

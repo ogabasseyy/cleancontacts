@@ -56,7 +56,7 @@ const AppContent: React.FC = () => {
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar currentView={getCurrentView()} onNavigate={navigateTo} />
 
-        <main id="main-content" className="flex-grow">
+        <main id="main-content" tabIndex={-1} className="flex-grow focus:outline-none">
           <Routes>
             <Route path="/" element={
               <>

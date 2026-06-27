@@ -648,11 +648,14 @@ class ContactRepositoryImpl constructor(
         }
 
         if (updatedContactIds.isNotEmpty()) {
-            val updatedContacts = contactEntities
-                .asSequence()
-                .filter { it.id in updatedContactIds }
-                .map { it.toDomain() }
-                .toList()
+            // ⚡ Bolt Optimization: Replace chained mapping sequence with single-pass indexed loop.
+            val updatedContacts = ArrayList<Contact>(updatedContactIds.size)
+            for (i in contactEntities.indices) {
+                val entity = contactEntities[i]
+                if (updatedContactIds.contains(entity.id)) {
+                    updatedContacts.add(entity.toDomain())
+                }
+            }
             if (updatedContacts.isNotEmpty()) {
                 recordBackupSafely(
                     contacts = updatedContacts,

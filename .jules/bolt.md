@@ -343,3 +343,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2024-07-26 - Eliminate implicit allocations in WhatsAppCacheMatcher
 **Learning:** During high-frequency batch processing operations (like bulk checking if thousands of contacts exist in WhatsApp cache), standard library functions like `.split(",")`, `.asSequence()`, and `.map { ... }` introduce severe overhead. Each step creates new objects (Arrays, Lists, Iterator wrappers), leading to massive unnecessary memory allocation and frequent Garbage Collection pauses.
 **Action:** Replaced functional chaining on hot paths with single-pass primitive iteration (`for` loops over `String.indices`) and reused `StringBuilder` to extract string segments without intermediate collection allocation.
+
+## 2026-10-18 - Replacing chained mapping sequence with single-pass indexed loop
+**Learning:** Using chained `.asSequence().filter { ... }.map { ... }.toList()` creates unnecessary intermediate iterator objects and mapping sequences, creating GC overhead in high-frequency batch processing operations.
+**Action:** Always replace chained functional sequences with single-pass, pre-sized `ArrayList` loops for filtering and mapping large batch arrays.

@@ -17,6 +17,7 @@ import com.ogabassey.contactscleaner.domain.model.ScanStatus
 import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
 import com.ogabassey.contactscleaner.domain.model.AccountInstance
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.util.firstNonBlankSegment
 import com.ogabassey.contactscleaner.util.formatWithCommas
 import com.ogabassey.contactscleaner.util.splitAndFilterNotBlank
@@ -36,7 +37,8 @@ class ContactRepositoryImpl constructor(
     private val ignoredContactDao: com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao,
     private val scanResultProvider: com.ogabassey.contactscleaner.data.util.ScanResultProvider,
     private val usageRepository: com.ogabassey.contactscleaner.domain.repository.UsageRepository,
-    private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository
+    private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository,
+    private val whatsAppRepository: WhatsAppDetectorRepository
 ) : ContactRepository {
 
     private suspend fun recordBackupSafely(
@@ -842,14 +844,76 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun recalculateWhatsAppCounts() {
-        // Android uses native WhatsApp detection via account_type, no VPS cache needed.
-        // Just refresh the summary which already has correct counts.
-        updateScanResultSummary()
+        try {
+            val cachedNumbers = whatsAppRepository.getCachedNumbers()
+            if (cachedNumbers.isEmpty()) {
+                updateScanResultSummary()
+                return
+            }
+
+            val batchSize = 500
+            val totalContacts = contactDao.countTotal()
+            var offset = 0
+            var totalUpdatedCount = 0
+
+            while (offset < totalContacts) {
+                val batch = contactDao.getContactsBatch(batchSize, offset)
+                if (batch.isEmpty()) break
+
+                val updatedContacts = AndroidWhatsAppFlagResolver.contactsNeedingLinkedCacheUpdate(
+                    contacts = batch,
+                    cachedNumbers = cachedNumbers
+                )
+                if (updatedContacts.isNotEmpty()) {
+                    contactDao.insertContacts(updatedContacts)
+                    totalUpdatedCount += updatedContacts.size
+                }
+
+                offset += batchSize
+            }
+
+            Logger.d("ContactRepository", "Updated WhatsApp flags from linked cache for $totalUpdatedCount contacts")
+            updateScanResultSummary()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("ContactRepository", "Failed to recalculate WhatsApp counts from linked cache", e)
+            updateScanResultSummary()
+        }
     }
 
     override suspend fun clearWhatsAppFlags() {
-        // Android WhatsApp flags come from native account metadata, not the VPS cache.
-        updateScanResultSummary()
+        try {
+            val nativeWhatsAppIds = contactsProviderSource.getWhatsAppContactIds()
+            val batchSize = 500
+            val totalContacts = contactDao.countTotal()
+            var offset = 0
+            var totalUpdatedCount = 0
+
+            while (offset < totalContacts) {
+                val batch = contactDao.getContactsBatch(batchSize, offset)
+                if (batch.isEmpty()) break
+
+                val updatedContacts = AndroidWhatsAppFlagResolver.contactsNeedingNativeRestore(
+                    contacts = batch,
+                    nativeWhatsAppIds = nativeWhatsAppIds
+                )
+                if (updatedContacts.isNotEmpty()) {
+                    contactDao.insertContacts(updatedContacts)
+                    totalUpdatedCount += updatedContacts.size
+                }
+
+                offset += batchSize
+            }
+
+            Logger.d("ContactRepository", "Restored native WhatsApp flags for $totalUpdatedCount contacts after disconnect")
+            updateScanResultSummary()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.e("ContactRepository", "Failed to restore native WhatsApp flags after disconnect", e)
+            updateScanResultSummary()
+        }
     }
 
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {

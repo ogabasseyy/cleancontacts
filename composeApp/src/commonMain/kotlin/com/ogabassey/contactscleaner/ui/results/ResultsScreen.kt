@@ -93,10 +93,13 @@ fun ResultsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshProgress by viewModel.refreshProgress.collectAsState()
 
-    // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
-    val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
-    val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
-    val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
+    val whatsAppViewModel: WhatsAppLinkViewModel = koinViewModel()
+    val whatsAppState = whatsAppViewModel.state.collectAsState().value
+    val syncState = whatsAppViewModel.syncState.collectAsState().value
+    val socialConnectionStatus = whatsappSocialConnectionStatus(
+        isAndroid = isAndroid,
+        isConnected = whatsAppState == WhatsAppLinkState.Connected
+    )
 
     // 2026 Best Practice: Track retry state for immediate UI feedback
     var isRetryingSync by remember { mutableStateOf(false) }
@@ -402,19 +405,22 @@ fun ResultsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(
-                                    "Social Connections",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = TextMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.weight(1f)
-                                )
-
-                                if (isIOS && whatsAppState == WhatsAppLinkState.Connected) {
-                                    WhatsAppDisconnectButton(
-                                        onClick = { whatsAppViewModel?.disconnect() }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Social Connections",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = TextMedium,
+                                        fontWeight = FontWeight.Bold
                                     )
+                                    SocialConnectionStatusText(socialConnectionStatus)
                                 }
+
+                                SocialConnectionsAction(
+                                    status = socialConnectionStatus,
+                                    onImproveAccuracy = onNavigateToWhatsAppLink,
+                                    onLink = onNavigateToWhatsAppLink,
+                                    onDisconnect = { whatsAppViewModel.disconnect() }
+                                )
                             }
                         }
 
@@ -509,7 +515,7 @@ fun ResultsScreen(
                                                     isRetrying = isRetryingSync,
                                                     onRetry = {
                                                         isRetryingSync = true
-                                                        whatsAppViewModel?.startWhatsAppSync()
+                                                        whatsAppViewModel.startWhatsAppSync()
                                                     }
                                                 )
                                             }
@@ -1100,6 +1106,73 @@ private data class ResultItem(
     val description: String,
     val type: ContactType
 )
+
+@Composable
+private fun SocialConnectionStatusText(status: SocialConnectionStatus) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            status.badge,
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1
+        )
+        Text(
+            status.detail,
+            style = MaterialTheme.typography.labelSmall,
+            color = TextLow,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun SocialConnectionsAction(
+    status: SocialConnectionStatus,
+    onImproveAccuracy: () -> Unit,
+    onLink: () -> Unit,
+    onDisconnect: () -> Unit
+) {
+    when (status.action) {
+        SocialConnectionAction.Disconnect -> WhatsAppDisconnectButton(
+            onClick = onDisconnect
+        )
+        SocialConnectionAction.ImproveAccuracy -> OutlinedButton(
+            onClick = onImproveAccuracy,
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = PrimaryNeon
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryNeon.copy(alpha = 0.45f)),
+            shape = RoundedCornerShape(8.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+            modifier = Modifier.heightIn(min = 36.dp)
+        ) {
+            Icon(
+                Icons.Default.Verified,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                "Improve Accuracy",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
+            )
+        }
+        SocialConnectionAction.Link -> TextButton(onClick = onLink) {
+            Text(
+                "Link",
+                color = PrimaryNeon,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
+            )
+        }
+    }
+}
 
 /**
  * Card showing WhatsApp sync progress.

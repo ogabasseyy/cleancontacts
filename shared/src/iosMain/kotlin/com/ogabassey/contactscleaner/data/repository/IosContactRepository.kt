@@ -649,21 +649,23 @@ class IosContactRepository(
         if (contacts.isEmpty()) return true
 
         return try {
-            val uids = contacts.mapNotNull { it.platform_uid }
-            val ids = contacts.map { it.id } // DB IDs
-            if (uids.isEmpty()) return false
-
-            // 1. Build existing account metadata map to preserve during refresh
-            // 2026 Fix: Preserve account info that may not be available from CNContact directly
-            // ⚡ Bolt Optimization: Replace multiple passes (.filter.associate) with a single-pass loop
+            // ⚡ Bolt Optimization: Replace multiple passes (.mapNotNull, .map, and a separate loop)
+            // with a single-pass indexed loop to build uids, ids, and existingAccountInfo,
+            // eliminating intermediate ArrayList allocations and implicit iterator overhead.
+            val uids = ArrayList<String>(contacts.size)
+            val ids = ArrayList<Long>(contacts.size) // DB IDs
             val existingAccountInfo = HashMap<String, Pair<String?, String?>>(contacts.size)
+
             for (i in contacts.indices) {
                 val contact = contacts[i]
+                ids.add(contact.id)
                 val platformUid = contact.platform_uid
                 if (platformUid != null) {
+                    uids.add(platformUid)
                     existingAccountInfo[platformUid] = Pair(contact.accountType, contact.accountName)
                 }
             }
+            if (uids.isEmpty()) return false
 
             // 2. Fetch fresh data from source with preserved account info
             val freshContacts = contactsSource.getContactsByUids(uids, existingAccountInfo)

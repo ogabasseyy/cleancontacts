@@ -146,3 +146,7 @@
 ## 2024-06-26 - Skip Link Keyboard Navigation Focus
 **Learning:** Skip-to-content links that target a container without `tabIndex={-1}` may visually scroll the page but fail to move actual keyboard focus in certain browsers, rendering the skip link ineffective for subsequent keyboard navigation.
 **Action:** Always add `tabIndex={-1}` and `focus:outline-none` to the target `<main>` or container element so focus properly shifts without introducing unwanted visual focus rings.
+
+## 2026-05-18 - Consistent Visual Affordance for Actions
+**Learning:** Inconsistent visual affordances (such as lacking an email icon on a `mailto:` link in one card while having it in others) degrades the micro-UX and user trust. Users rely on consistent iconography to quickly identify the nature of an action.
+**Action:** Ensure that recurring action types (like `mailto:` links, external links) utilize a consistent set of iconography across all similar components (e.g., all informational cards) to establish a predictable interaction pattern.

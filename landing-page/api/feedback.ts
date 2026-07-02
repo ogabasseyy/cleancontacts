@@ -83,10 +83,16 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   }
 
   // 2026 Security Fix: Apply rate limiting based on client IP
+  // Use trusted proxy headers first to prevent IP spoofing
+  const realIp = req.headers?.["x-real-ip"] || req.headers?.["x-vercel-forwarded-for"];
   const forwardedFor = req.headers?.["x-forwarded-for"];
-  const clientIp = Array.isArray(forwardedFor)
+
+  const extractedRealIp = Array.isArray(realIp) ? realIp[0] : realIp;
+  const extractedForwardedFor = Array.isArray(forwardedFor)
     ? forwardedFor[0]
-    : forwardedFor?.split(',')[0]?.trim() || "unknown-ip";
+    : forwardedFor?.split(',')[0]?.trim();
+
+  const clientIp = extractedRealIp || extractedForwardedFor || "unknown-ip";
 
   cleanupRateLimitMap();
 

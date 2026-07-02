@@ -31,6 +31,19 @@ object WhatsAppAccuracyMatcher {
         }
     }
 
+    fun normalizeResults(results: Map<String, Boolean>): Map<String, Boolean> {
+        if (results.isEmpty()) return emptyMap()
+
+        val normalized = LinkedHashMap<String, Boolean>()
+        for ((number, hasWhatsApp) in results) {
+            val digits = number.extractDigits()
+            if (digits.length in 8..15) {
+                normalized[digits] = hasWhatsApp
+            }
+        }
+        return normalized
+    }
+
     private fun collectNumbers(rawNumbers: String, target: MutableSet<String>) {
         for (number in extractNumbers(rawNumbers)) {
             target.add(number)

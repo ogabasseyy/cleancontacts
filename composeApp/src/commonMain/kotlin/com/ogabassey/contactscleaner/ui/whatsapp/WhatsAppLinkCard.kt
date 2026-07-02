@@ -307,7 +307,9 @@ fun WhatsAppContactsCard(
 fun WhatsAppAccuracyCard(
     state: AccuracyState,
     onImproveClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    idleMessage: String = "Checks local phone numbers against WhatsApp",
+    actionLabel: String? = null
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -349,7 +351,7 @@ fun WhatsAppAccuracyCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        accuracyMessage(state),
+                        accuracyMessage(state, idleMessage),
                         style = MaterialTheme.typography.bodySmall,
                         color = TextMedium
                     )
@@ -390,7 +392,7 @@ fun WhatsAppAccuracyCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            if (state is AccuracyState.Complete) "Run Again" else "Improve Accuracy",
+                            actionLabel ?: if (state is AccuracyState.Complete) "Run Again" else "Improve Accuracy",
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -401,9 +403,9 @@ fun WhatsAppAccuracyCard(
     }
 }
 
-private fun accuracyMessage(state: AccuracyState): String {
+private fun accuracyMessage(state: AccuracyState, idleMessage: String): String {
     return when (state) {
-        is AccuracyState.Idle -> "Checks local phone numbers against WhatsApp"
+        is AccuracyState.Idle -> idleMessage
         is AccuracyState.Checking ->
             "${state.whatsAppCount.formatWithCommas()} WhatsApp numbers found"
         is AccuracyState.Complete ->

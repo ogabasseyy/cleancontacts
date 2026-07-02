@@ -95,14 +95,13 @@ fun ResultsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val refreshProgress by viewModel.refreshProgress.collectAsState()
 
-    // 2026 Best Practice: Only instantiate VPS-based ViewModel on iOS to save resources on Android.
-    val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
-    val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
-    val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
-    val accuracyState = whatsAppViewModel?.accuracyState?.collectAsState()?.value ?: AccuracyState.Idle
+    val whatsAppViewModel: WhatsAppLinkViewModel = koinViewModel()
+    val whatsAppState = whatsAppViewModel.state.collectAsState().value
+    val syncState = whatsAppViewModel.syncState.collectAsState().value
+    val accuracyState = whatsAppViewModel.accuracyState.collectAsState().value
 
     LaunchedEffect(whatsAppViewModel) {
-        whatsAppViewModel?.checkConnectionStatus()
+        whatsAppViewModel.checkConnectionStatus()
     }
 
     // 2026 Best Practice: Track retry state for immediate UI feedback
@@ -417,9 +416,9 @@ fun ResultsScreen(
                                     modifier = Modifier.weight(1f)
                                 )
 
-                                if (isIOS && whatsAppState == WhatsAppLinkState.Connected) {
+                                if (whatsAppState == WhatsAppLinkState.Connected) {
                                     WhatsAppDisconnectButton(
-                                        onClick = { whatsAppViewModel?.disconnect() }
+                                        onClick = { whatsAppViewModel.disconnect() }
                                     )
                                 }
                             }
@@ -427,6 +426,26 @@ fun ResultsScreen(
 
                         // Platform-specific WhatsApp display
                         if (isAndroid) {
+                            item {
+                                val cloudConnected = whatsAppState == WhatsAppLinkState.Connected
+                                WhatsAppAccuracyCard(
+                                    state = if (cloudConnected) accuracyState else AccuracyState.Idle,
+                                    onImproveClick = {
+                                        if (cloudConnected) {
+                                            whatsAppViewModel.improveAccuracy()
+                                        } else {
+                                            onNavigateToWhatsAppLink()
+                                        }
+                                    },
+                                    idleMessage = if (cloudConnected) {
+                                        "Checks local phone numbers against WhatsApp"
+                                    } else {
+                                        "Link WhatsApp to cloud-check Android contacts"
+                                    },
+                                    actionLabel = if (cloudConnected) null else "Link to Cloud"
+                                )
+                            }
+
                             // Android: Show native WhatsApp counts (detected via account_type)
                             if (scanResult.whatsAppCount > 0) {
                                 item {
@@ -466,7 +485,7 @@ fun ResultsScreen(
                                     item {
                                         WhatsAppAccuracyCard(
                                             state = accuracyState,
-                                            onImproveClick = { whatsAppViewModel?.improveAccuracy() }
+                                            onImproveClick = { whatsAppViewModel.improveAccuracy() }
                                         )
                                     }
 
@@ -523,7 +542,7 @@ fun ResultsScreen(
                                                     isRetrying = isRetryingSync,
                                                     onRetry = {
                                                         isRetryingSync = true
-                                                        whatsAppViewModel?.startWhatsAppSync()
+                                                        whatsAppViewModel.startWhatsAppSync()
                                                     }
                                                 )
                                             }

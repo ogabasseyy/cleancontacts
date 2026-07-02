@@ -38,6 +38,27 @@ class WhatsAppAccuracyMatcherTest {
         assertEquals(true, updated[2].isWhatsApp)
     }
 
+    @Test
+    fun normalizesDetectorResultsBeforeApplyingThem() {
+        val contacts = listOf(
+            contact(id = 1, rawNumbers = "+234 801 111 1111", isWhatsApp = false),
+            contact(id = 2, rawNumbers = "0802 222 2222", isWhatsApp = true)
+        )
+        val results = WhatsAppAccuracyMatcher.normalizeResults(
+            mapOf(
+                "+234 801 111 1111" to true,
+                "0802-222-2222" to false,
+                "12345" to true
+            )
+        )
+
+        val updated = WhatsAppAccuracyMatcher.applyResults(contacts, results)
+
+        assertEquals(mapOf("2348011111111" to true, "08022222222" to false), results)
+        assertEquals(true, updated[0].isWhatsApp)
+        assertEquals(false, updated[1].isWhatsApp)
+    }
+
     private fun contact(
         id: Long,
         rawNumbers: String,

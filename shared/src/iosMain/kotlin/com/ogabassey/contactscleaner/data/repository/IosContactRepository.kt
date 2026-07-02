@@ -955,9 +955,8 @@ class IosContactRepository(
     override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int {
         if (results.isEmpty()) return 0
 
-        val normalizedResults = results.entries.associate { (number, hasWhatsApp) ->
-            number.extractDigits() to hasWhatsApp
-        }
+        val normalizedResults = WhatsAppAccuracyMatcher.normalizeResults(results)
+        if (normalizedResults.isEmpty()) return 0
 
         var updatedCount = 0
         val batchSize = 500

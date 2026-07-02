@@ -848,18 +848,53 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> {
-        // Android currently uses native WhatsApp account metadata instead of the VPS session checker.
-        return emptyList()
+        val numbers = LinkedHashSet<String>()
+        val batchSize = 1000
+        val totalContacts = contactDao.countTotal()
+        var offset = 0
+
+        while (offset < totalContacts) {
+            val batch = contactDao.getContactsBatch(batchSize, offset)
+            if (batch.isEmpty()) break
+            numbers.addAll(WhatsAppAccuracyMatcher.extractUniquePhoneNumbers(batch))
+            offset += batchSize
+        }
+
+        return numbers.toList()
     }
 
     override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int {
-        // Android currently uses native WhatsApp account metadata instead of the VPS session checker.
-        return 0
+        val normalizedResults = WhatsAppAccuracyMatcher.normalizeResults(results)
+        if (normalizedResults.isEmpty()) return 0
+
+        var updatedCount = 0
+        val batchSize = 500
+        val totalContacts = contactDao.countTotal()
+        var offset = 0
+
+        while (offset < totalContacts) {
+            val batch = contactDao.getContactsBatch(batchSize, offset)
+            if (batch.isEmpty()) break
+
+            val updatedBatch = WhatsAppAccuracyMatcher
+                .applyResults(batch, normalizedResults)
+                .filterIndexed { index, updated -> updated.isWhatsApp != batch[index].isWhatsApp }
+
+            if (updatedBatch.isNotEmpty()) {
+                contactDao.insertContacts(updatedBatch)
+                updatedCount += updatedBatch.size
+            }
+
+            offset += batchSize
+        }
+
+        updateScanResultSummary()
+        return updatedCount
     }
 
     override suspend fun clearWhatsAppFlags() {
-        // Android WhatsApp flags come from native account metadata, not the VPS cache.
-        updateScanResultSummary()
+        // Restore Android's native account-based WhatsApp flags after cloud accuracy is disconnected.
+        rebuildLocalCacheFromProvider()
     }
 
     override suspend fun restoreContacts(contacts: List<Contact>): Boolean {

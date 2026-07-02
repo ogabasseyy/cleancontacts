@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import com.ogabassey.contactscleaner.platform.RegionProvider
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.ui.components.*
+import com.ogabassey.contactscleaner.util.formatWithCommas
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -55,9 +56,13 @@ fun WhatsAppLinkScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
+    val accuracyState by viewModel.accuracyState.collectAsState()
 
-    LaunchedEffect(syncState) {
-        if (syncState is SyncState.Complete) {
+    LaunchedEffect(syncState, accuracyState) {
+        if (syncState is SyncState.Complete && accuracyState is AccuracyState.Idle) {
+            viewModel.improveAccuracy()
+        }
+        if (accuracyState is AccuracyState.Complete) {
             onConnected()
         }
     }
@@ -123,7 +128,9 @@ fun WhatsAppLinkScreen(
                     )
                     is WhatsAppLinkState.Connected -> SuccessContent(
                         syncState = syncState,
+                        accuracyState = accuracyState,
                         onRetrySync = { viewModel.startWhatsAppSync() },
+                        onRetryAccuracy = { viewModel.improveAccuracy() },
                         onDisconnect = { viewModel.disconnect() }
                     )
                     is WhatsAppLinkState.Error -> ErrorContent(
@@ -469,7 +476,9 @@ private fun InstructionStep(number: Int, text: String) {
 @Composable
 private fun SuccessContent(
     syncState: SyncState,
+    accuracyState: AccuracyState,
     onRetrySync: () -> Unit,
+    onRetryAccuracy: () -> Unit,
     onDisconnect: () -> Unit
 ) {
     Column(
@@ -523,11 +532,9 @@ private fun SuccessContent(
                 )
             }
             is SyncState.Complete -> {
-                Text(
-                    "Your contact scans now show WhatsApp status",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextMedium,
-                    textAlign = TextAlign.Center
+                AccuracyProgressContent(
+                    accuracyState = accuracyState,
+                    onRetryAccuracy = onRetryAccuracy
                 )
             }
             is SyncState.Error -> {
@@ -562,6 +569,70 @@ private fun SuccessContent(
             label = "Disconnect WhatsApp",
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+private fun AccuracyProgressContent(
+    accuracyState: AccuracyState,
+    onRetryAccuracy: () -> Unit
+) {
+    when (accuracyState) {
+        is AccuracyState.Checking -> {
+            LinearProgressIndicator(
+                progress = { (accuracyState.percent / 100f).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                color = SecondaryNeon,
+                trackColor = Color.White.copy(alpha = 0.1f)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Checking ${accuracyState.checked.formatWithCommas()} of ${accuracyState.total.formatWithCommas()} local numbers",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMedium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "${accuracyState.whatsAppCount.formatWithCommas()} WhatsApp numbers found",
+                style = MaterialTheme.typography.bodySmall,
+                color = SecondaryNeon,
+                textAlign = TextAlign.Center
+            )
+        }
+        is AccuracyState.Complete -> {
+            Text(
+                "${accuracyState.whatsAppCount.formatWithCommas()} WhatsApp numbers found from ${accuracyState.totalChecked.formatWithCommas()} checked",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+        is AccuracyState.Error -> {
+            Text(
+                accuracyState.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = ErrorNeon,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onRetryAccuracy,
+                colors = ButtonDefaults.buttonColors(containerColor = SecondaryNeon)
+            ) {
+                Text("Retry Accuracy Check", color = SpaceBlack, fontWeight = FontWeight.Bold)
+            }
+        }
+        AccuracyState.Idle -> {
+            Text(
+                "Preparing local number check...",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMedium,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 

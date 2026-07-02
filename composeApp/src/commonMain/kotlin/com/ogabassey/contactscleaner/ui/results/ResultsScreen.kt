@@ -98,6 +98,10 @@ fun ResultsScreen(
     val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
     val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
 
+    LaunchedEffect(whatsAppViewModel) {
+        whatsAppViewModel?.checkConnectionStatus()
+    }
+
     // 2026 Best Practice: Track retry state for immediate UI feedback
     var isRetryingSync by remember { mutableStateOf(false) }
 

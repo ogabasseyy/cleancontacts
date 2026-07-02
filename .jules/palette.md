@@ -150,3 +150,7 @@
 ## 2026-05-18 - Consistent Visual Affordance for Actions
 **Learning:** Inconsistent visual affordances (such as lacking an email icon on a `mailto:` link in one card while having it in others) degrades the micro-UX and user trust. Users rely on consistent iconography to quickly identify the nature of an action.
 **Action:** Ensure that recurring action types (like `mailto:` links, external links) utilize a consistent set of iconography across all similar components (e.g., all informational cards) to establish a predictable interaction pattern.
+
+## 2024-07-02 - Semantic Navigation Links vs Buttons
+**Learning:** Using `<button type="button">` with `onClick` handlers for site navigation (e.g., in a Navbar or Footer) breaks native browser features like "Open in new tab" (middle-click), link previews, and proper screen reader link announcements. Additionally, using `aria-label="Go to home page"` on a logo link overrides the visible text ("Contacts Cleaner"), which degrades the experience for Voice Control users who might try to speak the visible text to activate it.
+**Action:** Use semantic links with real destinations, preferably the routing library's `Link` component for internal routes. Never unconditionally prevent the default action on a link: modified clicks and non-primary clicks must retain native browser behavior. Do not use `aria-label` to replace visible, self-evident link text.

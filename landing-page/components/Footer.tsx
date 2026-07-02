@@ -42,38 +42,34 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </a>
           </div>
           <div className="flex gap-8 text-gray-400">
-            <button
-              type="button"
-              aria-label="Navigate to Blog"
-              onClick={() => onNavigate('blog')}
+            <a
+              href="/blog"
+              onClick={(e) => { e.preventDefault(); onNavigate('blog'); }}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Blog
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Privacy Policy"
-              onClick={() => onNavigate('privacy')}
+            </a>
+            <a
+              href="/privacy"
+              onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Privacy
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Terms of Service"
-              onClick={() => onNavigate('terms')}
+            </a>
+            <a
+              href="/terms"
+              onClick={(e) => { e.preventDefault(); onNavigate('terms'); }}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Terms
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Support"
-              onClick={() => onNavigate('support')}
+            </a>
+            <a
+              href="/support"
+              onClick={(e) => { e.preventDefault(); onNavigate('support'); }}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Support
-            </button>
+            </a>
           </div>
         </div>
 

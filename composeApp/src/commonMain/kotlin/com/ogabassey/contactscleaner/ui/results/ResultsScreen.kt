@@ -46,6 +46,8 @@ import com.ogabassey.contactscleaner.domain.model.ScanResult
 import com.ogabassey.contactscleaner.ui.components.VerticalScrollBar
 import com.ogabassey.contactscleaner.ui.components.glassy
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.ui.whatsapp.AccuracyState
+import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppAccuracyCard
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppContactsCard
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppDisconnectButton
 import com.ogabassey.contactscleaner.ui.whatsapp.WhatsAppLinkCard
@@ -97,6 +99,7 @@ fun ResultsScreen(
     val whatsAppViewModel: WhatsAppLinkViewModel? = if (isIOS) koinViewModel() else null
     val whatsAppState = whatsAppViewModel?.state?.collectAsState()?.value ?: WhatsAppLinkState.NotLinked
     val syncState = whatsAppViewModel?.syncState?.collectAsState()?.value ?: SyncState.Idle
+    val accuracyState = whatsAppViewModel?.accuracyState?.collectAsState()?.value ?: AccuracyState.Idle
 
     LaunchedEffect(whatsAppViewModel) {
         whatsAppViewModel?.checkConnectionStatus()
@@ -457,6 +460,13 @@ fun ResultsScreen(
                                     item {
                                         WhatsAppContactsCard(
                                             onViewContacts = onNavigateToWhatsAppContacts
+                                        )
+                                    }
+
+                                    item {
+                                        WhatsAppAccuracyCard(
+                                            state = accuracyState,
+                                            onImproveClick = { whatsAppViewModel?.improveAccuracy() }
                                         )
                                     }
 

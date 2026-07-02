@@ -847,6 +847,16 @@ class ContactRepositoryImpl constructor(
         updateScanResultSummary()
     }
 
+    override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> {
+        // Android currently uses native WhatsApp account metadata instead of the VPS session checker.
+        return emptyList()
+    }
+
+    override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int {
+        // Android currently uses native WhatsApp account metadata instead of the VPS session checker.
+        return 0
+    }
+
     override suspend fun clearWhatsAppFlags() {
         // Android WhatsApp flags come from native account metadata, not the VPS cache.
         updateScanResultSummary()

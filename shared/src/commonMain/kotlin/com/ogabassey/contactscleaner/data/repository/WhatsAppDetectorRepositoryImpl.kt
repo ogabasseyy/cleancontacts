@@ -1,7 +1,4 @@
-
 package com.ogabassey.contactscleaner.data.repository
-import com.ogabassey.contactscleaner.util.extractDigits
-
 
 import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.data.api.SessionStatus
@@ -13,6 +10,7 @@ import com.ogabassey.contactscleaner.data.db.entity.WhatsAppCacheMeta
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppCheckProgress
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
+import com.ogabassey.contactscleaner.util.extractDigits
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -80,9 +78,9 @@ class WhatsAppDetectorRepositoryImpl(
             return@flow
         }
 
-        // 2026 Fix: Use provided batchSize parameter instead of hardcoded value
-        val effectiveBatchSize = batchSize.coerceIn(10, 100) // Clamp to safe range
-        val delayMs = 2000L // Increased delay for rate limiting
+        // 2026 Fix: Match VPS validation limit so large local address books finish in minutes, not hours.
+        val effectiveBatchSize = batchSize.coerceIn(10, 1000)
+        val delayMs = 750L
         val allResults = mutableMapOf<String, Boolean>()
         var whatsappCount = 0
 
@@ -289,5 +287,32 @@ class WhatsAppDetectorRepositoryImpl(
     override suspend fun clearCache() {
         // 2026 Fix: Clear both cache entries AND metadata for complete reset
         cacheDao?.clearAllWithMeta()
+    }
+
+    override suspend fun replaceCacheWithDetectedNumbers(numbers: Set<String>) {
+        val dao = cacheDao ?: return
+        val now = Clock.System.now().toEpochMilliseconds()
+        val normalizedNumbers = numbers
+            .asSequence()
+            .map { it.extractDigits() }
+            .filter { it.length in 8..15 }
+            .distinct()
+            .toList()
+        val entries = normalizedNumbers.map { number ->
+            WhatsAppCacheEntry(
+                normalizedNumber = number,
+                isBusiness = false,
+                lastSynced = now
+            )
+        }
+        val meta = WhatsAppCacheMeta(
+            key = "sync_status",
+            lastFullSync = now,
+            totalCount = entries.size,
+            businessCount = 0,
+            personalCount = entries.size,
+            syncInProgress = false
+        )
+        dao.replaceAllEntries(entries, meta)
     }
 }

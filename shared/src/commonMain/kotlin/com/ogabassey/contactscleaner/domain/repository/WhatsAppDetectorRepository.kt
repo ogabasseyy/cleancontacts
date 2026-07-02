@@ -162,6 +162,11 @@ interface WhatsAppDetectorRepository {
      * Clear the WhatsApp cache.
      */
     suspend fun clearCache()
+
+    /**
+     * Replace local WhatsApp cache with numbers confirmed by explicit number checks.
+     */
+    suspend fun replaceCacheWithDetectedNumbers(numbers: Set<String>)
 }
 
 /**

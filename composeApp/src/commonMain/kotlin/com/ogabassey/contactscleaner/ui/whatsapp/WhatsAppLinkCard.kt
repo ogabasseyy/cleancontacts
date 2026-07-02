@@ -7,10 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ogabassey.contactscleaner.ui.theme.*
+import com.ogabassey.contactscleaner.util.formatWithCommas
 
 /**
  * Card displayed on Results screen for iOS users to link WhatsApp.
@@ -297,6 +300,115 @@ fun WhatsAppContactsCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun WhatsAppAccuracyCard(
+    state: AccuracyState,
+    onImproveClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color.White.copy(alpha = 0.05f),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "Improve WhatsApp accuracy"
+            }
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(SecondaryNeon.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        when (state) {
+                            is AccuracyState.Complete -> Icons.Default.CheckCircle
+                            else -> Icons.Default.Refresh
+                        },
+                        contentDescription = null,
+                        tint = SecondaryNeon,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Improve Accuracy",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        accuracyMessage(state),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMedium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when (state) {
+                is AccuracyState.Checking -> {
+                    LinearProgressIndicator(
+                        progress = { state.percent / 100f },
+                        color = SecondaryNeon,
+                        trackColor = Color.White.copy(alpha = 0.08f),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "${state.checked.formatWithCommas()} of ${state.total.formatWithCommas()} checked",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMedium
+                    )
+                }
+                else -> {
+                    Button(
+                        onClick = onImproveClick,
+                        enabled = state !is AccuracyState.Checking,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SecondaryNeon,
+                            contentColor = SpaceBlack
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            if (state is AccuracyState.Complete) "Run Again" else "Improve Accuracy",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun accuracyMessage(state: AccuracyState): String {
+    return when (state) {
+        is AccuracyState.Idle -> "Checks local phone numbers against WhatsApp"
+        is AccuracyState.Checking ->
+            "${state.whatsAppCount.formatWithCommas()} WhatsApp numbers found"
+        is AccuracyState.Complete ->
+            "${state.whatsAppCount.formatWithCommas()} WhatsApp numbers found from ${state.totalChecked.formatWithCommas()} checked"
+        is AccuracyState.Error -> state.message
     }
 }
 

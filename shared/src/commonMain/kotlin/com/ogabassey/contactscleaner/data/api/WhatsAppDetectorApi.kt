@@ -64,7 +64,7 @@ class WhatsAppDetectorApi(
         // 2026 Security: Input length limits to prevent buffer overflows/DoS
         const val MAX_PHONE_NUMBER_LENGTH = 50
         const val MAX_USER_ID_LENGTH = 100
-        const val MAX_BATCH_SIZE = 5000
+        const val MAX_BATCH_SIZE = 1000
 
         // 2026 Security: Whitelist allowed characters for userId to prevent injection
         val USER_ID_REGEX = Regex("^[a-zA-Z0-9_-]+$")

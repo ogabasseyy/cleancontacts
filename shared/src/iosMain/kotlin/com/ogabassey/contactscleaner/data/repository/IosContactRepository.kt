@@ -934,6 +934,56 @@ class IosContactRepository(
         }
     }
 
+    override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> {
+        return withContext(Dispatchers.Default) {
+            val numbers = LinkedHashSet<String>()
+            val batchSize = 1000
+            val totalContacts = contactDao.countTotal()
+            var offset = 0
+
+            while (offset < totalContacts) {
+                val batch = contactDao.getContactsBatch(batchSize, offset)
+                if (batch.isEmpty()) break
+                numbers.addAll(WhatsAppAccuracyMatcher.extractUniquePhoneNumbers(batch))
+                offset += batchSize
+            }
+
+            numbers.toList()
+        }
+    }
+
+    override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int {
+        if (results.isEmpty()) return 0
+
+        val normalizedResults = results.entries.associate { (number, hasWhatsApp) ->
+            number.extractDigits() to hasWhatsApp
+        }
+
+        var updatedCount = 0
+        val batchSize = 500
+        val totalContacts = contactDao.countTotal()
+        var offset = 0
+
+        while (offset < totalContacts) {
+            val batch = contactDao.getContactsBatch(batchSize, offset)
+            if (batch.isEmpty()) break
+
+            val updatedBatch = WhatsAppAccuracyMatcher
+                .applyResults(batch, normalizedResults)
+                .filterIndexed { index, updated -> updated.isWhatsApp != batch[index].isWhatsApp }
+
+            if (updatedBatch.isNotEmpty()) {
+                contactDao.insertContacts(updatedBatch)
+                updatedCount += updatedBatch.size
+            }
+
+            offset += batchSize
+        }
+
+        updateScanResultSummary()
+        return updatedCount
+    }
+
     override suspend fun clearWhatsAppFlags() {
         val updatedCount = contactDao.clearWhatsAppFlags()
         Logger.d("Logger", "📱 Cleared WhatsApp flag for $updatedCount contacts after disconnect")

@@ -40,6 +40,7 @@ import com.ogabassey.contactscleaner.platform.RegionProvider
 import com.ogabassey.contactscleaner.ui.theme.*
 import com.ogabassey.contactscleaner.ui.components.*
 import com.ogabassey.contactscleaner.util.formatWithCommas
+import com.ogabassey.contactscleaner.util.isAndroid
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -57,13 +58,19 @@ fun WhatsAppLinkScreen(
     val state by viewModel.state.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val accuracyState by viewModel.accuracyState.collectAsState()
+    val shouldRunCloudAccuracy = WhatsAppAccuracyPolicy.shouldRunCloudAccuracyAfterLink(isAndroid)
 
     LaunchedEffect(syncState, accuracyState) {
-        if (syncState is SyncState.Complete && accuracyState is AccuracyState.Idle) {
-            viewModel.improveAccuracy()
-        }
-        if (accuracyState is AccuracyState.Complete) {
-            onConnected()
+        if (syncState is SyncState.Complete) {
+            if (shouldRunCloudAccuracy) {
+                if (accuracyState is AccuracyState.Idle) {
+                    viewModel.improveAccuracy()
+                } else if (accuracyState is AccuracyState.Complete) {
+                    onConnected()
+                }
+            } else {
+                onConnected()
+            }
         }
     }
 
@@ -129,6 +136,7 @@ fun WhatsAppLinkScreen(
                     is WhatsAppLinkState.Connected -> SuccessContent(
                         syncState = syncState,
                         accuracyState = accuracyState,
+                        showAccuracyProgress = shouldRunCloudAccuracy,
                         onRetrySync = { viewModel.startWhatsAppSync() },
                         onRetryAccuracy = { viewModel.improveAccuracy() },
                         onDisconnect = { viewModel.disconnect() }
@@ -477,6 +485,7 @@ private fun InstructionStep(number: Int, text: String) {
 private fun SuccessContent(
     syncState: SyncState,
     accuracyState: AccuracyState,
+    showAccuracyProgress: Boolean,
     onRetrySync: () -> Unit,
     onRetryAccuracy: () -> Unit,
     onDisconnect: () -> Unit
@@ -532,10 +541,19 @@ private fun SuccessContent(
                 )
             }
             is SyncState.Complete -> {
-                AccuracyProgressContent(
-                    accuracyState = accuracyState,
-                    onRetryAccuracy = onRetryAccuracy
-                )
+                if (showAccuracyProgress) {
+                    AccuracyProgressContent(
+                        accuracyState = accuracyState,
+                        onRetryAccuracy = onRetryAccuracy
+                    )
+                } else {
+                    Text(
+                        "Your contact scans now show WhatsApp status",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             is SyncState.Error -> {
                 Text(

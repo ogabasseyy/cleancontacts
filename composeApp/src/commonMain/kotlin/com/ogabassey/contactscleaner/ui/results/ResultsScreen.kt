@@ -482,13 +482,6 @@ fun ResultsScreen(
                                         )
                                     }
 
-                                    item {
-                                        WhatsAppAccuracyCard(
-                                            state = accuracyState,
-                                            onImproveClick = { whatsAppViewModel.improveAccuracy() }
-                                        )
-                                    }
-
                                     // Show sync progress or WhatsApp breakdown based on sync state
                                     when (val currentSyncState = syncState) {
                                         is SyncState.Syncing -> {

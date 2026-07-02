@@ -31,9 +31,8 @@ class WhatsAppDetectorRepositoryImpl(
 
     companion object {
         private const val CACHE_VALIDITY_HOURS = 24
-        // 2026 Optimization: Increased from 500 to 2000 for faster 51k+ contact sync
-        // Server returns contacts instantly from memory cache
-        private const val PAGE_SIZE = 2000
+        // Keep sync pages within WhatsAppDetectorApi pagination validation.
+        private const val PAGE_SIZE = 1000
     }
 
     override suspend fun isServiceAvailable(): Boolean {
@@ -292,6 +291,7 @@ class WhatsAppDetectorRepositoryImpl(
     override suspend fun replaceCacheWithDetectedNumbers(numbers: Set<String>) {
         val dao = cacheDao ?: return
         val now = Clock.System.now().toEpochMilliseconds()
+        val existingBusinessNumbers = dao.getBusinessNumbers().toSet()
         val normalizedNumbers = numbers
             .asSequence()
             .map { it.extractDigits() }
@@ -301,16 +301,17 @@ class WhatsAppDetectorRepositoryImpl(
         val entries = normalizedNumbers.map { number ->
             WhatsAppCacheEntry(
                 normalizedNumber = number,
-                isBusiness = false,
+                isBusiness = number in existingBusinessNumbers,
                 lastSynced = now
             )
         }
+        val businessCount = entries.count { it.isBusiness }
         val meta = WhatsAppCacheMeta(
             key = "sync_status",
             lastFullSync = now,
             totalCount = entries.size,
-            businessCount = 0,
-            personalCount = entries.size,
+            businessCount = businessCount,
+            personalCount = entries.size - businessCount,
             syncInProgress = false
         )
         dao.replaceAllEntries(entries, meta)

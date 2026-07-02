@@ -4,6 +4,7 @@ import com.ogabassey.contactscleaner.platform.Logger
 
 import androidx.paging.PagingData
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
+import com.ogabassey.contactscleaner.data.db.dao.WhatsAppCacheDao
 import com.ogabassey.contactscleaner.data.db.entity.LocalContact
 import com.ogabassey.contactscleaner.data.detector.DuplicateDetector
 import com.ogabassey.contactscleaner.data.detector.JunkDetector
@@ -36,7 +37,8 @@ class ContactRepositoryImpl constructor(
     private val ignoredContactDao: com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao,
     private val scanResultProvider: com.ogabassey.contactscleaner.data.util.ScanResultProvider,
     private val usageRepository: com.ogabassey.contactscleaner.domain.repository.UsageRepository,
-    private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository
+    private val backupRepository: com.ogabassey.contactscleaner.domain.repository.BackupRepository,
+    private val whatsAppCacheDao: WhatsAppCacheDao? = null
 ) : ContactRepository {
 
     private suspend fun recordBackupSafely(
@@ -179,6 +181,23 @@ class ContactRepositoryImpl constructor(
         )
     }
 
+    private suspend fun getCachedWhatsAppNumbers(): Set<String> {
+        return whatsAppCacheDao?.getAllNumbers()?.toSet().orEmpty()
+    }
+
+    private fun applyCachedWhatsAppFlag(
+        contact: LocalContact,
+        cachedWhatsAppNumbers: Set<String>
+    ): LocalContact {
+        if (contact.isWhatsApp || cachedWhatsAppNumbers.isEmpty()) return contact
+
+        return if (WhatsAppCacheMatcher.hasCachedWhatsAppNumber(contact.rawNumbers, cachedWhatsAppNumbers)) {
+            contact.copy(isWhatsApp = true)
+        } else {
+            contact
+        }
+    }
+
     override fun getContactsFlow(type: ContactType): Flow<List<Contact>> {
         return flow {
             val contacts = getContactsSnapshotByType(type)
@@ -231,6 +250,7 @@ class ContactRepositoryImpl constructor(
             val parsed = ignoredIdsStrings[i].toLongOrNull()
             if (parsed != null) ignoredIds.add(parsed)
         }
+        val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
         var processedCount = 0
 
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
@@ -240,7 +260,10 @@ class ContactRepositoryImpl constructor(
                 // and minimize garbage collection overhead during large contact scans.
                 for (i in batchContacts.indices) {
                     val contact = batchContacts[i]
-                    val entity = processContactToEntity(contact, ignoredIds)
+                    val entity = applyCachedWhatsAppFlag(
+                        contact = processContactToEntity(contact, ignoredIds),
+                        cachedWhatsAppNumbers = cachedWhatsAppNumbers
+                    )
 
                     val isValid = entity.id > 0 &&
                         (entity.displayName?.length ?: 0) <= 1000 && // Prevent excessively long names
@@ -842,9 +865,36 @@ class ContactRepositoryImpl constructor(
     }
 
     override suspend fun recalculateWhatsAppCounts() {
-        // Android uses native WhatsApp detection via account_type, no VPS cache needed.
-        // Just refresh the summary which already has correct counts.
+        reapplyCachedWhatsAppFlags()
         updateScanResultSummary()
+    }
+
+    private suspend fun reapplyCachedWhatsAppFlags(): Int {
+        val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
+        if (cachedWhatsAppNumbers.isEmpty()) return 0
+
+        var updatedCount = 0
+        val batchSize = 500
+        val totalContacts = contactDao.countTotal()
+        var offset = 0
+
+        while (offset < totalContacts) {
+            val batch = contactDao.getContactsBatch(batchSize, offset)
+            if (batch.isEmpty()) break
+
+            val updatedBatch = batch.map { contact ->
+                applyCachedWhatsAppFlag(contact, cachedWhatsAppNumbers)
+            }.filterIndexed { index, updated -> updated.isWhatsApp != batch[index].isWhatsApp }
+
+            if (updatedBatch.isNotEmpty()) {
+                contactDao.insertContacts(updatedBatch)
+                updatedCount += updatedBatch.size
+            }
+
+            offset += batchSize
+        }
+
+        return updatedCount
     }
 
     override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> {
@@ -1096,13 +1146,17 @@ class ContactRepositoryImpl constructor(
                 val parsed = ignoredIdsStrings[i].toLongOrNull()
                 if (parsed != null) ignoredIds.add(parsed)
             }
+            val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
 
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
             val returnedIds = HashSet<Long>(freshContacts.size)
             val validatedEntities = ArrayList<LocalContact>(freshContacts.size)
             for (i in freshContacts.indices) {
-                val contact = processContactToEntity(freshContacts[i], ignoredIds)
+                val contact = applyCachedWhatsAppFlag(
+                    contact = processContactToEntity(freshContacts[i], ignoredIds),
+                    cachedWhatsAppNumbers = cachedWhatsAppNumbers
+                )
                 returnedIds.add(contact.id)
 
                 val isValid = contact.id > 0 &&

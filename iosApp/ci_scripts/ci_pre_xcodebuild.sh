@@ -11,6 +11,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOCAL_PROPERTIES="$REPO_ROOT/local.properties"
 
+if [ "${CI_XCODEBUILD_ACTION:-}" != "archive" ]; then
+    echo "Skipping WhatsApp detector archive preflight for CI_XCODEBUILD_ACTION=${CI_XCODEBUILD_ACTION:-unset}."
+    exit 0
+fi
+
 if [ -z "${WHATSAPP_DETECTOR_API_KEY:-}" ]; then
     echo "error: WHATSAPP_DETECTOR_API_KEY is missing from Xcode Cloud environment variables." >&2
     exit 1
@@ -19,9 +24,9 @@ fi
 WHATSAPP_DETECTOR_BASE_URL="${WHATSAPP_DETECTOR_BASE_URL:-https://api.contactscleaner.tech}"
 
 case "$WHATSAPP_DETECTOR_BASE_URL" in
-    http://*|https://*) ;;
+    https://*) ;;
     *)
-        echo "error: WHATSAPP_DETECTOR_BASE_URL must start with http:// or https://." >&2
+        echo "error: WHATSAPP_DETECTOR_BASE_URL must start with https:// for iOS archives." >&2
         exit 1
         ;;
 esac
@@ -55,10 +60,19 @@ upsert_local_property() {
 upsert_local_property "WHATSAPP_DETECTOR_API_KEY" "$WHATSAPP_DETECTOR_API_KEY"
 upsert_local_property "WHATSAPP_DETECTOR_BASE_URL" "$WHATSAPP_DETECTOR_BASE_URL"
 
-if ! curl --fail --silent --show-error --max-time 20 \
+stats_response="$(curl --fail --silent --show-error --max-time 20 \
+    --write-out '\n%{http_code}' \
     -H "X-API-Key: $WHATSAPP_DETECTOR_API_KEY" \
-    "$WHATSAPP_DETECTOR_BASE_URL/stats" >/dev/null; then
+    "$WHATSAPP_DETECTOR_BASE_URL/stats")" || {
     echo "error: WhatsApp detector rejected the Xcode Cloud API key or the service is unreachable." >&2
+    exit 1
+}
+
+stats_status="$(printf '%s\n' "$stats_response" | tail -n 1)"
+stats_body="$(printf '%s\n' "$stats_response" | sed '$d')"
+
+if [ "$stats_status" != "200" ] || [ -z "$stats_body" ]; then
+    echo "error: WhatsApp detector /stats did not return an authenticated 200 response." >&2
     exit 1
 fi
 

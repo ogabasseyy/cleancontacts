@@ -139,6 +139,8 @@ class WhatsAppLinkViewModel(
                 if (status.connected) {
                     _state.update { WhatsAppLinkState.Connected }
                     restoreCacheStateOrSync()
+                } else if (status.error == null && _state.value is WhatsAppLinkState.Connected) {
+                    clearStaleConnectedState()
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -146,6 +148,18 @@ class WhatsAppLinkViewModel(
                 // Silently fail - stay on current state
             }
         }
+    }
+
+    private suspend fun clearStaleConnectedState() {
+        syncJob?.cancelAndJoin()
+        accuracyJob?.cancelAndJoin()
+        syncJob = null
+        accuracyJob = null
+        whatsAppRepository.clearCache()
+        contactRepository.clearWhatsAppFlags()
+        _syncState.value = SyncState.Idle
+        _accuracyState.value = AccuracyState.Idle
+        _state.update { WhatsAppLinkState.NotLinked }
     }
 
     private suspend fun restoreCacheStateOrSync() {
@@ -372,7 +386,11 @@ class WhatsAppLinkViewModel(
 
                 val numbers = contactRepository.getUniquePhoneNumbersForWhatsAppAccuracy()
                 if (numbers.isEmpty()) {
-                    _accuracyState.value = AccuracyState.Error("No phone numbers found to check")
+                    _accuracyState.value = AccuracyState.Complete(
+                        totalChecked = 0,
+                        whatsAppCount = 0,
+                        updatedCount = 0
+                    )
                     return@launch
                 }
 
@@ -413,6 +431,7 @@ class WhatsAppLinkViewModel(
 
                                 whatsAppRepository.replaceCacheWithDetectedNumbers(detectedNumbers)
                                 val updatedCount = contactRepository.applyWhatsAppAccuracyResults(progress.results)
+                                val meta = whatsAppRepository.getCacheMeta()
 
                                 _accuracyState.value = AccuracyState.Complete(
                                     totalChecked = progress.results.size,
@@ -420,9 +439,9 @@ class WhatsAppLinkViewModel(
                                     updatedCount = updatedCount
                                 )
                                 _syncState.value = SyncState.Complete(
-                                    totalCount = progress.whatsappCount,
-                                    businessCount = 0,
-                                    personalCount = progress.whatsappCount
+                                    totalCount = meta?.totalCount ?: progress.whatsappCount,
+                                    businessCount = meta?.businessCount ?: 0,
+                                    personalCount = meta?.personalCount ?: progress.whatsappCount
                                 )
                             }
                             is WhatsAppCheckProgress.Error -> {

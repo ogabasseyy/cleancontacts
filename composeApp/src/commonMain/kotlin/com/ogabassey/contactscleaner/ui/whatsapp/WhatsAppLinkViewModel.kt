@@ -117,6 +117,12 @@ class WhatsAppLinkViewModel(
         }
     }
 
+    private var wasConnected: Boolean
+        get() = settings.getBoolean(KEY_WAS_CONNECTED, false)
+        set(value) {
+            settings.putBoolean(KEY_WAS_CONNECTED, value)
+        }
+
     init {
         checkConnectionStatus()
     }
@@ -137,9 +143,10 @@ class WhatsAppLinkViewModel(
             try {
                 val status = whatsAppRepository.getSessionStatus(deviceId)
                 if (status.connected) {
+                    wasConnected = true
                     _state.update { WhatsAppLinkState.Connected }
                     restoreCacheStateOrSync()
-                } else if (status.error == null && _state.value is WhatsAppLinkState.Connected) {
+                } else if (status.error == null && shouldClearDisconnectedState()) {
                     clearStaleConnectedState()
                 }
             } catch (e: CancellationException) {
@@ -157,9 +164,16 @@ class WhatsAppLinkViewModel(
         accuracyJob = null
         whatsAppRepository.clearCache()
         contactRepository.clearWhatsAppFlags()
+        wasConnected = false
         _syncState.value = SyncState.Idle
         _accuracyState.value = AccuracyState.Idle
         _state.update { WhatsAppLinkState.NotLinked }
+    }
+
+    private suspend fun shouldClearDisconnectedState(): Boolean {
+        return _state.value is WhatsAppLinkState.Connected ||
+            wasConnected ||
+            whatsAppRepository.getCacheMeta() != null
     }
 
     private suspend fun restoreCacheStateOrSync() {
@@ -308,6 +322,7 @@ class WhatsAppLinkViewModel(
                         timerJob?.cancel()
                         timerJob = null
                         _pairingCodeExpiration.value = null
+                        wasConnected = true
                         _state.update { WhatsAppLinkState.Connected }
                         // Auto-start sync after successful connection
                         startWhatsAppSync()
@@ -375,6 +390,7 @@ class WhatsAppLinkViewModel(
     }
 
     fun improveAccuracy() {
+        if (syncJob?.isActive == true || _syncState.value is SyncState.Syncing) return
         accuracyJob?.cancel()
         accuracyJob = viewModelScope.launch {
             try {
@@ -492,6 +508,7 @@ class WhatsAppLinkViewModel(
 
                 whatsAppRepository.clearCache()
                 contactRepository.clearWhatsAppFlags()
+                wasConnected = false
                 _state.update { WhatsAppLinkState.NotLinked }
                 _syncState.value = SyncState.Idle
                 _accuracyState.value = AccuracyState.Idle
@@ -532,5 +549,6 @@ class WhatsAppLinkViewModel(
 
     companion object {
         private const val KEY_DEVICE_ID = "whatsapp_device_id"
+        private const val KEY_WAS_CONNECTED = "whatsapp_was_connected"
     }
 }

@@ -3,6 +3,7 @@ package com.ogabassey.contactscleaner.di
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.ogabassey.contactscleaner.data.api.WhatsAppDetectorApi
 import com.ogabassey.contactscleaner.data.db.ContactDatabase
+import com.ogabassey.contactscleaner.data.db.MIGRATION_8_9
 import com.ogabassey.contactscleaner.data.db.dao.ContactDao
 import com.ogabassey.contactscleaner.data.db.dao.IgnoredContactDao
 import com.ogabassey.contactscleaner.data.db.dao.UndoDao
@@ -53,6 +54,7 @@ val sharedModule = module {
     // Database (built from platform-specific builder)
     single<ContactDatabase> {
         get<androidx.room.RoomDatabase.Builder<ContactDatabase>>()
+            .addMigrations(MIGRATION_8_9)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .setDriver(BundledSQLiteDriver())
             .setQueryCoroutineContext(Dispatchers.IO)

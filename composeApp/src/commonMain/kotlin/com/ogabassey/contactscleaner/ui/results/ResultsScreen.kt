@@ -428,6 +428,7 @@ fun ResultsScreen(
                         if (isAndroid) {
                             item {
                                 val cloudConnected = whatsAppState == WhatsAppLinkState.Connected
+                                val isCloudSyncing = cloudConnected && syncState is SyncState.Syncing
                                 WhatsAppAccuracyCard(
                                     state = if (cloudConnected) accuracyState else AccuracyState.Idle,
                                     onImproveClick = {
@@ -437,10 +438,11 @@ fun ResultsScreen(
                                             onNavigateToWhatsAppLink()
                                         }
                                     },
-                                    idleMessage = if (cloudConnected) {
-                                        "Checks local phone numbers against WhatsApp"
-                                    } else {
-                                        "Link WhatsApp to cloud-check Android contacts"
+                                    enabled = !isCloudSyncing,
+                                    idleMessage = when {
+                                        !cloudConnected -> "Link WhatsApp to cloud-check Android contacts"
+                                        isCloudSyncing -> "Finishing WhatsApp cloud sync before accuracy check"
+                                        else -> "Checks local phone numbers against WhatsApp"
                                     },
                                     actionLabel = if (cloudConnected) null else "Link to Cloud"
                                 )

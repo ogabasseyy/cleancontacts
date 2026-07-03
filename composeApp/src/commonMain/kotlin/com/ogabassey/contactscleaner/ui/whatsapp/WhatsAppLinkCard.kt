@@ -308,6 +308,7 @@ fun WhatsAppAccuracyCard(
     state: AccuracyState,
     onImproveClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     idleMessage: String = "Checks local phone numbers against WhatsApp",
     actionLabel: String? = null
 ) {
@@ -378,7 +379,7 @@ fun WhatsAppAccuracyCard(
                 else -> {
                     Button(
                         onClick = onImproveClick,
-                        enabled = state !is AccuracyState.Checking,
+                        enabled = enabled && state !is AccuracyState.Checking,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = SecondaryNeon,
                             contentColor = SpaceBlack

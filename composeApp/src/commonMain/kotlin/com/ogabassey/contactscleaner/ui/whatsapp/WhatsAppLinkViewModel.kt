@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ogabassey.contactscleaner.data.api.PairingEvent
 import com.ogabassey.contactscleaner.domain.repository.ContactRepository
+import com.ogabassey.contactscleaner.domain.repository.WhatsAppCheckProgress
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppDetectorRepository
 import com.ogabassey.contactscleaner.domain.repository.WhatsAppSyncProgress
 import com.russhwolf.settings.Settings
@@ -54,6 +55,26 @@ sealed interface SyncState {
 }
 
 /**
+ * State for explicit local-number WhatsApp checking.
+ */
+@Immutable
+sealed interface AccuracyState {
+    data object Idle : AccuracyState
+    @Immutable data class Checking(
+        val checked: Int,
+        val total: Int,
+        val whatsAppCount: Int,
+        val percent: Int
+    ) : AccuracyState
+    @Immutable data class Complete(
+        val totalChecked: Int,
+        val whatsAppCount: Int,
+        val updatedCount: Int
+    ) : AccuracyState
+    @Immutable data class Error(val message: String) : AccuracyState
+}
+
+/**
  * ViewModel for WhatsApp linking flow.
  * Manages the state of linking a user's WhatsApp account via pairing code.
  *
@@ -77,10 +98,14 @@ class WhatsAppLinkViewModel(
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
     val syncState: StateFlow<SyncState> = _syncState.asStateFlow()
 
+    private val _accuracyState = MutableStateFlow<AccuracyState>(AccuracyState.Idle)
+    val accuracyState: StateFlow<AccuracyState> = _accuracyState.asStateFlow()
+
     private var pollingJob: Job? = null
     private var timerJob: Job? = null
     private var wsJob: Job? = null
     private var syncJob: Job? = null
+    private var accuracyJob: Job? = null
 
     /**
      * Unique device/session ID for multi-session support.
@@ -91,6 +116,12 @@ class WhatsAppLinkViewModel(
             settings.putString(KEY_DEVICE_ID, it)
         }
     }
+
+    private var wasConnected: Boolean
+        get() = settings.getBoolean(KEY_WAS_CONNECTED, false)
+        set(value) {
+            settings.putBoolean(KEY_WAS_CONNECTED, value)
+        }
 
     init {
         checkConnectionStatus()
@@ -112,8 +143,11 @@ class WhatsAppLinkViewModel(
             try {
                 val status = whatsAppRepository.getSessionStatus(deviceId)
                 if (status.connected) {
+                    wasConnected = true
                     _state.update { WhatsAppLinkState.Connected }
                     restoreCacheStateOrSync()
+                } else if (status.error == null && shouldClearDisconnectedState()) {
+                    clearStaleConnectedState()
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -121,6 +155,25 @@ class WhatsAppLinkViewModel(
                 // Silently fail - stay on current state
             }
         }
+    }
+
+    private suspend fun clearStaleConnectedState() {
+        syncJob?.cancelAndJoin()
+        accuracyJob?.cancelAndJoin()
+        syncJob = null
+        accuracyJob = null
+        whatsAppRepository.clearCache()
+        contactRepository.clearWhatsAppFlags()
+        wasConnected = false
+        _syncState.value = SyncState.Idle
+        _accuracyState.value = AccuracyState.Idle
+        _state.update { WhatsAppLinkState.NotLinked }
+    }
+
+    private suspend fun shouldClearDisconnectedState(): Boolean {
+        return _state.value is WhatsAppLinkState.Connected ||
+            wasConnected ||
+            whatsAppRepository.getCacheMeta() != null
     }
 
     private suspend fun restoreCacheStateOrSync() {
@@ -269,6 +322,7 @@ class WhatsAppLinkViewModel(
                         timerJob?.cancel()
                         timerJob = null
                         _pairingCodeExpiration.value = null
+                        wasConnected = true
                         _state.update { WhatsAppLinkState.Connected }
                         // Auto-start sync after successful connection
                         startWhatsAppSync()
@@ -335,6 +389,85 @@ class WhatsAppLinkViewModel(
         }
     }
 
+    fun improveAccuracy() {
+        if (syncJob?.isActive == true || _syncState.value is SyncState.Syncing) return
+        accuracyJob?.cancel()
+        accuracyJob = viewModelScope.launch {
+            try {
+                val status = whatsAppRepository.getSessionStatus(deviceId)
+                if (!status.connected) {
+                    _accuracyState.value = AccuracyState.Error("WhatsApp is not connected")
+                    return@launch
+                }
+
+                val numbers = contactRepository.getUniquePhoneNumbersForWhatsAppAccuracy()
+                if (numbers.isEmpty()) {
+                    _accuracyState.value = AccuracyState.Complete(
+                        totalChecked = 0,
+                        whatsAppCount = 0,
+                        updatedCount = 0
+                    )
+                    return@launch
+                }
+
+                _accuracyState.value = AccuracyState.Checking(
+                    checked = 0,
+                    total = numbers.size,
+                    whatsAppCount = 0,
+                    percent = 0
+                )
+
+                whatsAppRepository.checkNumbersBatch(
+                    userId = deviceId,
+                    numbers = numbers,
+                    batchSize = 1000
+                )
+                    .catch { e ->
+                        if (e is CancellationException) throw e
+                        _accuracyState.value = AccuracyState.Error(e.message ?: "Accuracy check failed")
+                    }
+                    .collect { progress ->
+                        when (progress) {
+                            is WhatsAppCheckProgress.InProgress -> {
+                                val percent = if (progress.total > 0) {
+                                    ((progress.checked.toFloat() / progress.total) * 100).toInt()
+                                } else 0
+                                _accuracyState.value = AccuracyState.Checking(
+                                    checked = progress.checked,
+                                    total = progress.total,
+                                    whatsAppCount = progress.whatsappCount,
+                                    percent = percent
+                                )
+                            }
+                            is WhatsAppCheckProgress.Complete -> {
+                                whatsAppRepository.replaceCacheWithAccuracyResults(progress.results)
+                                val updatedCount = contactRepository.applyWhatsAppAccuracyResults(progress.results)
+                                val meta = whatsAppRepository.getCacheMeta()
+
+                                _accuracyState.value = AccuracyState.Complete(
+                                    totalChecked = progress.results.size,
+                                    whatsAppCount = progress.whatsappCount,
+                                    updatedCount = updatedCount
+                                )
+                                _syncState.value = SyncState.Complete(
+                                    totalCount = meta?.totalCount ?: progress.whatsappCount,
+                                    businessCount = meta?.businessCount ?: 0,
+                                    personalCount = meta?.personalCount ?: progress.whatsappCount
+                                )
+                            }
+                            is WhatsAppCheckProgress.Error -> {
+                                _accuracyState.value = AccuracyState.Error(progress.message)
+                            }
+                        }
+                    }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _accuracyState.value = AccuracyState.Error(e.message ?: "Accuracy check failed")
+            }
+        }
+    }
+
     /**
      * Stop any active pairing (WebSocket or polling) and reset to not linked state.
      */
@@ -343,14 +476,17 @@ class WhatsAppLinkViewModel(
         pollingJob?.cancel()
         timerJob?.cancel()
         syncJob?.cancel()
+        accuracyJob?.cancel()
         wsJob = null
         pollingJob = null
         timerJob = null
         syncJob = null
+        accuracyJob = null
         _pairingCodeExpiration.value = null
         _state.update { WhatsAppLinkState.NotLinked }
         // 2026 Best Practice: Reset sync state to avoid stale UI
         _syncState.value = SyncState.Idle
+        _accuracyState.value = AccuracyState.Idle
     }
 
     /**
@@ -361,6 +497,8 @@ class WhatsAppLinkViewModel(
             try {
                 syncJob?.cancelAndJoin()
                 syncJob = null
+                accuracyJob?.cancelAndJoin()
+                accuracyJob = null
 
                 val disconnected = whatsAppRepository.disconnect(deviceId)
                 if (!disconnected) {
@@ -370,8 +508,10 @@ class WhatsAppLinkViewModel(
 
                 whatsAppRepository.clearCache()
                 contactRepository.clearWhatsAppFlags()
+                wasConnected = false
                 _state.update { WhatsAppLinkState.NotLinked }
                 _syncState.value = SyncState.Idle
+                _accuracyState.value = AccuracyState.Idle
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -409,5 +549,6 @@ class WhatsAppLinkViewModel(
 
     companion object {
         private const val KEY_DEVICE_ID = "whatsapp_device_id"
+        private const val KEY_WAS_CONNECTED = "whatsapp_was_connected"
     }
 }

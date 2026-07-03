@@ -71,6 +71,10 @@ class DisabledWhatsAppDetectorRepository(
 
     override suspend fun clearCache() = Unit
 
+    override suspend fun replaceCacheWithDetectedNumbers(numbers: Set<String>) = Unit
+
+    override suspend fun replaceCacheWithAccuracyResults(results: Map<String, Boolean>) = Unit
+
     companion object {
         const val DEFAULT_REASON =
             "WhatsApp linking is unavailable in this build because the detector configuration is missing."

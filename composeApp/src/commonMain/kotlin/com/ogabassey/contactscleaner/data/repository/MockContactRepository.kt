@@ -192,6 +192,18 @@ class MockContactRepository : ContactRepository {
         // No-op for mock
     }
 
+    override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> {
+        return mockContacts.flatMap { contact ->
+            contact.numbers.map { number ->
+                number.filter { it.isDigit() }
+            }
+        }.filter { it.length in 8..15 }.distinct()
+    }
+
+    override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int {
+        return 0
+    }
+
     override suspend fun clearWhatsAppFlags() {
         // No-op for mock
     }

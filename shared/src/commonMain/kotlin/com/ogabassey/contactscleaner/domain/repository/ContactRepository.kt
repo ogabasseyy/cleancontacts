@@ -133,6 +133,18 @@ interface ContactRepository {
     suspend fun recalculateWhatsAppCounts()
 
     /**
+     * Get unique local phone numbers that can be checked against WhatsApp.
+     */
+    suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String>
+
+    /**
+     * Apply explicit WhatsApp number-check results to local contact flags.
+     *
+     * @return Number of contacts whose WhatsApp flag changed.
+     */
+    suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int
+
+    /**
      * Clear locally cached WhatsApp contact flags and refresh summary counts.
      * Called after a linked WhatsApp session is disconnected.
      */

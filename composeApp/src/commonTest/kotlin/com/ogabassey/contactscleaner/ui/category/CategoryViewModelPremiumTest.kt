@@ -7,6 +7,7 @@ import com.ogabassey.contactscleaner.domain.model.Contact
 import com.ogabassey.contactscleaner.domain.model.ContactType
 import com.ogabassey.contactscleaner.domain.model.CrossAccountContact
 import com.ogabassey.contactscleaner.domain.model.DuplicateGroupSummary
+import com.ogabassey.contactscleaner.domain.model.FormatIssue
 import com.ogabassey.contactscleaner.domain.model.PaywallPackage
 import com.ogabassey.contactscleaner.domain.model.Resource
 import com.ogabassey.contactscleaner.domain.model.ScanStatus
@@ -53,6 +54,9 @@ class CategoryViewModelPremiumTest {
             billingRepository = FakeBillingRepository(isPremium = false),
             usageRepository = usage
         )
+
+        viewModel.loadCategory(ContactType.FORMAT_ISSUE)
+        advanceUntilIdle()
 
         viewModel.performAction(ContactType.FORMAT_ISSUE)
         advanceUntilIdle()
@@ -127,6 +131,23 @@ class CategoryViewModelPremiumTest {
         val cleanupResult = CompletableDeferred<CleanupStatus>()
         val mergeDuplicateStarted = CompletableDeferred<Unit>()
         var mergeDuplicateResult: CleanupStatus? = null
+        private val contactsByType = mapOf(
+            ContactType.FORMAT_ISSUE to listOf(
+                Contact(
+                    id = 1,
+                    name = "Local Friend",
+                    numbers = listOf("0801 111 1111"),
+                    emails = emptyList(),
+                    normalizedNumber = "08011111111",
+                    formatIssue = FormatIssue(
+                        normalizedNumber = "+2348011111111",
+                        countryCode = 234,
+                        regionCode = "NG",
+                        displayCountry = "Nigeria"
+                    )
+                )
+            )
+        )
 
         override suspend fun standardizeAllFormatIssues(): Flow<CleanupStatus> = flow {
             cleanupStarted.complete(Unit)
@@ -150,7 +171,7 @@ class CategoryViewModelPremiumTest {
         override suspend fun standardizeFormat(ids: List<Long>): Boolean = true
         override suspend fun getContactsSnapshotByIds(ids: List<Long>): List<Contact> = emptyList()
         override suspend fun getContactsAllSnapshot(): List<Contact> = emptyList()
-        override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> = emptyList()
+        override suspend fun getContactsSnapshotByType(type: ContactType): List<Contact> = contactsByType[type].orEmpty()
         override suspend fun restoreContacts(contacts: List<Contact>): Boolean = true
         override suspend fun ignoreContact(id: String, displayName: String, reason: String): Boolean = true
         override suspend fun unignoreContact(id: String): Boolean = true
@@ -159,6 +180,8 @@ class CategoryViewModelPremiumTest {
         override fun getAccountCount(): Flow<Int> = MutableStateFlow(0)
         override suspend fun updateScanResultSummary() = Unit
         override suspend fun recalculateWhatsAppCounts() = Unit
+        override suspend fun getUniquePhoneNumbersForWhatsAppAccuracy(): List<String> = emptyList()
+        override suspend fun applyWhatsAppAccuracyResults(results: Map<String, Boolean>): Int = 0
         override suspend fun clearWhatsAppFlags() = Unit
         override suspend fun getCrossAccountContacts(): List<CrossAccountContact> = emptyList()
         override suspend fun getContactInstancesByMatchingKey(matchingKey: String): List<Contact> = emptyList()

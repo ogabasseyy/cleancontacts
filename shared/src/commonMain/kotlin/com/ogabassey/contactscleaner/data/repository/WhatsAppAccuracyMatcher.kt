@@ -18,16 +18,23 @@ object WhatsAppAccuracyMatcher {
     ): List<LocalContact> {
         if (results.isEmpty()) return contacts
 
-        return contacts.map { contact ->
-            val checkedMatches = extractNumbers(contact.rawNumbers).mapNotNull { number ->
-                results[number]
-            }
+        return contacts.map { contact -> applyResults(contact, results) }
+    }
 
-            if (checkedMatches.isEmpty()) {
-                contact
-            } else {
-                contact.copy(isWhatsApp = checkedMatches.any { it })
-            }
+    fun applyResults(
+        contact: LocalContact,
+        results: Map<String, Boolean>
+    ): LocalContact {
+        if (results.isEmpty()) return contact
+
+        val checkedMatches = extractNumbers(contact.rawNumbers).mapNotNull { number ->
+            results[number]
+        }
+
+        return if (checkedMatches.isEmpty()) {
+            contact
+        } else {
+            contact.copy(isWhatsApp = checkedMatches.any { it })
         }
     }
 

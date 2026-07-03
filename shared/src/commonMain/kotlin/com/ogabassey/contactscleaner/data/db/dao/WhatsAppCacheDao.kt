@@ -30,19 +30,22 @@ interface WhatsAppCacheDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(entries: List<WhatsAppCacheEntry>)
 
-    @Query("SELECT normalizedNumber FROM whatsapp_cache")
+    @Query("SELECT * FROM whatsapp_cache")
+    suspend fun getAllEntries(): List<WhatsAppCacheEntry>
+
+    @Query("SELECT normalizedNumber FROM whatsapp_cache WHERE hasWhatsApp = 1")
     suspend fun getAllNumbers(): List<String>
 
-    @Query("SELECT normalizedNumber FROM whatsapp_cache WHERE isBusiness = 1")
+    @Query("SELECT normalizedNumber FROM whatsapp_cache WHERE hasWhatsApp = 1 AND isBusiness = 1")
     suspend fun getBusinessNumbers(): List<String>
 
-    @Query("SELECT EXISTS(SELECT 1 FROM whatsapp_cache WHERE normalizedNumber = :number)")
+    @Query("SELECT EXISTS(SELECT 1 FROM whatsapp_cache WHERE normalizedNumber = :number AND hasWhatsApp = 1)")
     suspend fun hasNumber(number: String): Boolean
 
     @Query("SELECT COUNT(*) FROM whatsapp_cache")
     suspend fun getCount(): Int
 
-    @Query("SELECT COUNT(*) FROM whatsapp_cache WHERE isBusiness = 1")
+    @Query("SELECT COUNT(*) FROM whatsapp_cache WHERE hasWhatsApp = 1 AND isBusiness = 1")
     suspend fun getBusinessCount(): Int
 
     @Query("DELETE FROM whatsapp_cache")

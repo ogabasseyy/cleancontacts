@@ -424,12 +424,7 @@ class WhatsAppLinkViewModel(
                                 )
                             }
                             is WhatsAppCheckProgress.Complete -> {
-                                val detectedNumbers = progress.results
-                                    .filter { it.value }
-                                    .keys
-                                    .toSet()
-
-                                whatsAppRepository.replaceCacheWithDetectedNumbers(detectedNumbers)
+                                whatsAppRepository.replaceCacheWithAccuracyResults(progress.results)
                                 val updatedCount = contactRepository.applyWhatsAppAccuracyResults(progress.results)
                                 val meta = whatsAppRepository.getCacheMeta()
 

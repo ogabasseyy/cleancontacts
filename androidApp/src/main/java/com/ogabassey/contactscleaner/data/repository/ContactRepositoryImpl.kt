@@ -41,6 +41,10 @@ class ContactRepositoryImpl constructor(
     private val whatsAppCacheDao: WhatsAppCacheDao? = null
 ) : ContactRepository {
 
+    private companion object {
+        private const val WHATSAPP_CACHE_VALIDITY_MILLIS = 24L * 60L * 60L * 1000L
+    }
+
     private suspend fun recordBackupSafely(
         contacts: List<Contact>,
         actionType: String,
@@ -181,21 +185,24 @@ class ContactRepositoryImpl constructor(
         )
     }
 
-    private suspend fun getCachedWhatsAppNumbers(): Set<String> {
-        return whatsAppCacheDao?.getAllNumbers()?.toSet().orEmpty()
+    private suspend fun getValidCachedWhatsAppResults(): Map<String, Boolean> {
+        val dao = whatsAppCacheDao ?: return emptyMap()
+        val meta = dao.getMeta() ?: return emptyMap()
+        if (meta.syncInProgress || meta.lastFullSync <= 0L) return emptyMap()
+
+        val cacheAgeMillis = System.currentTimeMillis() - meta.lastFullSync
+        if (cacheAgeMillis >= WHATSAPP_CACHE_VALIDITY_MILLIS) return emptyMap()
+
+        return dao.getAllEntries().associate { entry ->
+            entry.normalizedNumber to entry.hasWhatsApp
+        }
     }
 
-    private fun applyCachedWhatsAppFlag(
+    private fun applyCachedWhatsAppResult(
         contact: LocalContact,
-        cachedWhatsAppNumbers: Set<String>
+        cachedWhatsAppResults: Map<String, Boolean>
     ): LocalContact {
-        if (contact.isWhatsApp || cachedWhatsAppNumbers.isEmpty()) return contact
-
-        return if (WhatsAppCacheMatcher.hasCachedWhatsAppNumber(contact.rawNumbers, cachedWhatsAppNumbers)) {
-            contact.copy(isWhatsApp = true)
-        } else {
-            contact
-        }
+        return WhatsAppAccuracyMatcher.applyResults(contact, cachedWhatsAppResults)
     }
 
     override fun getContactsFlow(type: ContactType): Flow<List<Contact>> {
@@ -250,7 +257,7 @@ class ContactRepositoryImpl constructor(
             val parsed = ignoredIdsStrings[i].toLongOrNull()
             if (parsed != null) ignoredIds.add(parsed)
         }
-        val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
+        val cachedWhatsAppResults = getValidCachedWhatsAppResults()
         var processedCount = 0
 
         contactsProviderSource.getContactsStreaming(batchSize = 2500)
@@ -260,9 +267,9 @@ class ContactRepositoryImpl constructor(
                 // and minimize garbage collection overhead during large contact scans.
                 for (i in batchContacts.indices) {
                     val contact = batchContacts[i]
-                    val entity = applyCachedWhatsAppFlag(
+                    val entity = applyCachedWhatsAppResult(
                         contact = processContactToEntity(contact, ignoredIds),
-                        cachedWhatsAppNumbers = cachedWhatsAppNumbers
+                        cachedWhatsAppResults = cachedWhatsAppResults
                     )
 
                     val isValid = entity.id > 0 &&
@@ -870,8 +877,8 @@ class ContactRepositoryImpl constructor(
     }
 
     private suspend fun reapplyCachedWhatsAppFlags(): Int {
-        val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
-        if (cachedWhatsAppNumbers.isEmpty()) return 0
+        val cachedWhatsAppResults = getValidCachedWhatsAppResults()
+        if (cachedWhatsAppResults.isEmpty()) return 0
 
         var updatedCount = 0
         val batchSize = 500
@@ -883,7 +890,7 @@ class ContactRepositoryImpl constructor(
             if (batch.isEmpty()) break
 
             val updatedBatch = batch.map { contact ->
-                applyCachedWhatsAppFlag(contact, cachedWhatsAppNumbers)
+                applyCachedWhatsAppResult(contact, cachedWhatsAppResults)
             }.filterIndexed { index, updated -> updated.isWhatsApp != batch[index].isWhatsApp }
 
             if (updatedBatch.isNotEmpty()) {
@@ -1146,16 +1153,16 @@ class ContactRepositoryImpl constructor(
                 val parsed = ignoredIdsStrings[i].toLongOrNull()
                 if (parsed != null) ignoredIds.add(parsed)
             }
-            val cachedWhatsAppNumbers = getCachedWhatsAppNumbers()
+            val cachedWhatsAppResults = getValidCachedWhatsAppResults()
 
             // 3. Update DB
             // First check if any contacts were NOT returned (deleted externally)
             val returnedIds = HashSet<Long>(freshContacts.size)
             val validatedEntities = ArrayList<LocalContact>(freshContacts.size)
             for (i in freshContacts.indices) {
-                val contact = applyCachedWhatsAppFlag(
+                val contact = applyCachedWhatsAppResult(
                     contact = processContactToEntity(freshContacts[i], ignoredIds),
-                    cachedWhatsAppNumbers = cachedWhatsAppNumbers
+                    cachedWhatsAppResults = cachedWhatsAppResults
                 )
                 returnedIds.add(contact.id)
 

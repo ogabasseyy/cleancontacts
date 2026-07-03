@@ -289,29 +289,36 @@ class WhatsAppDetectorRepositoryImpl(
     }
 
     override suspend fun replaceCacheWithDetectedNumbers(numbers: Set<String>) {
+        replaceCacheWithAccuracyResults(numbers.associateWith { true })
+    }
+
+    override suspend fun replaceCacheWithAccuracyResults(results: Map<String, Boolean>) {
         val dao = cacheDao ?: return
         val now = Clock.System.now().toEpochMilliseconds()
         val existingBusinessNumbers = dao.getBusinessNumbers().toSet()
-        val normalizedNumbers = numbers
-            .asSequence()
-            .map { it.extractDigits() }
-            .filter { it.length in 8..15 }
-            .distinct()
-            .toList()
-        val entries = normalizedNumbers.map { number ->
+        val normalizedResults = LinkedHashMap<String, Boolean>()
+        for ((number, hasWhatsApp) in results) {
+            val normalizedNumber = number.extractDigits()
+            if (normalizedNumber.length in 8..15) {
+                normalizedResults[normalizedNumber] = hasWhatsApp
+            }
+        }
+        val entries = normalizedResults.map { (number, hasWhatsApp) ->
             WhatsAppCacheEntry(
                 normalizedNumber = number,
-                isBusiness = number in existingBusinessNumbers,
+                hasWhatsApp = hasWhatsApp,
+                isBusiness = hasWhatsApp && number in existingBusinessNumbers,
                 lastSynced = now
             )
         }
-        val businessCount = entries.count { it.isBusiness }
+        val businessCount = entries.count { it.hasWhatsApp && it.isBusiness }
+        val personalCount = entries.count { it.hasWhatsApp && !it.isBusiness }
         val meta = WhatsAppCacheMeta(
             key = "sync_status",
             lastFullSync = now,
-            totalCount = entries.size,
+            totalCount = businessCount + personalCount,
             businessCount = businessCount,
-            personalCount = entries.size - businessCount,
+            personalCount = personalCount,
             syncInProgress = false
         )
         dao.replaceAllEntries(entries, meta)

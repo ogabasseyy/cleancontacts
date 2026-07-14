@@ -20,9 +20,6 @@ object PhoneNumberUpdatePlanner {
     ): List<PhoneUpdate> {
         if (rows.isEmpty()) return emptyList()
 
-        // ⚡ Bolt Optimization: Replace implicit iterator allocation and list resizing (.mapNotNull)
-        // with a single-pass indexed loop and a pre-allocated ArrayList to minimize garbage collection
-        // overhead during bulk batch processing of phone numbers.
         val result = java.util.ArrayList<PhoneUpdate>(rows.size)
         for (i in rows.indices) {
             val row = rows[i]

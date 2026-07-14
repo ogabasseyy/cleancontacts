@@ -649,16 +649,12 @@ class IosContactRepository(
         if (contacts.isEmpty()) return true
 
         return try {
-            // ⚡ Bolt Optimization: Replace multiple passes (.mapNotNull, .map, and a separate loop)
-            // with a single-pass indexed loop to build uids, ids, and existingAccountInfo,
-            // eliminating intermediate ArrayList allocations and implicit iterator overhead.
+            // Collect UIDs and preserve existing account metadata in one pass.
             val uids = ArrayList<String>(contacts.size)
-            val ids = ArrayList<Long>(contacts.size) // DB IDs
             val existingAccountInfo = HashMap<String, Pair<String?, String?>>(contacts.size)
 
             for (i in contacts.indices) {
                 val contact = contacts[i]
-                ids.add(contact.id)
                 val platformUid = contact.platform_uid
                 if (platformUid != null) {
                     uids.add(platformUid)

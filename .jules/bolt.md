@@ -347,7 +347,3 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing chained mapping sequence with single-pass indexed loop
 **Learning:** Using chained `.asSequence().filter { ... }.map { ... }.toList()` creates unnecessary intermediate iterator objects and mapping sequences, creating GC overhead in high-frequency batch processing operations.
 **Action:** Always replace chained functional sequences with single-pass, pre-sized `ArrayList` loops for filtering and mapping large batch arrays.
-
-## 2026-10-18 - Replacing multiple passes (.mapNotNull, .map, and loop) with a single indexed loop
-**Learning:** Performing multiple independent iterations over the same collection (e.g., using `mapNotNull` for one field, `map` for another, and a `for` loop for a map) creates unnecessary intermediate collection allocations and redundant iterations. This increases memory churn and Garbage Collection pressure, especially in performance-sensitive methods like `refreshContacts` in the iOS repository.
-**Action:** Combine these multiple independent passes into a single, manually indexed `for` loop (`for (i in contacts.indices)`) using pre-allocated collections (e.g., `ArrayList(size)` and `HashMap(size)`) to extract all necessary data simultaneously.

@@ -112,7 +112,7 @@ const AppContent: React.FC = () => {
           </Routes>
         </main>
 
-        <Footer onNavigate={navigateTo} />
+        <Footer />
       </div>
     </div>
   );

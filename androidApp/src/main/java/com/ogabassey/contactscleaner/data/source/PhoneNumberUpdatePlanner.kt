@@ -20,7 +20,7 @@ object PhoneNumberUpdatePlanner {
     ): List<PhoneUpdate> {
         if (rows.isEmpty()) return emptyList()
 
-        val result = java.util.ArrayList<PhoneUpdate>(rows.size)
+        val result = ArrayList<PhoneUpdate>(rows.size)
         for (i in rows.indices) {
             val row = rows[i]
             val raw = row.rawNumber

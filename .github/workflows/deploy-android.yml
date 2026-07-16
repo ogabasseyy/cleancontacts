@@ -11,6 +11,8 @@ on:
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle.properties'
+      - 'scripts/verify-android-release-quality.sh'
+      - 'scripts/tests/verify-android-release-quality-test.sh'
   workflow_dispatch:
     inputs:
       track:
@@ -64,6 +66,9 @@ jobs:
       run: |
         VERSION_CODE=$((1000 + ${{ github.run_number }}))
         ./gradlew :androidApp:bundleRelease -PciVersionCode=$VERSION_CODE
+
+    - name: Verify release optimization
+      run: ./scripts/verify-android-release-quality.sh androidApp/build/outputs/bundle/release/androidApp-release.aab
 
     - name: Upload AAB artifact
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

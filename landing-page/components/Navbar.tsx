@@ -96,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate }) => {
           <Link
             to="/blog"
             onClick={handleRouteClick}
-            aria-current={currentView === 'blog' || currentView === 'blog-post' ? 'page' : undefined}
+            aria-current={currentView === 'blog' ? 'page' : undefined}
             className={`hidden md:block text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-dark rounded-sm ${currentView === 'blog' || currentView === 'blog-post' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Blog

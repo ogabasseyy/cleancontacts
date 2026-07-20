@@ -20,20 +20,25 @@ object PhoneNumberUpdatePlanner {
     ): List<PhoneUpdate> {
         if (rows.isEmpty()) return emptyList()
 
-        return rows.mapNotNull { row ->
+        val result = ArrayList<PhoneUpdate>(rows.size)
+        for (i in rows.indices) {
+            val row = rows[i]
             val raw = row.rawNumber
-            if (raw.isBlank()) return@mapNotNull null
+            if (raw.isBlank()) continue
 
             val target = resolveTarget(raw, row.providerNormalizedNumber)
                 ?.trim()
                 ?.takeIf { it.isNotBlank() && it != raw }
-                ?: return@mapNotNull null
+                ?: continue
 
-            PhoneUpdate(
-                dataId = row.dataId,
-                contactId = row.contactId,
-                targetNumber = target
+            result.add(
+                PhoneUpdate(
+                    dataId = row.dataId,
+                    contactId = row.contactId,
+                    targetNumber = target
+                )
             )
         }
+        return result
     }
 }

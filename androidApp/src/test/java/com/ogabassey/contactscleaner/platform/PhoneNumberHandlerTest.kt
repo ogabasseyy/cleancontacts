@@ -1,6 +1,8 @@
 package com.ogabassey.contactscleaner.platform
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -84,5 +86,12 @@ class PhoneNumberHandlerTest {
     fun normalizeToE164_unicodeDigitsFallback_normalizesToAsciiDigits() {
         val result = phoneNumberHandler.normalizeToE164("٠٨٠١٢٣٤٥٦٧٨", "ZZ")
         assertEquals("08012345678", result)
+    }
+
+    @Test
+    fun libphonenumber_isAlphaNumberLongNumericInput_returnsFalseWithoutStackOverflow() {
+        val numericInput = "+" + "1".repeat(1_684)
+
+        assertFalse(PhoneNumberUtil.getInstance().isAlphaNumber(numericInput))
     }
 }

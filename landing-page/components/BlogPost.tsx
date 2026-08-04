@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import DOMPurify from 'dompurify';
 import type { BlogPostMeta, TocHeading } from '../types';
 

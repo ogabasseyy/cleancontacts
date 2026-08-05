@@ -6,7 +6,14 @@ buildscript {
     val commonsLang3Version = "3.20.0"
     val httpClientVersion = "4.5.14"
     val libsCatalog = project.extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+    val bouncyCastleVersion = libsCatalog.findVersion("bouncyCastle").get().requiredVersion
     val nettyVersion = libsCatalog.findVersion("netty").get().requiredVersion
+    val openTelemetryVersion = libsCatalog.findVersion("openTelemetry").get().requiredVersion
+    val forcedBouncyCastleModules = listOf(
+        "org.bouncycastle:bcpkix-jdk18on",
+        "org.bouncycastle:bcprov-jdk18on",
+        "org.bouncycastle:bcutil-jdk18on"
+    ).map { "$it:$bouncyCastleVersion" }
     val forcedNettyModules = listOf(
         "io.netty:netty-codec-http",
         "io.netty:netty-codec-http2",
@@ -20,7 +27,13 @@ buildscript {
         "io.netty:netty-transport-native-unix-common",
         "io.netty:netty-codec-socks"
     ).map { "$it:$nettyVersion" }
+    val forcedOpenTelemetryModules = listOf(
+        "io.opentelemetry:opentelemetry-api",
+        "io.opentelemetry:opentelemetry-context"
+    ).map { "$it:$openTelemetryVersion" }
+    project.extra["forcedBouncyCastleModules"] = forcedBouncyCastleModules
     project.extra["forcedNettyModules"] = forcedNettyModules
+    project.extra["forcedOpenTelemetryModules"] = forcedOpenTelemetryModules
 
     configurations.all {
         resolutionStrategy {
@@ -28,7 +41,9 @@ buildscript {
             force("org.jdom:jdom2:$jdom2Version")
             force("org.apache.commons:commons-lang3:$commonsLang3Version")
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
+            forcedBouncyCastleModules.forEach(::force)
             forcedNettyModules.forEach(::force)
+            forcedOpenTelemetryModules.forEach(::force)
         }
     }
 }
@@ -57,7 +72,11 @@ plugins {
 
 subprojects {
     @Suppress("UNCHECKED_CAST")
+    val forcedBouncyCastleModules = rootProject.extra["forcedBouncyCastleModules"] as List<String>
+    @Suppress("UNCHECKED_CAST")
     val forcedNettyModules = rootProject.extra["forcedNettyModules"] as List<String>
+    @Suppress("UNCHECKED_CAST")
+    val forcedOpenTelemetryModules = rootProject.extra["forcedOpenTelemetryModules"] as List<String>
 
     configurations.all {
         resolutionStrategy {
@@ -88,8 +107,14 @@ subprojects {
             // Apache HttpClient: CVE-2020-13956 XSS
             force("org.apache.httpcomponents:httpclient:$httpClientVersion")
 
+            // Bouncy Castle: keep the resolved provider, PKIX, and utility family aligned
+            forcedBouncyCastleModules.forEach(::force)
+
             // Netty: CVE-2026-33870, CVE-2026-33871
             forcedNettyModules.forEach(::force)
+
+            // OpenTelemetry: keep API and context on the same secure baseline
+            forcedOpenTelemetryModules.forEach(::force)
         }
     }
 }

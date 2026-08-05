@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { APP_STORE_LINK } from '../constants';
 import type { ViewState } from '../types';
 

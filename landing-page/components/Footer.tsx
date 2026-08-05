@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { APP_STORE_LINK, PLAY_STORE_LINK } from '../constants';
 
 export const Footer: React.FC = () => {

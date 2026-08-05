@@ -52,7 +52,7 @@ kotlin {
     // 2026 Kotlin KMP: use the current Android target DSL
     android {
         namespace = "com.ogabassey.contactscleaner.shared"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 26
         withHostTest {}
     }

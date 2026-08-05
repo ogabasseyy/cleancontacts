@@ -26,7 +26,7 @@ val revenueCatApiKey = localProperties.getProperty("REVENUECAT_API_KEY")
 
 android {
     namespace = "com.ogabassey.contactscleaner"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.ogabassey.contactscleaner"
@@ -130,8 +130,7 @@ dependencies {
     implementation(project(":shared"))
     implementation(project(":composeApp"))
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.core)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)

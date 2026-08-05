@@ -11,7 +11,7 @@ kotlin {
     // 2026 Kotlin KMP: use the current Android target DSL
     android {
         namespace = "com.ogabassey.contactscleaner.composeapp"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 26
         withHostTest {}
         // Required for CMP resources with AGP 9 KMP library plugin (CMP-9547)

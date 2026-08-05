@@ -1,13 +1,21 @@
 
 import React from 'react';
+import { Link } from 'react-router';
 import { APP_STORE_LINK, PLAY_STORE_LINK } from '../constants';
-import type { ViewState } from '../types';
 
-interface FooterProps {
-  onNavigate: (view: ViewState) => void;
-}
+export const Footer: React.FC = () => {
+  const handleRouteClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey
+    ) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="py-12 bg-black border-t border-white/10 text-sm">
       <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
@@ -42,38 +50,34 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </a>
           </div>
           <div className="flex gap-8 text-gray-400">
-            <button
-              type="button"
-              aria-label="Navigate to Blog"
-              onClick={() => onNavigate('blog')}
+            <Link
+              to="/blog"
+              onClick={handleRouteClick}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Blog
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Privacy Policy"
-              onClick={() => onNavigate('privacy')}
+            </Link>
+            <Link
+              to="/privacy"
+              onClick={handleRouteClick}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Privacy
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Terms of Service"
-              onClick={() => onNavigate('terms')}
+            </Link>
+            <Link
+              to="/terms"
+              onClick={handleRouteClick}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Terms
-            </button>
-            <button
-              type="button"
-              aria-label="Navigate to Support"
-              onClick={() => onNavigate('support')}
+            </Link>
+            <Link
+              to="/support"
+              onClick={handleRouteClick}
               className="hover:text-brand transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-black rounded-sm"
             >
               Support
-            </button>
+            </Link>
           </div>
         </div>
 

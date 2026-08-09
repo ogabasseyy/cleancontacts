@@ -167,9 +167,6 @@ dependencies {
     implementation(libs.multiplatform.settings)
     implementation(libs.multiplatform.settings.coroutines)
 
-    // Generative AI (ML Kit 2026 Best Practice)
-    implementation(libs.mlkit.genai)
-
     // Room Persistence - runtime only, KSP is handled by :shared module
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

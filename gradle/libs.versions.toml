@@ -35,7 +35,7 @@ mockitoKotlin = "6.3.0"
 koin = "4.2.2"
 multiplatformSettings = "1.3.0"
 kotlinxDatetime = "0.8.0"
-ktor = "3.5.1"
+ktor = "3.5.2"
 purchasesKmp = "3.3.0"
 
 # Security Pins (Transitive) - 2026 Best Practice: Force secure versions

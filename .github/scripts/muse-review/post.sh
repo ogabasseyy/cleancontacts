@@ -21,8 +21,7 @@ set -euo pipefail
 # shellcheck disable=SC1091  # SCRIPT_DIR is set by the workflow step
 . "${SCRIPT_DIR}/lib.sh"
 
-# Second staleness gate (see guard.sh): skip quietly when head or base
-# moved mid-run (findings would misattribute), or the lookup fails.
+# Second staleness gate: skip quietly when head/base moved or lookup fails.
 if ! live_shas="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '[.head.sha, .base.sha] | @tsv' 2>/dev/null)" \
   || [[ -z "${live_shas}" ]]; then
   echo "::warning::Head revalidation lookup failed; skipping post to avoid publishing a stale review."
@@ -95,13 +94,11 @@ Muse did not return a review (step outcome: \`${MUSE_OUTCOME}\`).
 
 Re-run the workflow, or inspect the logs."
 elif printf '%s' "${raw_output}" | jq -e '(.verdict | type) == "string" and (.findings | type) == "array" and ((.next_steps // []) | type) == "array"' >/dev/null 2>&1; then
-  # Structured path. Shape enforced (not presence): mistyped findings
-  # would otherwise sail through cleanup and post a false "no issues".
+  # Structured path; shape enforced: mistyped findings must not post as clean.
   findings_json="${RUNNER_TEMP}/muse-findings.json"
   printf '%s' "${raw_output}" > "${findings_json}"
-  # Normalize: keep only well-formed finding objects. If the model returned
-  # findings but none are usable, fall back explicitly instead of posting a
-  # false "no issues" review.
+  # Normalize: keep only well-formed findings, else fall back explicitly
+  # instead of posting a false "no issues" review.
   raw_finding_count="$(jq -r '(.findings // []) | length' "${findings_json}")"
   # Cleanup failure keeps NO findings, never the uncleaned original.
   if jq -f "${SCRIPT_DIR}/clean.jq" \
@@ -112,16 +109,30 @@ elif printf '%s' "${raw_output}" | jq -e '(.verdict | type) == "string" and (.fi
     rm -f "${findings_json}.clean"
     clean_finding_count=0
   fi
-  if (( raw_finding_count > 0 && clean_finding_count == 0 )); then
+  # Ranges failure degrades to all-unverified (safe); validation
+  # failure below is fatal to the review.
+  ranges_json="${RUNNER_TEMP}/muse-ranges.json"
+  perl "${SCRIPT_DIR}/ranges.pl" "${RUNNER_TEMP}/muse.diff" > "${ranges_json}" 2>/dev/null || echo '[]' > "${ranges_json}"
+  jq empty "${ranges_json}" 2>/dev/null || echo '[]' > "${ranges_json}"
+  validated_json="${RUNNER_TEMP}/muse-validated.json"
+  # Validation failure keeps NO findings (empty would post a false clean bill).
+  validate_ok=false
+  if jq --slurpfile ranges "${ranges_json}" --slurpfile files "${RUNNER_TEMP}/muse-files.json" \
+    -f "${SCRIPT_DIR}/validate.jq" \
+    "${findings_json}" > "${validated_json}" 2>/dev/null \
+    && jq -e '(.valid|type)=="array" and (.summary_only|type)=="array"' "${validated_json}" >/dev/null 2>&1; then
+    validate_ok=true
+  fi
+  if (( raw_finding_count > 0 && clean_finding_count == 0 )) || [[ "${validate_ok}" != "true" ]]; then
     is_fallback=true
     review="## Verdict
 
-Muse returned malformed findings that could not be validated, so no
+Muse findings could not be validated, so no
 review is posted as fact. See the workflow logs.
 
 ## Findings
 
-- low: Model output failed finding-shape validation — check the
+- low: Model output failed validation — check the
   workflow logs.
 
 ## Suggested next steps
@@ -129,14 +140,6 @@ review is posted as fact. See the workflow logs.
 Re-run the workflow, or inspect the logs."
   else
   verdict="$(jq -r '.verdict // ""' "${findings_json}")"
-  # Valid inline lines = new-side ranges of the collected diff.
-  ranges_json="${RUNNER_TEMP}/muse-ranges.json"
-  perl "${SCRIPT_DIR}/ranges.pl" "${RUNNER_TEMP}/muse.diff" > "${ranges_json}" 2>/dev/null || echo '[]' > "${ranges_json}"
-  jq empty "${ranges_json}" 2>/dev/null || echo '[]' > "${ranges_json}"
-  validated_json="${RUNNER_TEMP}/muse-validated.json"
-  jq --slurpfile ranges "${ranges_json}" --slurpfile files "${RUNNER_TEMP}/muse-files.json" \
-    -f "${SCRIPT_DIR}/validate.jq" \
-    "${findings_json}" > "${validated_json}" 2>/dev/null || echo '{"valid":[],"summary_only":[]}' > "${validated_json}"
   {
     printf '## Verdict\n\n%s\n\n## Findings\n\n' "${verdict}"
     total_findings="$(jq -r '(.valid|length) + (.summary_only|length)' "${validated_json}")"
@@ -160,7 +163,6 @@ Re-run the workflow, or inspect the logs."
     done
   } > "${RUNNER_TEMP}/muse-summary.md"
   review="$(cat "${RUNNER_TEMP}/muse-summary.md")"
-  # Inline thread bodies, redacted and bounded each.
   inline_jsonl="${RUNNER_TEMP}/muse-inline.jsonl"
   : > "${inline_jsonl}"
   while IFS= read -r finding; do
@@ -248,8 +250,8 @@ EOF
   printf '\n%s\n' "${review}"
 } > "${body_file}"
 
-# Post-time fallback dedupe (pre-run would kill succeeding reruns):
-# same-SHA posts once; any fallback in the last 24h suppresses repeats.
+# Post-time fallback dedupe: same-SHA posts once; any fallback in the
+# last 24h suppresses repeats (pre-run would kill succeeding reruns).
 if [[ "${is_fallback}" == "true" ]] \
   && gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate \
     > "${RUNNER_TEMP}/muse-reviews.json" 2>/dev/null; then
@@ -270,8 +272,7 @@ jq -n \
   'if ($comments | length) == 0 then { body: $body, event: "COMMENT", commit_id: $sha }
     else { body: $body, event: "COMMENT", commit_id: $sha, comments: $comments } end' > "${payload_file}"
 
-# Advisory: a failed POST warns, never fails. The endpoint is
-# all-or-nothing, so retry once summary-only rather than lose the review.
+# Advisory: failed POST warns, never fails; retry once summary-only.
 post_resp="${RUNNER_TEMP}/muse-post-resp.txt"
 if ! gh api --method POST \
   "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
@@ -279,9 +280,8 @@ if ! gh api --method POST \
   echo "::warning::Review POST failed: $(head -c 300 "${post_resp}" 2>/dev/null || true)"
   if [[ "${inline_payload}" != "[]" ]]; then
     echo "::warning::Retrying as summary-only."
-    # Reuse the rejected payload's already-sanitized bodies (paths
-    # re-sanitized here, bodies capped with markers), minus dangling
-    # "(see inline)" pointers; char-sliced back under the body limit.
+    # Reuse sanitized bodies (paths re-sanitized, bodies capped), minus
+    # dangling "(see inline)" pointers; char-sliced under the limit.
     jq '.body |= gsub(" \\(see inline\\)"; "") |
         .body += "\n\n<sub>Inline threads were rejected by the API; findings inlined below.</sub>\n\n" +
           ([.comments[]? | "### \(.path | gsub("\\n"; " ") | gsub("!\\[[^\\]]*\\]\\([^\\)]*\\)"; "") | gsub("(?<![A-Za-z0-9_])@(?=[A-Za-z0-9_])"; "@\u200b")):\(.line)\n\n\(.body | gsub("\\n\\n<sub>Useful\\?.*"; "") | if length > 2000 then .[0:2000] + "\n\n[...explanation truncated for length...]" else . end)"] | join("\n\n---\n\n")) |

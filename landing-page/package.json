@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@babel/core": "7.29.6",
-    "dompurify": "^3.4.13",
+    "dompurify": "^3.4.16",
     "picomatch": "^4.0.4",
     "postcss": "8.5.25",
     "react": "^19.2.3",
@@ -23,7 +23,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "js-yaml": "4.3.1",
+    "js-yaml": "4.3.2",
     "picomatch": "^4.0.4",
     "react-markdown": "^10.1.0",
     "rehype-autolink-headings": "^7.1.0",

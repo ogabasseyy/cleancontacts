@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@babel/core": "7.29.6",
-    "dompurify": "^3.4.13",
+    "dompurify": "^3.4.16",
     "picomatch": "^4.0.4",
     "postcss": "8.5.25",
     "react": "^19.2.3",

@@ -8,7 +8,7 @@
 - 🗑️ **Junk Contact Cleaner** - Remove invalid or low-quality contacts
 - 🔄 **Duplicate Detection** - Find and merge duplicate contacts
 - 📁 **CSV/TXT Import** - Import contacts from raw files
-- ☁️ **Google Contacts Sync** - Sync cleaned contacts to Google (Premium)
+- ☁️ **Contacts Sync** - Save cleaned contacts through Android's Contacts Provider (Premium)
 - 💳 **Paywall System** - Freemium model with premium features
 
 ## Tech Stack
@@ -20,7 +20,7 @@
 - **Async**: Coroutines + Flow
 - **Navigation**: Navigation Compose
 - **Billing**: Google Play Billing Library v6
-- **Google Integration**: People API + Google Auth
+- **Contacts Integration**: Android Contacts Provider; account-backed contacts may be synchronized by Android and the account's sync provider
 
 ## Project Structure
 
@@ -69,8 +69,7 @@ com.cleancontacts.app/
 
 - `READ_CONTACTS` - To scan and analyze device contacts
 - `WRITE_CONTACTS` - To delete, merge, and save contacts
-- `INTERNET` - For Google Contacts sync
-- `GET_ACCOUNTS` - For Google account authentication
+- `INTERNET` - For network-dependent app features
 
 ## Architecture
 
@@ -84,8 +83,7 @@ The app follows Clean Architecture principles:
 ### Data Layer  
 - Repository implementations
 - Junk and duplicate detection algorithms
-- Android ContactsProvider integration
-- Google People API integration
+- Android Contacts Provider integration for reading and managing device contacts
 
 ### UI Layer
 - Jetpack Compose screens
@@ -104,7 +102,7 @@ The app implements a freemium model:
 - Delete junk contacts
 - Merge duplicates
 - Save imported contacts
-- Sync with Google Contacts
+- Save cleaned contacts through Android's Contacts Provider
 
 ## License
 

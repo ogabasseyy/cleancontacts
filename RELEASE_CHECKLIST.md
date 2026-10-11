@@ -7,8 +7,7 @@ This document outlines the final steps required before pushing your app to the G
   - *URL*: `https://cleancontacts-ai-privacy-793339695925.us-west1.run.app`
 - [ ] **Data Safety Section**:
   - Disclose that you access **Contacts** (Personal Information).
-  - State that data is used for **App Functionality** and is **Not Shared** with third parties (since we process locally).
-- [ ] **OAuth Consent Screen**: Since you use the Google People API, you may need to submit your branding for verification if you exceed certain user limits.
+  - Verify collection, sharing, and processing disclosures against the shipped app and privacy policy. Contact data used only on-device may not count as collected; contacts saved to an account-backed Contacts Provider may be synchronized by Android or that account's provider. Do not claim that contact data is never shared or leaves the device without verifying the actual behavior and applicable Play Console definitions.
 
 ## 2. RevenueCat (In-App Purchases)
 - [ ] **Switch to Production API Key**:

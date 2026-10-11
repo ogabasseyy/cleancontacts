@@ -20,7 +20,7 @@
 - **Async**: Coroutines + Flow
 - **Navigation**: Navigation Compose
 - **Billing**: Google Play Billing Library v6
-- **Google Integration**: People API + Google Auth
+- **Contacts Integration**: Android Contacts Provider, including device-configured Google accounts
 
 ## Project Structure
 
@@ -85,7 +85,7 @@ The app follows Clean Architecture principles:
 - Repository implementations
 - Junk and duplicate detection algorithms
 - Android ContactsProvider integration
-- Google People API integration
+- Android ContactsProvider integration for reading and managing device contacts
 
 ### UI Layer
 - Jetpack Compose screens

@@ -153,11 +153,6 @@ dependencies {
     // direct Billing KTX version can force an SDK-incompatible Billing line.
     implementation(libs.revenuecat.purchases)
 
-    // Google People API & Auth
-    implementation(libs.play.services.auth)
-    implementation(libs.google.api.client.android)
-    implementation(libs.google.api.services.people)
-
     // 2026 AGP 9.0: Koin Dependency Injection (migrated from Hilt)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)

@@ -17,9 +17,6 @@ ksp = "2.3.12"
 coroutines = "1.11.0"
 coroutinesPlayServices = "1.11.0"
 accompanist = "0.37.3"
-playServicesAuth = "22.0.0"
-googleApiClient = "2.9.0"
-googlePeople = "v1-rev20251117-2.0.0"
 room = "2.8.5"
 sqlite = "2.7.0"
 paging = "3.5.0"
@@ -70,9 +67,6 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutinesPlayServices" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
-google-api-client-android = { group = "com.google.api-client", name = "google-api-client-android", version.ref = "googleApiClient" }
-google-api-services-people = { group = "com.google.apis", name = "google-api-services-people", version.ref = "googlePeople" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

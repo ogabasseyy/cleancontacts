@@ -8,7 +8,6 @@ This document outlines the final steps required before pushing your app to the G
 - [ ] **Data Safety Section**:
   - Disclose that you access **Contacts** (Personal Information).
   - State that data is used for **App Functionality** and is **Not Shared** with third parties (since we process locally).
-- [ ] **OAuth Consent Screen**: Since you use the Google People API, you may need to submit your branding for verification if you exceed certain user limits.
 
 ## 2. RevenueCat (In-App Purchases)
 - [ ] **Switch to Production API Key**:

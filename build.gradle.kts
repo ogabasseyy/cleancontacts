@@ -1,7 +1,7 @@
 import org.gradle.api.artifacts.VersionCatalogsExtension
 
 buildscript {
-    val jose4jVersion = "0.9.6"
+    val jose4jVersion = "0.9.7"
     val jdom2Version = "2.0.6.1"
     val commonsLang3Version = "3.20.0"
     val httpClientVersion = "4.5.14"

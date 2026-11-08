@@ -304,9 +304,23 @@ class IosContactRepository(
         return try {
             Logger.d("Logger", "Deleting ${contacts.size} contacts")
 
-            // Separate contacts with and without platform_uid
-            val (withUid, withoutUid) = contacts.partition { it.platform_uid != null }
-            Logger.d("Logger", "With UID: ${withUid.size}, Without UID: ${withoutUid.size}")
+            // ⚡ Bolt Optimization: Replace multiple passes (.partition.mapNotNull.map)
+            // with a single loop to eliminate intermediate allocations.
+            val uids = ArrayList<String>(contacts.size)
+            val ids = ArrayList<Long>(contacts.size)
+            var withoutUidCount = 0
+
+            for (i in contacts.indices) {
+                val contact = contacts[i]
+                ids.add(contact.id)
+                if (contact.platform_uid != null) {
+                    uids.add(contact.platform_uid)
+                } else {
+                    withoutUidCount++
+                }
+            }
+            val withUidCount = uids.size
+            Logger.d("Logger", "With UID: $withUidCount, Without UID: $withoutUidCount")
 
             // Record for history/undo before deletion
             if (contacts.isNotEmpty()) {
@@ -318,7 +332,6 @@ class IosContactRepository(
             }
 
             // Delete from device (only contacts with platform_uid)
-            val uids = withUid.mapNotNull { it.platform_uid }
             Logger.d("IosContactRepository", "🗑️ [DELETE] Deleting ${uids.size} contacts from device")
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result to ensure consistency
@@ -331,11 +344,11 @@ class IosContactRepository(
             }
 
             // Delete from DB - all contacts (those without uid are DB-only entries)
-            contactDao.deleteContacts(contacts.map { it.id })
+            contactDao.deleteContacts(ids)
 
             // Log warning if some contacts lacked platform_uid
-            if (withoutUid.isNotEmpty()) {
-                Logger.e("Logger", "Warning: ${withoutUid.size} contacts lacked platform_uid (DB-only deletion)")
+            if (withoutUidCount > 0) {
+                Logger.e("Logger", "Warning: $withoutUidCount contacts lacked platform_uid (DB-only deletion)")
             }
 
             // Update scan result summary to reflect changes
@@ -352,11 +365,18 @@ class IosContactRepository(
 
     override suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean {
         // Fallback for Long-based deletions (Android style)
-        val contacts = contactDao.getContactsByIds(contactIds).map { it.toContact() }
+        val contacts = contactDao.getContactsByIds(contactIds)
         var deviceDeleteSuccess = true
 
         try {
-            val uids = contacts.mapNotNull { it.platform_uid }
+            // ⚡ Bolt Optimization: Prevent heavy toContact() mapping
+            val uids = ArrayList<String>(contacts.size)
+            for (i in contacts.indices) {
+                val uid = contacts[i].platformUid
+                if (uid != null) {
+                    uids.add(uid)
+                }
+            }
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result
                 deviceDeleteSuccess = contactsSource.deleteContacts(uids)

@@ -347,3 +347,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing chained mapping sequence with single-pass indexed loop
 **Learning:** Using chained `.asSequence().filter { ... }.map { ... }.toList()` creates unnecessary intermediate iterator objects and mapping sequences, creating GC overhead in high-frequency batch processing operations.
 **Action:** Always replace chained functional sequences with single-pass, pre-sized `ArrayList` loops for filtering and mapping large batch arrays.
+
+## 2026-11-08 - Prevent Heavy Mapping for Simple Column Extractions
+**Learning:** In `deleteContactsByIds`, mapping database results via `.map { it.toContact() }` just to extract a `platformUid` triggers expensive string parsing and list allocations internally.
+**Action:** Avoid full entity mapping (`toContact()`) when only a single property is needed. Use an indexed loop directly on the raw `LocalContact` results to extract the required field into a pre-allocated `ArrayList`.

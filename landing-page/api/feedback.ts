@@ -83,10 +83,16 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   }
 
   // 2026 Security Fix: Apply rate limiting based on client IP
+  // Prioritize trusted edge headers (Vercel/Nginx) before x-forwarded-for to prevent spoofing
+  const vercelForwardedFor = req.headers?.["x-vercel-forwarded-for"];
+  const realIp = req.headers?.["x-real-ip"];
   const forwardedFor = req.headers?.["x-forwarded-for"];
-  const clientIp = Array.isArray(forwardedFor)
-    ? forwardedFor[0]
-    : forwardedFor?.split(',')[0]?.trim() || "unknown-ip";
+
+  const primaryIpStr = vercelForwardedFor || realIp || forwardedFor;
+
+  const clientIp = Array.isArray(primaryIpStr)
+    ? primaryIpStr[0]
+    : primaryIpStr?.split(',')[0]?.trim() || "unknown-ip";
 
   cleanupRateLimitMap();
 

@@ -352,11 +352,17 @@ class IosContactRepository(
 
     override suspend fun deleteContactsByIds(contactIds: List<Long>): Boolean {
         // Fallback for Long-based deletions (Android style)
-        val contacts = contactDao.getContactsByIds(contactIds).map { it.toContact() }
+        val dbContacts = contactDao.getContactsByIds(contactIds)
         var deviceDeleteSuccess = true
 
         try {
-            val uids = contacts.mapNotNull { it.platform_uid }
+            val uids = ArrayList<String>(dbContacts.size)
+            for (i in dbContacts.indices) {
+                val uid = dbContacts[i].platformUid
+                if (uid != null) {
+                    uids.add(uid)
+                }
+            }
             if (uids.isNotEmpty()) {
                 // 2026 Best Practice: Check device deletion result
                 deviceDeleteSuccess = contactsSource.deleteContacts(uids)

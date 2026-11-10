@@ -94,3 +94,18 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2025-10-24 - Rate Limiting Header Spoofing
+**Vulnerability:** Relying solely on `x-forwarded-for` for rate limiting allows attackers to bypass limits by spoofing the header.
+**Learning:** Vercel edge networks and reverse proxies provide trusted headers like `x-vercel-forwarded-for` and `x-real-ip`.
+**Prevention:** Always prioritize trusted edge proxy headers over `x-forwarded-for` when identifying client IPs in serverless environments.
+
+## 2025-10-24 - OSV Scanner CI Check Failures
+**Vulnerability:** CI fails on dependency vulnerabilities (like `dompurify` and `vite`) flagged by OSV scanner, preventing merges.
+**Learning:** Overriding dependencies to specific vulnerable versions or ignoring them via strict equality causes the CI build to fail.
+**Prevention:** Use appropriate version constraints like `^` to install the latest patched version within the secure minor/patch range (e.g. `pnpm install dompurify@^3.4.17 vite@^6.4.5`) when fixing vulnerabilities.
+
+## 2025-10-24 - NPM Lockfile Sync
+**Vulnerability:** CI fails during build when using `npm ci` because the `package-lock.json` is out of sync with `package.json` updates (e.g., from vulnerability patches).
+**Learning:** `pnpm install` does not automatically update the `package-lock.json` lockfile for npm CI commands.
+**Prevention:** Always run `npm install` inside the relevant directory to sync the `package-lock.json` after bumping dependency versions to resolve OSV vulnerabilities.

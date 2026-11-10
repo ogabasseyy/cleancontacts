@@ -99,3 +99,8 @@
 **Vulnerability:** Relying solely on `x-forwarded-for` for rate limiting allows attackers to bypass limits by spoofing the header.
 **Learning:** Vercel edge networks and reverse proxies provide trusted headers like `x-vercel-forwarded-for` and `x-real-ip`.
 **Prevention:** Always prioritize trusted edge proxy headers over `x-forwarded-for` when identifying client IPs in serverless environments.
+
+## 2025-10-24 - OSV Scanner CI Check Failures
+**Vulnerability:** CI fails on dependency vulnerabilities (like `dompurify` and `vite`) flagged by OSV scanner, preventing merges.
+**Learning:** Overriding dependencies to specific vulnerable versions or ignoring them via strict equality causes the CI build to fail.
+**Prevention:** Use appropriate version constraints like `^` to install the latest patched version within the secure minor/patch range (e.g. `pnpm install dompurify@^3.4.17 vite@^6.4.5`) when fixing vulnerabilities.

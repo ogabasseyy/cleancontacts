@@ -104,3 +104,8 @@
 **Vulnerability:** CI fails on dependency vulnerabilities (like `dompurify` and `vite`) flagged by OSV scanner, preventing merges.
 **Learning:** Overriding dependencies to specific vulnerable versions or ignoring them via strict equality causes the CI build to fail.
 **Prevention:** Use appropriate version constraints like `^` to install the latest patched version within the secure minor/patch range (e.g. `pnpm install dompurify@^3.4.17 vite@^6.4.5`) when fixing vulnerabilities.
+
+## 2025-10-24 - NPM Lockfile Sync
+**Vulnerability:** CI fails during build when using `npm ci` because the `package-lock.json` is out of sync with `package.json` updates (e.g., from vulnerability patches).
+**Learning:** `pnpm install` does not automatically update the `package-lock.json` lockfile for npm CI commands.
+**Prevention:** Always run `npm install` inside the relevant directory to sync the `package-lock.json` after bumping dependency versions to resolve OSV vulnerabilities.

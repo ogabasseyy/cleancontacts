@@ -347,3 +347,7 @@ val needsEscape = firstChar == '=' || firstChar == '@' || firstChar == '+'
 ## 2026-10-18 - Replacing chained mapping sequence with single-pass indexed loop
 **Learning:** Using chained `.asSequence().filter { ... }.map { ... }.toList()` creates unnecessary intermediate iterator objects and mapping sequences, creating GC overhead in high-frequency batch processing operations.
 **Action:** Always replace chained functional sequences with single-pass, pre-sized `ArrayList` loops for filtering and mapping large batch arrays.
+
+## 2026-10-18 - Replacing chunked with subList in high-frequency batch processing paths
+**Learning:** Using `chunked(size)` creates multiple small intermediate wrapper list objects, increasing garbage collection overhead in memory-sensitive paths where large data sets are repeatedly processed in batches.
+**Action:** Replace `chunked(size)` with manual `while` loops that track bounds with a local `startIndex` variable and retrieve items via `.subList(startIndex, endIndex)` to minimize extra allocations.

@@ -83,7 +83,10 @@ export default async function handler(req: FeedbackRequest, res: FeedbackRespons
   }
 
   // 2026 Security Fix: Apply rate limiting based on client IP
-  const forwardedFor = req.headers?.["x-forwarded-for"];
+  // Use trusted edge proxy headers to prevent IP spoofing
+  const forwardedFor = req.headers?.["x-vercel-forwarded-for"] ||
+                       req.headers?.["x-real-ip"] ||
+                       req.headers?.["x-forwarded-for"];
   const clientIp = Array.isArray(forwardedFor)
     ? forwardedFor[0]
     : forwardedFor?.split(',')[0]?.trim() || "unknown-ip";

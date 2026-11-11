@@ -83,10 +83,16 @@ class WhatsAppDetectorRepositoryImpl(
         val allResults = mutableMapOf<String, Boolean>()
         var whatsappCount = 0
 
-        val batches = numbers.chunked(effectiveBatchSize)
         var checkedCount = 0
+        var startIndex = 0
 
-        for (batch in batches) {
+        // 2026 Optimization: Replaced `.chunked()` with manual loop and `.subList()`.
+        // `.chunked()` creates intermediate ArrayList copies which causes GC overhead
+        // in high-frequency batching scenarios. `.subList()` creates lightweight views.
+        while (startIndex < numbers.size) {
+            val endIndex = (startIndex + effectiveBatchSize).coerceAtMost(numbers.size)
+            val batch = numbers.subList(startIndex, endIndex)
+
             val response = api.checkNumbers(userId, batch)
 
             if (!response.success) {
@@ -110,6 +116,7 @@ class WhatsAppDetectorRepositoryImpl(
             if (checkedCount < numbers.size) {
                 delay(delayMs)
             }
+            startIndex = endIndex
         }
 
         emit(WhatsAppCheckProgress.Complete(allResults, whatsappCount))

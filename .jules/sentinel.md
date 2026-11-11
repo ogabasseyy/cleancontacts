@@ -94,3 +94,8 @@
 **Vulnerability:** The `WhatsAppContactsResponse` data class contained a `userId` field, which was being exposed when the object was logged, as it lacked a custom `toString()` method.
 **Learning:** Default data class `toString()` methods automatically expose all fields, leading to accidental PII or sensitive data leaks in logs (CWE-532).
 **Prevention:** Always explicitly override `toString()` to redact sensitive fields (like `userId`, `phoneNumber`, `code`) in any data class representing API requests, responses, or domain models.
+
+## 2026-10-24 - [HIGH] IP Spoofing in Rate Limiting
+**Vulnerability:** The API endpoint `feedback.ts` used the `x-forwarded-for` header for rate limiting, which can be easily spoofed by clients to bypass the limit.
+**Learning:** In serverless or edge environments (e.g., Vercel), do not blindly trust the `x-forwarded-for` header.
+**Prevention:** Always prioritize trusted edge proxy headers like `x-real-ip` or `x-vercel-forwarded-for` for client IP identification.

@@ -150,3 +150,7 @@
 ## 2026-05-18 - Consistent Visual Affordance for Actions
 **Learning:** Inconsistent visual affordances (such as lacking an email icon on a `mailto:` link in one card while having it in others) degrades the micro-UX and user trust. Users rely on consistent iconography to quickly identify the nature of an action.
 **Action:** Ensure that recurring action types (like `mailto:` links, external links) utilize a consistent set of iconography across all similar components (e.g., all informational cards) to establish a predictable interaction pattern.
+
+## 2026-11-12 - Decorative SVGs in Hero Buttons
+**Learning:** Even when `aria-hidden="true"` is applied to decorative SVGs within primary call-to-action buttons (like App Store/Google Play links), missing `focusable="false"` can still cause these SVGs to become redundant tab stops in certain browser environments.
+**Action:** Always pair `aria-hidden="true"` with `focusable="false"` on decorative `<svg>` elements within interactive `<a>` tags to guarantee a single, clean tab stop for keyboard users.
